@@ -65,7 +65,7 @@ function CheckoutPage() {
 
   const shipping = country?.base_shipping_fee ?? 0;
   const total = subtotal + shipping;
-  const availableMethods = PAYMENT_METHODS.filter((m) => !country || m.countries.includes(country.code));
+  const availableMethods = PAYMENT_METHODS.filter((m) => !country || (m.countries as readonly string[]).includes(country.code));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
