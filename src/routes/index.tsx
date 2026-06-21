@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Leaf, Truck, ShieldCheck, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/product-card";
+import { Flag } from "@/components/flag";
 import { useCountry } from "@/lib/country-context";
 import heroImage from "@/assets/hero-cereals.jpg";
 
