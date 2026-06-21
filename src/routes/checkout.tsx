@@ -163,29 +163,77 @@ function CheckoutPage() {
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-xl font-bold text-primary">Méthode de paiement</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {availableMethods.map((m) => (
-                <label
-                  key={m.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                    form.payment_method === m.id ? "border-gold bg-gold/10" : "border-border hover:border-gold/40"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    className="sr-only"
-                    checked={form.payment_method === m.id}
-                    onChange={() => setForm({ ...form, payment_method: m.id })}
-                  />
-                  <m.icon className="h-5 w-5 text-gold" />
-                  <span className="font-medium">{m.label}</span>
-                </label>
-              ))}
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold text-primary">Méthode de paiement</h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                <ShieldCheck className="h-3.5 w-3.5" /> Paiement sécurisé
+              </span>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground">
-              ℹ️ Le paiement en ligne sera activé dès que les clés CinetPay seront configurées. Pour le moment, votre commande sera enregistrée et notre équipe vous contactera pour finaliser le paiement.
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {availableMethods.map((m) => {
+                const selected = form.payment_method === m.id;
+                return (
+                  <label
+                    key={m.id}
+                    className={`group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition ${
+                      selected ? `border-transparent ring-2 ${m.ring} shadow-soft` : "border-border hover:border-gold/40"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment"
+                      className="sr-only"
+                      checked={selected}
+                      onChange={() => setForm({ ...form, payment_method: m.id })}
+                    />
+                    <div className={`grid h-14 w-20 shrink-0 place-items-center rounded-xl ${m.bg} ${m.fg} font-bold tracking-tight shadow-sm`}>
+                      <span className="text-sm uppercase">{m.badge}</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-primary">{m.label}</div>
+                      <div className="text-xs text-muted-foreground">{m.tagline}</div>
+                    </div>
+                    <div className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? "border-gold bg-gold" : "border-border"}`}>
+                      {selected && <span className="h-2 w-2 rounded-full bg-gold-foreground" />}
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            {form.payment_method === "visa" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-border bg-secondary/40 p-5">
+                <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5" /> Informations de la carte (démo)
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Numéro de carte</label>
+                    <input disabled placeholder="4242 4242 4242 4242" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Expiration</label>
+                    <input disabled placeholder="MM / AA" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">CVC</label>
+                    <input disabled placeholder="123" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(form.payment_method === "orange_money" || form.payment_method === "mtn_money" || form.payment_method === "moov_money" || form.payment_method === "wave") && (
+              <div className="mt-5 rounded-2xl border border-dashed border-border bg-secondary/40 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Numéro Mobile Money (démo)</label>
+                <input disabled placeholder="+225 07 00 00 00 00" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification sur votre téléphone pour valider le paiement.</p>
+              </div>
+            )}
+
+            <p className="mt-4 rounded-xl bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+              ℹ️ Mode démo — le paiement en ligne sera activé dès la configuration des clés CinetPay. Votre commande sera enregistrée et notre équipe vous contactera.
             </p>
           </section>
         </div>
