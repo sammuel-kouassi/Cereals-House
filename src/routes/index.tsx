@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Leaf, Truck, ShieldCheck, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/product-card";
+import { Flag } from "@/components/flag";
 import { useCountry } from "@/lib/country-context";
 import heroImage from "@/assets/hero-cereals.jpg";
 
@@ -55,7 +56,11 @@ function HomePage() {
             </h1>
             <p className="mt-6 max-w-xl text-lg text-primary-foreground/85">
               Cereals House sélectionne les meilleures céréales du continent : riz parfumé, fonio, mil, maïs, sorgho.
-              Livré chez vous {country ? `(${country.flag_emoji} ${country.name})` : ""} avec paiement Mobile Money ou Visa.
+              Livré chez vous {country ? (
+                <span className="inline-flex items-center gap-1.5 align-middle">
+                  (<Flag code={country.code} /> {country.name})
+                </span>
+              ) : null} avec paiement Mobile Money ou Visa.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link

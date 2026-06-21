@@ -146,7 +146,7 @@ function CheckoutPage() {
               <Field label="Nom complet *" value={form.full_name} onChange={(v) => setForm({ ...form, full_name: v })} />
               <Field label="Téléphone *" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+225 …" />
               <Field label="Ville *" value={form.city} onChange={(v) => setForm({ ...form, city: v })} />
-              <Field label="Pays" value={`${country?.flag_emoji ?? ""} ${country?.name ?? ""}`} onChange={() => {}} disabled />
+              <Field label="Pays" value={country?.name ?? ""} onChange={() => {}} disabled />
               <div className="sm:col-span-2">
                 <Field label="Adresse *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
               </div>
