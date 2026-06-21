@@ -1,20 +1,32 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, Smartphone } from "lucide-react";
+import { Lock, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart-context";
 import { useCountry } from "@/lib/country-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
 
-const PAYMENT_METHODS = [
-  { id: "orange_money", label: "Orange Money", icon: Smartphone, countries: ["CI", "BJ", "ML", "BF", "TG"] },
-  { id: "wave", label: "Wave", icon: Smartphone, countries: ["CI", "BJ", "ML", "BF", "TG"] },
-  { id: "mtn_money", label: "MTN Money", icon: Smartphone, countries: ["CI", "BJ", "BF", "GH"] },
-  { id: "moov_money", label: "Moov Money", icon: Smartphone, countries: ["CI", "BJ", "ML", "BF", "TG"] },
-  { id: "visa", label: "Carte Visa / Mastercard", icon: CreditCard, countries: ["CI", "BJ", "ML", "BF", "TG", "GH", "FR", "US"] },
-] as const;
+type PaymentMethod = {
+  id: "orange_money" | "wave" | "mtn_money" | "moov_money" | "visa";
+  label: string;
+  tagline: string;
+  countries: string[];
+  // brand visuals
+  bg: string;
+  fg: string;
+  ring: string;
+  badge: string; // short brand mark
+};
+
+const PAYMENT_METHODS: PaymentMethod[] = [
+  { id: "orange_money", label: "Orange Money", tagline: "Paiement mobile sécurisé", countries: ["CI","BJ","ML","BF","TG"], bg: "bg-[#FF7900]", fg: "text-white", ring: "ring-[#FF7900]", badge: "orange" },
+  { id: "wave",         label: "Wave",         tagline: "Transfert instantané",     countries: ["CI","BJ","ML","BF","TG"], bg: "bg-[#1DC8F2]", fg: "text-white", ring: "ring-[#1DC8F2]", badge: "wave~" },
+  { id: "mtn_money",    label: "MTN Mobile Money", tagline: "Réseau MTN",           countries: ["CI","BJ","BF","GH"],      bg: "bg-[#FFCC00]", fg: "text-black", ring: "ring-[#FFCC00]", badge: "MTN" },
+  { id: "moov_money",   label: "Moov Money",   tagline: "Paiement Moov Africa",     countries: ["CI","BJ","ML","BF","TG"], bg: "bg-[#005BAA]", fg: "text-white", ring: "ring-[#005BAA]", badge: "moov" },
+  { id: "visa",         label: "Carte Visa / Mastercard", tagline: "Paiement par carte bancaire", countries: ["CI","BJ","ML","BF","TG","GH","FR","US"], bg: "bg-gradient-to-br from-slate-800 to-slate-900", fg: "text-white", ring: "ring-slate-800", badge: "VISA" },
+];
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Commande — Cereals House" }] }),
