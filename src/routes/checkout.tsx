@@ -239,11 +239,35 @@ function CheckoutPage() {
               </div>
             )}
 
-            {(form.payment_method === "orange_money" || form.payment_method === "mtn_money" || form.payment_method === "moov_money" || form.payment_method === "wave") && (
-              <div className="mt-5 rounded-2xl border border-dashed border-border bg-secondary/40 p-5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Numéro Mobile Money (démo)</label>
-                <input disabled placeholder="+225 07 00 00 00 00" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification sur votre téléphone pour valider le paiement.</p>
+            {form.payment_method === "orange_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#FF7900]/30 bg-[#FF7900]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#FF7900]">Numéro Orange Money (démo)</label>
+                <input disabled placeholder="+225 07 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#FF7900]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Orange Money pour valider le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "mtn_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#FFCC00]/40 bg-[#FFCC00]/10 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#B38F00]">Numéro MTN Mobile Money (démo)</label>
+                <input disabled placeholder="+225 05 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#FFCC00]/30 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification MTN pour confirmer le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "wave" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#1DC8F2]/30 bg-[#1DC8F2]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#0E8DA8]">Numéro Wave (démo)</label>
+                <input disabled placeholder="+225 01 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#1DC8F2]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Wave pour approuver le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "moov_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#005BAA]/30 bg-[#005BAA]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#005BAA]">Numéro Moov Money (démo)</label>
+                <input disabled placeholder="+225 06 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#005BAA]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Moov pour confirmer le paiement.</p>
               </div>
             )}
 
