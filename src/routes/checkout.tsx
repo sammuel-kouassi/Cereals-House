@@ -54,6 +54,15 @@ function CheckoutPage() {
     payment_method: supportedDefault,
   });
 
+  useEffect(() => {
+    if (!country) return;
+    const supported = PAYMENT_METHODS.some((m) => (m.countries as readonly string[]).includes(country.code) && m.id === form.payment_method);
+    if (!supported) {
+      const fallback = PAYMENT_METHODS.find((m) => (m.countries as readonly string[]).includes(country.code))?.id ?? "visa";
+      setForm((prev) => ({ ...prev, payment_method: fallback }));
+    }
+  }, [country?.code]);
+
   if (loading) return <div className="mx-auto max-w-3xl px-4 py-20 text-center">Chargement…</div>;
 
   if (!user) {
