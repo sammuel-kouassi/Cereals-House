@@ -44,13 +44,14 @@ function CheckoutPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
+  const supportedDefault = PAYMENT_METHODS.find((m) => !country || (m.countries as readonly string[]).includes(country.code))?.id ?? "visa";
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
     address: "",
     city: "",
     notes: "",
-    payment_method: "orange_money" as (typeof PAYMENT_METHODS)[number]["id"],
+    payment_method: supportedDefault,
   });
 
   if (loading) return <div className="mx-auto max-w-3xl px-4 py-20 text-center">Chargement…</div>;
