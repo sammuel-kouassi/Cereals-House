@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Lock, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,14 +44,24 @@ function CheckoutPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
+  const supportedDefault = PAYMENT_METHODS.find((m) => !country || (m.countries as readonly string[]).includes(country.code))?.id ?? "visa";
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
     address: "",
     city: "",
     notes: "",
-    payment_method: "orange_money" as (typeof PAYMENT_METHODS)[number]["id"],
+    payment_method: supportedDefault,
   });
+
+  useEffect(() => {
+    if (!country) return;
+    const supported = PAYMENT_METHODS.some((m) => (m.countries as readonly string[]).includes(country.code) && m.id === form.payment_method);
+    if (!supported) {
+      const fallback = PAYMENT_METHODS.find((m) => (m.countries as readonly string[]).includes(country.code))?.id ?? "visa";
+      setForm((prev) => ({ ...prev, payment_method: fallback }));
+    }
+  }, [country?.code]);
 
   if (loading) return <div className="mx-auto max-w-3xl px-4 py-20 text-center">Chargement…</div>;
 
@@ -77,7 +87,6 @@ function CheckoutPage() {
 
   const shipping = country?.base_shipping_fee ?? 0;
   const total = subtotal + shipping;
-  const availableMethods = PAYMENT_METHODS.filter((m) => !country || (m.countries as readonly string[]).includes(country.code));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -171,13 +180,14 @@ function CheckoutPage() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {availableMethods.map((m) => {
+              {PAYMENT_METHODS.map((m) => {
                 const selected = form.payment_method === m.id;
+                const supported = !country || (m.countries as readonly string[]).includes(country.code);
                 return (
                   <label
                     key={m.id}
-                    className={`group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition ${
-                      selected ? `border-transparent ring-2 ${m.ring} shadow-soft` : "border-border hover:border-gold/40"
+                    className={`group relative flex items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition ${
+                      selected && supported ? `border-transparent ring-2 ${m.ring} shadow-soft` : supported ? "border-border hover:border-gold/40 cursor-pointer" : "border-border opacity-60 cursor-not-allowed"
                     }`}
                   >
                     <input
@@ -185,14 +195,28 @@ function CheckoutPage() {
                       name="payment"
                       className="sr-only"
                       checked={selected}
-                      onChange={() => setForm({ ...form, payment_method: m.id })}
+                      disabled={!supported}
+                      onChange={() => supported && setForm({ ...form, payment_method: m.id })}
                     />
                     <div className={`grid h-14 w-20 shrink-0 place-items-center rounded-xl ${m.bg} ${m.fg} font-bold tracking-tight shadow-sm`}>
-                      <span className="text-sm uppercase">{m.badge}</span>
+                      {m.id === "orange_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Orange</text></svg>
+                      ) : m.id === "wave" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Wave</text></svg>
+                      ) : m.id === "mtn_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">MTN</text></svg>
+                      ) : m.id === "moov_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Moov</text></svg>
+                      ) : (
+                        <span className="text-sm uppercase">{m.badge}</span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-primary">{m.label}</div>
                       <div className="text-xs text-muted-foreground">{m.tagline}</div>
+                      {!supported && country && (
+                        <div className="mt-0.5 text-[10px] font-medium text-amber-600">Non disponible en {country.name}</div>
+                      )}
                     </div>
                     <div className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? "border-gold bg-gold" : "border-border"}`}>
                       {selected && <span className="h-2 w-2 rounded-full bg-gold-foreground" />}
@@ -224,11 +248,35 @@ function CheckoutPage() {
               </div>
             )}
 
-            {(form.payment_method === "orange_money" || form.payment_method === "mtn_money" || form.payment_method === "moov_money" || form.payment_method === "wave") && (
-              <div className="mt-5 rounded-2xl border border-dashed border-border bg-secondary/40 p-5">
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Numéro Mobile Money (démo)</label>
-                <input disabled placeholder="+225 07 00 00 00 00" className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification sur votre téléphone pour valider le paiement.</p>
+            {form.payment_method === "orange_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#FF7900]/30 bg-[#FF7900]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#FF7900]">Numéro Orange Money (démo)</label>
+                <input disabled placeholder="+225 07 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#FF7900]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Orange Money pour valider le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "mtn_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#FFCC00]/40 bg-[#FFCC00]/10 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#B38F00]">Numéro MTN Mobile Money (démo)</label>
+                <input disabled placeholder="+225 05 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#FFCC00]/30 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification MTN pour confirmer le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "wave" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#1DC8F2]/30 bg-[#1DC8F2]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#0E8DA8]">Numéro Wave (démo)</label>
+                <input disabled placeholder="+225 01 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#1DC8F2]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Wave pour approuver le paiement.</p>
+              </div>
+            )}
+
+            {form.payment_method === "moov_money" && (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#005BAA]/30 bg-[#005BAA]/5 p-5">
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-[#005BAA]">Numéro Moov Money (démo)</label>
+                <input disabled placeholder="+225 06 00 00 00 00" className="mt-1 w-full rounded-xl border border-[#005BAA]/20 bg-background px-3 py-2 text-sm" />
+                <p className="mt-2 text-xs text-muted-foreground">Vous recevrez une notification Moov pour confirmer le paiement.</p>
               </div>
             )}
 
