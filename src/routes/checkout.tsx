@@ -171,13 +171,14 @@ function CheckoutPage() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {availableMethods.map((m) => {
+              {PAYMENT_METHODS.map((m) => {
                 const selected = form.payment_method === m.id;
+                const supported = !country || (m.countries as readonly string[]).includes(country.code);
                 return (
                   <label
                     key={m.id}
-                    className={`group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition ${
-                      selected ? `border-transparent ring-2 ${m.ring} shadow-soft` : "border-border hover:border-gold/40"
+                    className={`group relative flex items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition ${
+                      selected && supported ? `border-transparent ring-2 ${m.ring} shadow-soft` : supported ? "border-border hover:border-gold/40 cursor-pointer" : "border-border opacity-60 cursor-not-allowed"
                     }`}
                   >
                     <input
@@ -185,14 +186,28 @@ function CheckoutPage() {
                       name="payment"
                       className="sr-only"
                       checked={selected}
-                      onChange={() => setForm({ ...form, payment_method: m.id })}
+                      disabled={!supported}
+                      onChange={() => supported && setForm({ ...form, payment_method: m.id })}
                     />
                     <div className={`grid h-14 w-20 shrink-0 place-items-center rounded-xl ${m.bg} ${m.fg} font-bold tracking-tight shadow-sm`}>
-                      <span className="text-sm uppercase">{m.badge}</span>
+                      {m.id === "orange_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Orange</text></svg>
+                      ) : m.id === "wave" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Wave</text></svg>
+                      ) : m.id === "mtn_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">MTN</text></svg>
+                      ) : m.id === "moov_money" ? (
+                        <svg viewBox="0 0 80 28" className="h-7 w-auto" fill="currentColor"><text x="40" y="20" textAnchor="middle" fontSize="14" fontWeight="bold" fontFamily="system-ui">Moov</text></svg>
+                      ) : (
+                        <span className="text-sm uppercase">{m.badge}</span>
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="font-semibold text-primary">{m.label}</div>
                       <div className="text-xs text-muted-foreground">{m.tagline}</div>
+                      {!supported && country && (
+                        <div className="mt-0.5 text-[10px] font-medium text-amber-600">Non disponible en {country.name}</div>
+                      )}
                     </div>
                     <div className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? "border-gold bg-gold" : "border-border"}`}>
                       {selected && <span className="h-2 w-2 rounded-full bg-gold-foreground" />}
