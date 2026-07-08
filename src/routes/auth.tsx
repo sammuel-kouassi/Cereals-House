@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth-context";
 import logo from "@/assets/logo.jpeg";
 
@@ -16,6 +16,7 @@ function AuthPage() {
   const router = useRouter();
   const { redirect } = Route.useSearch();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,23 +38,28 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin, data: { full_name: fullName } },
         });
         if (error) throw error;
-        toast.success("Compte créé ! Vous êtes connecté.");
+        toast.success(t("auth.createdToast"));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Connexion réussie !");
+        toast.success(t("auth.signedInToast"));
       }
     } catch (err: any) {
-      toast.error(err?.message ?? "Erreur d'authentification");
+      toast.error(err?.message ?? t("auth.errorGeneric"));
     } finally {
       setLoading(false);
     }
   }
 
   async function handleGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) {
-      toast.error(result.error.message ?? "Connexion Google impossible");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      toast.error(err?.message ?? t("auth.errorGoogle"));
     }
   }
 
@@ -62,83 +68,52 @@ function AuthPage() {
       <div className="text-center">
         <img src={logo} alt="" className="mx-auto h-16 w-16 rounded-full ring-2 ring-gold/40" />
         <h1 className="mt-4 font-display text-3xl font-bold text-primary">
-          {mode === "signin" ? "Heureux de vous revoir" : "Créer votre compte"}
+          {mode === "signin" ? t("auth.signInTitle") : t("auth.signUpTitle")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {mode === "signin" ? "Connectez-vous pour passer commande" : "Rejoignez Cereals House en quelques secondes"}
+          {mode === "signin" ? t("auth.signInSubtitle") : t("auth.signUpSubtitle")}
         </p>
       </div>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-soft">
-        <button
-          type="button"
-          onClick={handleGoogle}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background py-3 text-sm font-semibold transition hover:border-gold hover:bg-secondary"
-        >
-          <GoogleIcon /> Continuer avec Google
+        <button type="button" onClick={handleGoogle} className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background py-3 text-sm font-semibold transition hover:border-gold hover:bg-secondary">
+          <GoogleIcon /> {t("auth.google")}
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> OU <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1 bg-border" /> {t("auth.or")} <div className="h-px flex-1 bg-border" />
         </div>
 
         <form onSubmit={handleEmail} className="space-y-3">
           {mode === "signup" && (
             <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nom complet</span>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none"
-              />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("auth.fullName")}</span>
+              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none" />
             </label>
           )}
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none"
-            />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("auth.email")}</span>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none" />
           </label>
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Mot de passe</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none"
-            />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("auth.password")}</span>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 focus:border-gold focus:outline-none" />
           </label>
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full rounded-full bg-gold py-3 text-sm font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 disabled:opacity-50"
-          >
-            {loading ? "…" : mode === "signin" ? "Se connecter" : "Créer mon compte"}
+          <button type="submit" disabled={loading} className="mt-2 w-full rounded-full bg-gold py-3 text-sm font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 disabled:opacity-50">
+            {loading ? "…" : mode === "signin" ? t("auth.signInBtn") : t("auth.signUpBtn")}
           </button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
-          {mode === "signin" ? "Pas encore de compte ?" : "Déjà inscrit ?"}{" "}
-          <button
-            type="button"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="font-semibold text-gold hover:underline"
-          >
-            {mode === "signin" ? "Inscrivez-vous" : "Connectez-vous"}
+          {mode === "signin" ? t("auth.noAccount") : t("auth.haveAccount")}{" "}
+          <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")} className="font-semibold text-gold hover:underline">
+            {mode === "signin" ? t("auth.goSignUp") : t("auth.goSignIn")}
           </button>
         </p>
       </div>
 
       <Link to="/" className="mt-6 text-center text-sm text-muted-foreground hover:text-gold">
-        ← Retour à l'accueil
+        {t("auth.back")}
       </Link>
     </div>
   );

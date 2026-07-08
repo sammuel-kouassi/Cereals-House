@@ -1,9 +1,11 @@
 import { useCountry } from "@/lib/country-context";
 import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Flag } from "@/components/flag";
 
 export function CountrySelector() {
   const { country, countries, setCountryCode } = useCountry();
+  const { t } = useTranslation();
   if (!country) return null;
   return (
     <label className="flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground/80 transition hover:border-gold/50">
@@ -13,7 +15,7 @@ export function CountrySelector() {
         value={country.code}
         onChange={(e) => setCountryCode(e.target.value)}
         className="bg-transparent outline-none [&>option]:bg-background [&>option]:text-foreground"
-        aria-label="Pays de livraison"
+        aria-label={t("common.country")}
       >
         {countries.map((c) => (
           <option key={c.code} value={c.code}>

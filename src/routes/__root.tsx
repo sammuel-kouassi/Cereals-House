@@ -1,4 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import i18n from "@/lib/i18n"; // ← déclenche i18n.init() dès le chargement du module
+
 import {
   Outlet,
   Link,
@@ -23,15 +25,15 @@ function NotFoundComponent() {
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="font-display text-8xl font-bold text-gradient-gold">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page introuvable</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Page introuvable / Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          La page que vous cherchez n'existe pas ou a été déplacée.
+          La page que vous cherchez n'existe pas ou a été déplacée. / The page you are looking for does not exist.
         </p>
         <Link
           to="/"
           className="mt-6 inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-gold hover:text-gold-foreground"
         >
-          Retour à l'accueil
+          Retour à l'accueil / Back to Home
         </Link>
       </div>
     </div>
@@ -55,21 +57,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           Une erreur est survenue. Veuillez réessayer ou retourner à l'accueil.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-gold hover:text-gold-foreground"
-          >
-            Réessayer
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
-            Accueil
-          </a>
+            <button
+              onClick={() => {
+                router.invalidate();
+                reset();
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-gold hover:text-gold-foreground"
+            >
+              Réessayer
+            </button>
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-full border border-input bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            >
+              Accueil
+            </Link>
         </div>
       </div>
     </div>
@@ -104,9 +106,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+// Plus besoin de LanguageProvider : i18n est déjà initialisé via l'import en haut du fichier
 function RootShell({ children }: { children: ReactNode }) {
+  return <HtmlShell>{children}</HtmlShell>;
+}
+
+function HtmlShell({ children }: { children: ReactNode }) {
+  const lang = i18n.resolvedLanguage ?? i18n.language ?? "fr";
   return (
-    <html lang="fr">
+    <html lang={lang}>
       <head>
         <HeadContent />
       </head>

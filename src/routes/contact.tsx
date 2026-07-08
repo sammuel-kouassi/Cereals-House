@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle, ArrowUpRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -12,12 +13,19 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const { t } = useTranslation();
+
+  const cardBase =
+    "group relative overflow-hidden rounded-2xl border border-border bg-card p-8 transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-gold";
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="text-center">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gold">Contact</span>
-        <h1 className="mt-2 font-display text-5xl font-bold text-primary">Nous parler</h1>
-        <p className="mt-3 text-muted-foreground">Notre équipe est à votre écoute pour toute question ou commande spéciale.</p>
+      <div className="text-center motion-safe:animate-[fade-in_0.6s_ease-out_both]">
+        <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold">
+          <span className="h-px w-5 bg-gold" /> {t("contact.eyebrow")} <span className="h-px w-5 bg-gold" />
+        </span>
+        <h1 className="mt-2 font-display text-5xl font-bold text-primary">{t("contact.title")}</h1>
+        <p className="mt-3 text-muted-foreground">{t("contact.subtitle")}</p>
       </div>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-2">
@@ -25,33 +33,72 @@ function ContactPage() {
           href="https://wa.me/2250584637219"
           target="_blank"
           rel="noopener noreferrer"
-          className="group rounded-2xl border border-border bg-card p-8 transition hover:border-gold/50 hover:shadow-gold"
+          className={`${cardBase} motion-safe:animate-[fade-in_0.6s_ease-out_both]`}
+          style={{ animationDelay: "0ms" }}
         >
-          <MessageCircle className="h-8 w-8 text-gold" />
-          <h3 className="mt-4 font-display text-xl font-bold text-primary">WhatsApp</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Réponse rapide, 7j/7</p>
+          <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
+          <div className="flex items-start justify-between">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-gold/10 text-gold transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <MessageCircle className="h-7 w-7" />
+            </div>
+            <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-gold opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+          </div>
+          <h3 className="mt-4 font-display text-xl font-bold text-primary transition-colors duration-300 group-hover:text-gold">
+            {t("contact.whatsapp")}
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("contact.whatsappHours")}</p>
           <p className="mt-3 font-semibold text-gold">+225 05 84 63 72 19</p>
         </a>
 
-        <a href="tel:+2250584637219" className="group rounded-2xl border border-border bg-card p-8 transition hover:border-gold/50 hover:shadow-gold">
-          <Phone className="h-8 w-8 text-gold" />
-          <h3 className="mt-4 font-display text-xl font-bold text-primary">Téléphone</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Lun-Sam, 8h-19h</p>
+        <a
+          href="tel:+2250584637219"
+          className={`${cardBase} motion-safe:animate-[fade-in_0.6s_ease-out_both]`}
+          style={{ animationDelay: "80ms" }}
+        >
+          <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
+          <div className="flex items-start justify-between">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-gold/10 text-gold transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <Phone className="h-7 w-7" />
+            </div>
+            <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-gold opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+          </div>
+          <h3 className="mt-4 font-display text-xl font-bold text-primary transition-colors duration-300 group-hover:text-gold">
+            {t("contact.phone")}
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("contact.phoneHours")}</p>
           <p className="mt-3 font-semibold text-gold">+225 05 84 63 72 19</p>
         </a>
 
-        <a href="mailto:contact@cerealshouse.com" className="group rounded-2xl border border-border bg-card p-8 transition hover:border-gold/50 hover:shadow-gold">
-          <Mail className="h-8 w-8 text-gold" />
-          <h3 className="mt-4 font-display text-xl font-bold text-primary">Email</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Réponse sous 24h</p>
+        <a
+          href="mailto:contact@cerealshouse.com"
+          className={`${cardBase} motion-safe:animate-[fade-in_0.6s_ease-out_both]`}
+          style={{ animationDelay: "160ms" }}
+        >
+          <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
+          <div className="flex items-start justify-between">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-gold/10 text-gold transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <Mail className="h-7 w-7" />
+            </div>
+            <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-gold opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+          </div>
+          <h3 className="mt-4 font-display text-xl font-bold text-primary transition-colors duration-300 group-hover:text-gold">
+            {t("contact.email")}
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("contact.emailHours")}</p>
           <p className="mt-3 font-semibold text-gold">contact@cerealshouse.com</p>
         </a>
 
-        <div className="rounded-2xl border border-border bg-card p-8">
-          <MapPin className="h-8 w-8 text-gold" />
-          <h3 className="mt-4 font-display text-xl font-bold text-primary">Notre siège</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Abidjan, Côte d'Ivoire</p>
-          <p className="mt-3 font-semibold text-primary">Livraison dans 8 pays</p>
+        <div
+          className={`${cardBase} motion-safe:animate-[fade-in_0.6s_ease-out_both]`}
+          style={{ animationDelay: "240ms" }}
+        >
+          <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
+          <div className="grid h-14 w-14 place-items-center rounded-full bg-gold/10 text-gold transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+            <MapPin className="h-7 w-7" />
+          </div>
+          <h3 className="mt-4 font-display text-xl font-bold text-primary">{t("contact.hq")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("contact.hqCity")}</p>
+          <p className="mt-3 font-semibold text-primary">{t("contact.hqDelivery")}</p>
         </div>
       </div>
     </div>
