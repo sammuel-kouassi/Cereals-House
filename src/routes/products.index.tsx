@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Baby, User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/product-card";
+import { ProductSearchBar } from "@/components/product-search-bar";
 
 export const Route = createFileRoute("/products/")({
   head: () => ({
@@ -23,6 +24,7 @@ function ProductsPage() {
   const ALL = t("products.all");
   const [category, setCategory] = useState<string>(ALL);
   const [audience, setAudience] = useState<AudienceFilter>("all");
+  const [query, setQuery] = useState("");
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
@@ -46,11 +48,36 @@ function ProductsPage() {
   });
 
   const categories = [ALL, ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))];
+
+  const normalize = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  const q = normalize(query.trim());
+
   const filtered = products.filter((p) => {
     const catOk = category === ALL || p.category === category;
     const audOk = audience === "all" || (p.audiences ?? []).includes(audience);
-    return catOk && audOk;
+    const searchOk =
+      !q ||
+      normalize(p.name).includes(q) ||
+      normalize(p.short_description ?? "").includes(q) ||
+      normalize(p.category ?? "").includes(q);
+    return catOk && audOk && searchOk;
   });
+
+  const suggestions = Array.from(
+    new Map(
+      [
+        ...products.map((p) => ({ label: p.name, type: "product" as const })),
+        ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])).map((c) => ({
+          label: c,
+          type: "category" as const,
+        })),
+      ].map((s) => [s.label.toLowerCase(), s]),
+    ).values(),
+  );
 
   const audienceChips: { key: AudienceFilter; label: string; icon: typeof Users }[] = [
     { key: "all", label: t("products.audienceAll"), icon: Users },
@@ -67,6 +94,7 @@ function ProductsPage() {
       </div>
 
       <div className="mt-10 flex flex-col items-center gap-4">
+        <ProductSearchBar value={query} onChange={setQuery} suggestions={suggestions} />
         <div className="flex flex-wrap items-center justify-center gap-2">
           {categories.map((c) => (
             <button
@@ -115,21 +143,34 @@ function ProductsPage() {
             <div key={i} className="h-80 animate-pulse rounded-2xl bg-secondary" />
           ))}
         </div>
-      ) : (
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {filtered.map((p) => (
-            <ProductCard
-              key={p.id}
-              slug={p.slug}
-              name={p.name}
-              shortDescription={p.short_description}
-              category={p.category}
-              unit={p.unit}
-              audiences={p.audiences}
-              prices={p.product_prices ?? []}
-            />
-          ))}
+      ) : filtered.length === 0 ? (
+        <div className="mt-16 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+          <p className="text-sm text-muted-foreground">{t("products.searchNoResults")}</p>
         </div>
+      ) : (
+        <>
+          {query.trim() && (
+            <p className="mt-8 text-center text-xs uppercase tracking-widest text-muted-foreground">
+              {t(filtered.length === 1 ? "products.searchResultsOne" : "products.searchResultsMany", {
+                count: filtered.length,
+              })}
+            </p>
+          )}
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {filtered.map((p) => (
+              <ProductCard
+                key={p.id}
+                slug={p.slug}
+                name={p.name}
+                shortDescription={p.short_description}
+                category={p.category}
+                unit={p.unit}
+                audiences={p.audiences}
+                prices={p.product_prices ?? []}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
