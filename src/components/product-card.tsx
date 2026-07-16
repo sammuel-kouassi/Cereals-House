@@ -13,9 +13,19 @@ type Props = {
   unit: string;
   prices: { country_code: string; price: number }[];
   audiences?: string[] | null;
+  imageUrl?: string | null;
 };
 
-export function ProductCard({ slug, name, shortDescription, category, unit, prices, audiences }: Props) {
+export function ProductCard({
+  slug,
+  name,
+  shortDescription,
+  category,
+  unit,
+  prices,
+  audiences,
+  imageUrl,
+}: Props) {
   const { country } = useCountry();
   const { t } = useTranslation();
 
@@ -40,7 +50,7 @@ export function ProductCard({ slug, name, shortDescription, category, unit, pric
 
       <div className="relative aspect-square overflow-hidden bg-secondary">
         <img
-          src={imageFor(slug)}
+          src={imageUrl || imageFor(slug)}
           alt={name}
           loading="lazy"
           width={1024}
@@ -80,7 +90,9 @@ export function ProductCard({ slug, name, shortDescription, category, unit, pric
         <h3 className="font-display text-lg font-semibold text-primary transition-colors duration-300 group-hover:text-gold">
           {name}
         </h3>
-        {shortDescription && <p className="line-clamp-2 text-sm text-muted-foreground">{shortDescription}</p>}
+        {shortDescription && (
+          <p className="line-clamp-2 text-sm text-muted-foreground">{shortDescription}</p>
+        )}
         <div className="mt-auto flex items-end justify-between pt-3">
           <div>
             <div className="text-xl font-bold text-gold">

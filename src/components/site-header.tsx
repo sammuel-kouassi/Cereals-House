@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, User, Menu, X, LogOut } from "lucide-react";
+import { ShoppingBag, User, Menu, X, LogOut, ShieldCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
+import { useIsAdmin } from "@/lib/admin/use-is-admin";
 import { CountrySelector } from "@/components/country-selector";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import logo from "@/assets/logo.jpeg";
@@ -11,10 +12,13 @@ import logo from "@/assets/logo.jpeg";
 export function SiteHeader() {
   const { count } = useCart();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [greetingKey, setGreetingKey] = useState<"greeting.morning" | "greeting.evening">("greeting.morning");
+  const [greetingKey, setGreetingKey] = useState<"greeting.morning" | "greeting.evening">(
+    "greeting.morning",
+  );
 
   // Détection dynamique de l'heure locale (passage à "Bonsoir" dès 17h00)
   useEffect(() => {
@@ -63,7 +67,9 @@ export function SiteHeader() {
   return (
     <header
       className={`sticky top-0 z-50 border-b bg-background/85 backdrop-blur-lg transition-all duration-300 ${
-        scrolled ? "border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.12)] bg-background/95" : "border-border/60"
+        scrolled
+          ? "border-border shadow-[0_4px_24px_-8px_rgba(0,0,0,0.12)] bg-background/95"
+          : "border-border/60"
       }`}
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
@@ -101,15 +107,15 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          {/* Le sélecteur de langue ne rejoint le sélecteur de pays qu'à partir d'une très large fenêtre (2xl),
-              pour garantir qu'il reste toujours assez de place et qu'aucun scroll horizontal n'apparaisse. */}
-          <div className="hidden items-center gap-1.5 2xl:flex">
+          {/* Le sélecteur de langue rejoint le sélecteur de pays dès xl (1280px) — assez de marge
+              pour éviter tout scroll horizontal, tout en restant visible sur la plupart des écrans desktop. */}
+          <div className="hidden items-center gap-1.5 xl:flex">
             <LanguageSwitcher />
             <div className="hidden sm:block">
               <CountrySelector />
             </div>
           </div>
-          <div className="block 2xl:hidden">
+          <div className="block xl:hidden">
             <div className="hidden sm:block">
               <CountrySelector />
             </div>
@@ -132,6 +138,17 @@ export function SiteHeader() {
                 </span>
                 <span className="hidden whitespace-nowrap 2xl:inline">{greetingLabel}</span>
               </div>
+
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className={iconBtn}
+                  title="Administration"
+                  aria-label="Administration"
+                >
+                  <ShieldCheck className="h-5 w-5" />
+                </Link>
+              )}
 
               <Link
                 to="/orders"
@@ -221,6 +238,16 @@ export function SiteHeader() {
                   </span>
                   <span className="text-sm font-semibold text-primary">{greetingLabel}</span>
                 </div>
+
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setOpen(false)}
+                    className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gold transition-colors duration-200 hover:bg-secondary"
+                  >
+                    <ShieldCheck className="h-4 w-4" /> Administration
+                  </Link>
+                )}
 
                 <Link
                   to="/orders"

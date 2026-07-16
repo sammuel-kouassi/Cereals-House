@@ -143,6 +143,8 @@ export type Database = {
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
+          payment_notify_token: string | null
+          payment_token: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee: number
@@ -164,6 +166,8 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          payment_notify_token?: string | null
+          payment_token?: string | null
           shipping_address: string
           shipping_city: string
           shipping_fee: number
@@ -185,6 +189,8 @@ export type Database = {
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          payment_notify_token?: string | null
+          payment_token?: string | null
           shipping_address?: string
           shipping_city?: string
           shipping_fee?: number
@@ -389,6 +395,7 @@ export type Database = {
         | "wave"
         | "mtn_money"
         | "moov_money"
+        | "tmoney"
         | "visa"
         | "cash_on_delivery"
       payment_status: "pending" | "paid" | "failed" | "refunded"
@@ -535,6 +542,7 @@ export const Constants = {
         "wave",
         "mtn_money",
         "moov_money",
+        "tmoney",
         "visa",
         "cash_on_delivery",
       ],

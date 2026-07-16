@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronDown, Leaf, Truck, ShieldCheck, CreditCard } from "lucide-react";
+import { ArrowRight, ChevronDown, Leaf, Truck, ShieldCheck, CreditCard, Boxes } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/product-card";
 import { Flag } from "@/components/flag";
+import { Reveal } from "@/components/reveal";
 import { useCountry } from "@/lib/country-context";
 import heroVideo from "@/assets/ch.mp4";
 import heroImage from "@/assets/hero-millet.jpg";
@@ -24,40 +24,6 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-/** Anime son contenu en fondu/translation dès qu'il entre dans le viewport (une seule fois). Purement décoratif. */
-function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          io.disconnect();
-        }
-      },
-      { threshold: 0.15 },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: visible ? `${delay}ms` : "0ms" }}
-      className={`transition-all duration-700 ease-out motion-reduce:transition-none ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
-      } ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
 function HomePage() {
   const { country } = useCountry();
   const { t } = useTranslation();
@@ -67,7 +33,9 @@ function HomePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, category, unit, is_featured, audiences, product_prices(country_code, price)")
+        .select(
+          "id, slug, name, short_description, category, unit, is_featured, audiences, image_url, product_prices(country_code, price)",
+        )
         .eq("is_active", true)
         .eq("is_featured", true)
         .order("name");
@@ -169,7 +137,8 @@ function HomePage() {
                 to="/products"
                 className="group inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
               >
-                {t("home.ctaShop")} <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                {t("home.ctaShop")}{" "}
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/about"
@@ -206,6 +175,42 @@ function HomePage() {
         </div>
       </section>
 
+      {/* Vente en gros — mis en avant tôt dans le parcours pour capter les clients B2B */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-3xl border border-gold/20 bg-gradient-to-br from-primary via-primary to-primary/90 px-6 py-10 text-primary-foreground sm:px-10 sm:py-12">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-gold/10 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-gold/[0.08] blur-3xl" />
+
+            <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-4 sm:max-w-2xl">
+                <div className="mt-1 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
+                  <Boxes className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+                    {t("home.bulkEyebrow")}
+                  </span>
+                  <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+                    {t("home.bulkTitle")}
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
+                    {t("home.bulkDesc")}
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/contact"
+                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
+              >
+                {t("home.bulkCta")}{" "}
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
       <section className="relative mx-auto max-w-7xl overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
         {/* Halo doré décoratif en fond, très discret */}
         <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-gold/[0.06] blur-3xl" />
@@ -216,7 +221,9 @@ function HomePage() {
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold">
                 <span className="h-px w-5 bg-gold" /> {t("home.featuredEyebrow")}
               </span>
-              <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">{t("home.featuredTitle")}</h2>
+              <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
+                {t("home.featuredTitle")}
+              </h2>
               <p className="mt-2 max-w-xl text-muted-foreground">{t("home.featuredDesc")}</p>
             </div>
             <Link
@@ -240,6 +247,7 @@ function HomePage() {
                   category={p.category}
                   unit={p.unit}
                   audiences={(p as unknown as { audiences?: string[] | null }).audiences}
+                  imageUrl={(p as unknown as { image_url?: string | null }).image_url}
                   prices={p.product_prices ?? []}
                 />
               </div>
@@ -252,8 +260,12 @@ function HomePage() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <Reveal>
             <div className="text-center">
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold">{t("home.stepsEyebrow")}</span>
-              <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">{t("home.stepsTitle")}</h2>
+              <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+                {t("home.stepsEyebrow")}
+              </span>
+              <h2 className="mt-2 font-display text-3xl font-bold sm:text-4xl">
+                {t("home.stepsTitle")}
+              </h2>
             </div>
           </Reveal>
 

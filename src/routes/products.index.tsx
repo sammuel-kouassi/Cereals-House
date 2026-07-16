@@ -11,7 +11,11 @@ export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
       { title: "Boutique — Cereals House" },
-      { name: "description", content: "Découvrez toutes nos céréales premium : riz, mil, fonio, maïs, sorgho, blé, arachide, niébé." },
+      {
+        name: "description",
+        content:
+          "Découvrez toutes nos céréales premium : riz, mil, fonio, maïs, sorgho, blé, arachide, niébé.",
+      },
     ],
   }),
   component: ProductsPage,
@@ -31,7 +35,9 @@ function ProductsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id, slug, name, short_description, category, unit, audiences, product_prices(country_code, price)")
+        .select(
+          "id, slug, name, short_description, category, unit, audiences, image_url, product_prices(country_code, price)",
+        )
         .eq("is_active", true)
         .order("name");
       return (data ?? []) as unknown as Array<{
@@ -42,12 +48,16 @@ function ProductsPage() {
         category: string | null;
         unit: string;
         audiences: string[] | null;
+        image_url: string | null;
         product_prices: { country_code: string; price: number }[];
       }>;
     },
   });
 
-  const categories = [ALL, ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[]))];
+  const categories = [
+    ALL,
+    ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])),
+  ];
 
   const normalize = (s: string) =>
     s
@@ -71,10 +81,12 @@ function ProductsPage() {
     new Map(
       [
         ...products.map((p) => ({ label: p.name, type: "product" as const })),
-        ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])).map((c) => ({
-          label: c,
-          type: "category" as const,
-        })),
+        ...Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])).map(
+          (c) => ({
+            label: c,
+            type: "category" as const,
+          }),
+        ),
       ].map((s) => [s.label.toLowerCase(), s]),
     ).values(),
   );
@@ -88,8 +100,12 @@ function ProductsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="text-center motion-safe:animate-[fade-in_0.6s_ease-out]">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gold">{t("products.eyebrow")}</span>
-        <h1 className="mt-2 font-display text-4xl font-bold text-primary sm:text-5xl">{t("products.title")}</h1>
+        <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+          {t("products.eyebrow")}
+        </span>
+        <h1 className="mt-2 font-display text-4xl font-bold text-primary sm:text-5xl">
+          {t("products.title")}
+        </h1>
         <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">{t("products.subtitle")}</p>
       </div>
 
@@ -112,8 +128,8 @@ function ProductsPage() {
           ))}
         </div>
 
-        <div className="inline-flex items-center gap-1 rounded-full border border-border bg-card p-1 shadow-sm">
-          <span className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="flex max-w-full flex-wrap items-center justify-center gap-1 rounded-full border border-border bg-card p-1 shadow-sm">
+          <span className="hidden shrink-0 whitespace-nowrap px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground sm:inline">
             {t("products.filterAudience")}
           </span>
           {audienceChips.map((chip) => {
@@ -124,7 +140,7 @@ function ProductsPage() {
                 key={chip.key}
                 type="button"
                 onClick={() => setAudience(chip.key)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                   active
                     ? "bg-primary text-primary-foreground shadow"
                     : "text-foreground/70 hover:text-primary"
@@ -151,9 +167,12 @@ function ProductsPage() {
         <>
           {query.trim() && (
             <p className="mt-8 text-center text-xs uppercase tracking-widest text-muted-foreground">
-              {t(filtered.length === 1 ? "products.searchResultsOne" : "products.searchResultsMany", {
-                count: filtered.length,
-              })}
+              {t(
+                filtered.length === 1 ? "products.searchResultsOne" : "products.searchResultsMany",
+                {
+                  count: filtered.length,
+                },
+              )}
             </p>
           )}
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -166,6 +185,7 @@ function ProductsPage() {
                 category={p.category}
                 unit={p.unit}
                 audiences={p.audiences}
+                imageUrl={p.image_url}
                 prices={p.product_prices ?? []}
               />
             ))}

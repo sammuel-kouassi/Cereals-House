@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Autorise l'accès au dev server via un tunnel ngrok (tests locaux de
+  // webhooks CinetPay, qui doivent être appelables depuis internet).
+  // Le préfixe "." autorise tous les sous-domaines générés aléatoirement.
+  vite: {
+    server: {
+      allowedHosts: [".ngrok-free.dev", ".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
+    },
+  },
 });

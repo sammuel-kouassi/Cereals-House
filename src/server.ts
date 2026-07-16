@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleCinetPayNotify, handleCinetPayReturn } from "./lib/payments/cinetpay.webhook.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -40,6 +41,17 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Callbacks CinetPay : requêtes serveur-à-serveur (webhook) et
+      // navigateur-à-serveur (retour de paiement), traitées avant le routeur
+      // TanStack car ce ne sont pas des "server functions" RPC classiques.
+      const { pathname } = new URL(request.url);
+      if (pathname === "/api/cinetpay/notify") {
+        return await handleCinetPayNotify(request);
+      }
+      if (pathname === "/api/cinetpay/return") {
+        return await handleCinetPayReturn(request);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
