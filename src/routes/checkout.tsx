@@ -116,6 +116,16 @@ const PAYMENT_METHODS: PaymentMethod[] = [
   },
 ];
 
+// Un opérateur n'est proposable que s'il existe dans le pays du client ET que
+// l'intégration CinetPay est réellement active pour ce pays (voir
+// CINETPAY_SUPPORTED_COUNTRIES — actuellement réduit à la Côte d'Ivoire).
+function methodAvailableIn(m: PaymentMethod, countryCode: string): boolean {
+  return (
+    (m.countries as readonly string[]).includes(countryCode) &&
+    isCinetPaySupportedCountry(countryCode)
+  );
+}
+
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Commande — Cereals House" }] }),
   beforeLoad: ({ context: _context, location }) => {
@@ -134,9 +144,9 @@ function CheckoutPage() {
   const [redirecting, setRedirecting] = useState(false);
 
   const supportedDefault =
-    PAYMENT_METHODS.find(
-      (m) => !country || (m.countries as readonly string[]).includes(country.code),
-    )?.id ?? "visa";
+    !country || PAYMENT_METHODS.some((m) => methodAvailableIn(m, country.code))
+      ? (PAYMENT_METHODS.find((m) => !country || methodAvailableIn(m, country.code))?.id ?? "visa")
+      : "cash_on_delivery";
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
@@ -149,8 +159,9 @@ function CheckoutPage() {
   // Mode de règlement : en ligne (Mobile Money / carte) ou à la livraison.
   const paymentMode: "online" | "cod" =
     form.payment_method === "cash_on_delivery" ? "cod" : "online";
-  const [lastOnlineMethod, setLastOnlineMethod] =
-    useState<Exclude<PaymentId, "cash_on_delivery">>(supportedDefault);
+  const [lastOnlineMethod, setLastOnlineMethod] = useState<Exclude<PaymentId, "cash_on_delivery">>(
+    supportedDefault === "cash_on_delivery" ? "visa" : supportedDefault,
+  );
 
   function selectOnlineMode() {
     setForm((prev) => ({ ...prev, payment_method: lastOnlineMethod }));
@@ -169,15 +180,19 @@ function CheckoutPage() {
   useEffect(() => {
     if (!country || paymentMode === "cod") return;
     const supported = PAYMENT_METHODS.some(
-      (m) =>
-        (m.countries as readonly string[]).includes(country.code) && m.id === form.payment_method,
+      (m) => methodAvailableIn(m, country.code) && m.id === form.payment_method,
     );
     if (!supported) {
-      const fallback =
-        PAYMENT_METHODS.find((m) => (m.countries as readonly string[]).includes(country.code))
-          ?.id ?? "visa";
-      setForm((prev) => ({ ...prev, payment_method: fallback }));
-      setLastOnlineMethod(fallback);
+      const fallback = PAYMENT_METHODS.find((m) => methodAvailableIn(m, country.code))?.id;
+      if (fallback) {
+        setForm((prev) => ({ ...prev, payment_method: fallback }));
+        setLastOnlineMethod(fallback);
+      } else {
+        // Aucun moyen en ligne réellement actif pour ce pays : on bascule
+        // proprement sur le paiement à la livraison plutôt que de laisser
+        // affiché un moyen qui échouerait à coup sûr.
+        setForm((prev) => ({ ...prev, payment_method: "cash_on_delivery" }));
+      }
     }
   }, [country?.code]);
 
@@ -429,8 +444,7 @@ function CheckoutPage() {
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {PAYMENT_METHODS.map((m, idx) => {
                     const selected = form.payment_method === m.id;
-                    const supported =
-                      !country || (m.countries as readonly string[]).includes(country.code);
+                    const supported = !country || methodAvailableIn(m, country.code);
                     const label = t(`checkout.payment.${m.id}`);
                     const tagline = t(`checkout.paymentTag.${m.id}`);
                     return (

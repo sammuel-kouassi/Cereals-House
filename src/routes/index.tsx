@@ -8,7 +8,7 @@ import { Flag } from "@/components/flag";
 import { Reveal } from "@/components/reveal";
 import { useCountry } from "@/lib/country-context";
 import heroVideo from "@/assets/ch.mp4";
-import heroImage from "@/assets/hero-millet.jpg";
+import heroImage from "@/assets/hero-cereals.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({

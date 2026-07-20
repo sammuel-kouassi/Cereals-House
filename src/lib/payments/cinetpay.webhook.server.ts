@@ -11,7 +11,7 @@
 // - successUrl/failedUrl : redirection navigateur après paiement, purement
 //   informative. Aucune écriture en base ne doit s'y produire.
 import { parseNotification, verifyNotification, ApiError } from "cinetpay-js";
-import { getCinetPayClient } from "@/lib/payments/cinetpay.server";
+import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
 
 export async function handleCinetPayNotify(request: Request): Promise<Response> {
   if (request.method === "GET") {
@@ -35,7 +35,7 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
 
     const { data: order } = await supabaseAdmin
       .from("orders")
-      .select("id, status, payment_status, payment_notify_token")
+      .select("id, status, payment_status, payment_notify_token, country_code")
       .eq("payment_reference", notification.merchantTransactionId)
       .maybeSingle();
 
@@ -62,9 +62,13 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
     }
 
     // On ne fait JAMAIS confiance au statut du webhook lui-même : on reconfirme
-    // auprès de CinetPay via l'API de statut.
+    // auprès de CinetPay via l'API de statut, avec le VRAI pays de la commande
+    // (et non "CI" en dur — indispensable maintenant que plusieurs pays sont actifs).
     const client = getCinetPayClient();
-    const verification = await client.payment.getStatus(notification.transactionId, "CI");
+    const verification = await client.payment.getStatus(
+      notification.transactionId,
+      order.country_code as SupportedCinetPayCountry,
+    );
 
     if (verification.status === "SUCCESS") {
       await supabaseAdmin

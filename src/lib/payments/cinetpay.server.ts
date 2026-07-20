@@ -1,11 +1,20 @@
+
 // Client CinetPay — SERVEUR UNIQUEMENT. Utilise le SDK officiel `cinetpay-js`
-// (API "Direct v1"), configuré avec un compte marchand distinct par pays
-// (règle CinetPay : "un compte = un pays" — chaque pays a son propre
-// api_key/api_password).
+// (API "Direct v1").
+//
+// ⚠️ Point à vérifier en conditions réelles : les CGU officielles de CinetPay
+// indiquent qu'un seul compte bancaire suffit pour les reversements dans TOUTE
+// la zone UEMOA (CI, BF, ML, TG, BJ, SN, NE, GW) — seuls les pays HORS UEMOA
+// exigent un compte bancaire dédié. Ça ne confirme pas formellement que les
+// identifiants api_key/api_password d'un compte CI fonctionnent aussi pour
+// initier des paiements BF/ML/TG/BJ (c'est une question d'authentification
+// API, pas seulement de reversement bancaire) — d'où le repli ci-dessous,
+// à valider par un vrai test de paiement dans chacun de ces pays avant mise
+// en production.
 //
 // Pays actuellement pris en charge : Côte d'Ivoire, Burkina Faso, Mali, Togo,
-// Bénin (tous en XOF). Le Ghana n'est PAS supporté par cette API CinetPay
-// (ni comme pays, ni sa devise GHS) — voir cinetpay.functions.ts.
+// Bénin (tous en XOF, zone UEMOA). Le Ghana n'est PAS supporté par cette API
+// CinetPay (ni comme pays, ni sa devise GHS) — voir cinetpay.functions.ts.
 import { CinetPayClient, type CountryCode, type ClientConfig } from "cinetpay-js";
 import {
   CINETPAY_SUPPORTED_COUNTRIES,
@@ -29,9 +38,15 @@ let _configuredCountries: Set<string> | undefined;
 
 function loadConfiguredCredentials(): ClientConfig["credentials"] {
   const credentials: Partial<Record<SupportedCinetPayCountry, { apiKey: string; apiPassword: string }>> = {};
+
+  // Identifiants CI, utilisés en repli pour les autres pays UEMOA tant qu'ils
+  // n'ont pas leurs propres variables dédiées (voir avertissement ci-dessus).
+  const ciApiKey = process.env.CINETPAY_API_KEY_CI;
+  const ciApiPassword = process.env.CINETPAY_API_PASSWORD_CI;
+
   for (const country of CINETPAY_SUPPORTED_COUNTRIES) {
-    const apiKey = process.env[`CINETPAY_API_KEY_${country}`];
-    const apiPassword = process.env[`CINETPAY_API_PASSWORD_${country}`];
+    const apiKey = process.env[`CINETPAY_API_KEY_${country}`] ?? ciApiKey;
+    const apiPassword = process.env[`CINETPAY_API_PASSWORD_${country}`] ?? ciApiPassword;
     if (apiKey && apiPassword) {
       credentials[country] = { apiKey, apiPassword };
     }

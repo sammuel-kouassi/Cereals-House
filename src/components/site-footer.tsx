@@ -102,7 +102,7 @@ export function SiteFooter() {
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-foreground/5 transition-colors duration-300 group-hover:bg-gold/15">
                 <Mail className="h-3.5 w-3.5 text-gold" />
               </span>
-              contact@cerealshouse.com
+              apiahrose8@gmail.com
             </li>
             <li className="group flex items-center gap-2.5 transition-colors duration-300 hover:text-gold">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-foreground/5 transition-colors duration-300 group-hover:bg-gold/15">

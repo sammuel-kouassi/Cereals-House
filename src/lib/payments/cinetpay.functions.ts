@@ -16,7 +16,6 @@ import {
   isCinetPayCountryReady,
   CINETPAY_MIN_AMOUNT,
   CINETPAY_MAX_AMOUNT,
-  type SupportedCinetPayCountry,
 } from "@/lib/payments/cinetpay.server";
 import { ApiError, ValidationError } from "cinetpay-js";
 import type { PaymentMethod } from "cinetpay-js";
@@ -43,12 +42,12 @@ function getAppUrl(): string {
 }
 
 // Correspondance (pays, moyen de paiement de notre UI) → code opérateur exact
-// attendu par CinetPay. Chaque pays a un jeu d'opérateurs différent (ex :
-// pas de Wave au Mali, pas d'Orange Money au Togo/Bénin) — voir
-// PAYMENT_METHODS_BY_COUNTRY dans le SDK cinetpay-js, qui fait autorité ici.
-// "visa" est géré à part (voir plus bas) : aucun code PaymentMethod n'existe
-// pour la carte bancaire dans cette API.
-const PAYMENT_METHOD_MAP: Partial<Record<SupportedCinetPayCountry, Partial<Record<string, PaymentMethod>>>> = {
+// attendu par CinetPay. Gardée pour TOUS les pays UEMOA visés (même ceux
+// actuellement inactifs, voir supported-countries.ts) afin de ne pas perdre
+// ce travail de correspondance pour quand on les réactivera — d'où le typage
+// en `Record<string, ...>` plutôt que `SupportedCinetPayCountry` (qui, lui,
+// ne liste que les pays réellement actifs aujourd'hui).
+const PAYMENT_METHOD_MAP: Partial<Record<string, Partial<Record<string, PaymentMethod>>>> = {
   CI: { orange_money: "OM_CI", wave: "WAVE_CI", mtn_money: "MTN_CI", moov_money: "MOOV_CI" },
   BF: { orange_money: "OM_BF", wave: "WAVE_BF", moov_money: "MOOV_BF" },
   ML: { orange_money: "OM_ML", moov_money: "MOOV_ML" },
@@ -83,9 +82,7 @@ export const initiateCinetPayPaymentFn = createServerFn({ method: "POST" })
 
     const country = order.country_code;
     if (!isCinetPayCountryReady(country)) {
-      throw new Error(
-        "Le paiement en ligne automatique n'est pas encore disponible pour ce pays.",
-      );
+      throw new Error("Le paiement en ligne automatique n'est pas encore disponible pour ce pays.");
     }
     if (order.payment_status === "paid") {
       throw new Error("Cette commande est déjà payée.");
@@ -153,6 +150,17 @@ export const initiateCinetPayPaymentFn = createServerFn({ method: "POST" })
         },
         country,
       );
+
+      // Garde-fou : si CinetPay répond 200 sans fournir d'URL de paiement
+      // (ex: paiement refusé immédiatement pour ce pays/opérateur), on lève
+      // une erreur claire plutôt que de rediriger silencieusement vers
+      // "undefined" (qui atterrit sur le 404 de notre propre site).
+      if (!result.paymentUrl) {
+        throw new Error(
+          result.details?.message ||
+            "CinetPay n'a renvoyé aucune URL de paiement pour cette commande.",
+        );
+      }
 
       // On enregistre la référence et le notifyToken AVANT de rediriger
       // l'utilisateur : le webhook doit pouvoir retrouver la commande et

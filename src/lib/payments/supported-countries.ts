@@ -4,9 +4,14 @@
 // (checkout.tsx, orders.$id.tsx) que par cinetpay.server.ts, donc il ne doit
 // jamais tirer de secret ni de librairie serveur avec lui.
 //
-// Le Ghana n'y figure pas : CinetPay ne le supporte pas du tout sur cette API
-// (ni le pays, ni sa devise GHS) — voir cinetpay.server.ts pour le détail.
-export const CINETPAY_SUPPORTED_COUNTRIES = ["CI", "BF", "ML", "TG", "BJ"] as const;
+// ⚠️ Réduit temporairement à la Côte d'Ivoire (19/07/2026) : le support
+// CinetPay a confirmé (1) que chaque pays nécessite un compte/des identifiants
+// séparés — le partage entre pays ne fonctionne pas — et (2) que leurs
+// services sont pour l'instant MOMENTANÉMENT INDISPONIBLES au Mali, Burkina
+// Faso, Togo et Bénin. Remettre ces pays ici dès que de vrais identifiants
+// (CINETPAY_API_KEY_XX / CINETPAY_API_PASSWORD_XX) sont obtenus et que
+// CinetPay confirme la réouverture de son service dans le pays concerné.
+export const CINETPAY_SUPPORTED_COUNTRIES = ["CI"] as const;
 
 export type CinetPaySupportedCountry = (typeof CINETPAY_SUPPORTED_COUNTRIES)[number];
 
