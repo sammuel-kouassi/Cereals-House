@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useCountry } from "@/lib/country-context";
 import { formatPrice } from "@/lib/format";
+
+const WHATSAPP_NUMBER = "2250584637219";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({ meta: [{ title: "Panier — Cereals House" }] }),
@@ -16,6 +18,29 @@ function CartPage() {
   const { t } = useTranslation();
   const shipping = country?.base_shipping_fee ?? 0;
   const total = subtotal + (items.length > 0 ? shipping : 0);
+
+  // Message pré-rempli listant le panier, pour les clients qui préfèrent
+  // finaliser leur commande directement avec quelqu'un sur WhatsApp plutôt
+  // que par le formulaire de commande en ligne.
+  const whatsappHref = (() => {
+    const lines = [
+      t("cart.whatsappIntro"),
+      "",
+      ...items.map(
+        (it) =>
+          `• ${it.name} × ${it.quantity}${
+            country
+              ? ` — ${formatPrice(it.unitPrice * it.quantity, country.currency_code, country.currency_symbol)}`
+              : ""
+          }`,
+      ),
+      "",
+      country
+        ? `${t("cart.total")} : ${formatPrice(total, country.currency_code, country.currency_symbol)}`
+        : "",
+    ];
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+  })();
 
   if (items.length === 0) {
     return (
@@ -76,7 +101,10 @@ function CartPage() {
                   {it.name}
                 </Link>
                 <div className="text-sm text-muted-foreground">
-                  {country ? formatPrice(it.unitPrice, country.currency_code, country.currency_symbol) : ""} / kg
+                  {country
+                    ? formatPrice(it.unitPrice, country.currency_code, country.currency_symbol)
+                    : ""}{" "}
+                  / kg
                 </div>
                 <div className="mt-auto flex items-center justify-between">
                   <div className="flex items-center rounded-full border border-border transition-colors duration-300 group-hover:border-gold/30">
@@ -87,7 +115,10 @@ function CartPage() {
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span key={it.quantity} className="w-8 text-center text-sm font-semibold motion-safe:animate-[fade-in_0.2s_ease-out_both]">
+                    <span
+                      key={it.quantity}
+                      className="w-8 text-center text-sm font-semibold motion-safe:animate-[fade-in_0.2s_ease-out_both]"
+                    >
                       {it.quantity}
                     </span>
                     <button
@@ -99,8 +130,17 @@ function CartPage() {
                     </button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span key={it.quantity + it.unitPrice} className="font-semibold text-primary motion-safe:animate-[fade-in_0.2s_ease-out_both]">
-                      {country ? formatPrice(it.unitPrice * it.quantity, country.currency_code, country.currency_symbol) : ""}
+                    <span
+                      key={it.quantity + it.unitPrice}
+                      className="font-semibold text-primary motion-safe:animate-[fade-in_0.2s_ease-out_both]"
+                    >
+                      {country
+                        ? formatPrice(
+                            it.unitPrice * it.quantity,
+                            country.currency_code,
+                            country.currency_symbol,
+                          )
+                        : ""}
                     </span>
                     <button
                       onClick={() => remove(it.productId)}
@@ -124,15 +164,27 @@ function CartPage() {
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">{t("cart.subtotal")}</dt>
-              <dd>{country ? formatPrice(subtotal, country.currency_code, country.currency_symbol) : ""}</dd>
+              <dd>
+                {country
+                  ? formatPrice(subtotal, country.currency_code, country.currency_symbol)
+                  : ""}
+              </dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t("cart.shipping")} ({country?.name})</dt>
-              <dd>{country ? formatPrice(shipping, country.currency_code, country.currency_symbol) : ""}</dd>
+              <dt className="text-muted-foreground">
+                {t("cart.shipping")} ({country?.name})
+              </dt>
+              <dd>
+                {country
+                  ? formatPrice(shipping, country.currency_code, country.currency_symbol)
+                  : ""}
+              </dd>
             </div>
             <div className="flex justify-between border-t border-border pt-3 text-base font-bold">
               <dt>{t("cart.total")}</dt>
-              <dd className="text-gold">{country ? formatPrice(total, country.currency_code, country.currency_symbol) : ""}</dd>
+              <dd className="text-gold">
+                {country ? formatPrice(total, country.currency_code, country.currency_symbol) : ""}
+              </dd>
             </div>
           </dl>
           <Link
@@ -142,6 +194,16 @@ function CartPage() {
             {t("cart.checkout")}{" "}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
+          
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-6 py-3 text-sm font-semibold text-[#128C4A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#25D366]/20 dark:text-[#25D366]"
+          >
+            <MessageCircle className="h-4 w-4" /> {t("cart.orderViaWhatsapp")}
+          </a>
+          
           <Link
             to="/products"
             className="mt-3 block text-center text-sm text-muted-foreground transition-colors duration-300 hover:text-gold"

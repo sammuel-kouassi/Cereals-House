@@ -14,6 +14,8 @@ import {
   FlaskConical,
   Sparkles,
   ChefHat,
+  Flame,
+  Calculator,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -24,6 +26,7 @@ import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
 import { Reveal } from "@/components/reveal";
 import { PageLoader } from "@/components/page-loader";
+import { flyToCart } from "@/lib/fly-to-cart";
 
 export const Route = createFileRoute("/products/$slug")({
   component: ProductDetailPage,
@@ -36,6 +39,8 @@ function ProductDetailPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const [qty, setQty] = useState(1);
+  const [householdSize, setHouseholdSize] = useState(4);
+  const [mealsPerWeek, setMealsPerWeek] = useState(7);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", slug],
@@ -71,7 +76,21 @@ function ProductDetailPage() {
 
   const price = product.product_prices?.find((p) => p.country_code === country?.code)?.price ?? 0;
 
-  const handleAdd = () => {
+  // Stock réel (pas de fausse jauge) : on plafonne la quantité sélectionnable
+  // et on affiche une alerte uniquement si le stock est effectivement bas.
+  const stock = typeof product.stock === "number" ? product.stock : undefined;
+  const lowStock = stock !== undefined && stock > 0 && stock <= 15;
+  const outOfStock = stock !== undefined && stock <= 0;
+
+  // Estimation indicative (pas une science exacte) : ~120 g de céréale sèche
+  // par repas et par personne, pour aider les nouveaux acheteurs en ligne à
+  // choisir une quantité sans se tromper. Uniquement pertinent pour les
+  // produits vendus au kilo.
+  const isKgProduct = product.unit?.toLowerCase().includes("kg");
+  const recommendedKg = Math.max(1, Math.ceil((householdSize * mealsPerWeek * 120) / 1000));
+  const mealsForQty = Math.round((qty * 1000) / 120);
+
+  const handleAdd = (e?: React.MouseEvent<HTMLButtonElement>) => {
     add(
       {
         productId: product.id,
@@ -82,11 +101,12 @@ function ProductDetailPage() {
       },
       qty,
     );
+    if (e) flyToCart(e.currentTarget);
     toast.success(t("product.addedToast", { name: product.name }));
   };
 
-  const handleBuy = () => {
-    handleAdd();
+  const handleBuy = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    handleAdd(e);
     router.navigate({ to: "/cart" });
   };
 
@@ -132,11 +152,21 @@ function ProductDetailPage() {
               <p className="mt-3 text-lg text-muted-foreground">{product.short_description}</p>
             )}
 
-            <div className="mt-6 flex items-baseline gap-3">
+            <div className="mt-6 flex flex-wrap items-baseline gap-3">
               <div className="font-display text-4xl font-bold text-gold">
                 {country ? formatPrice(price, country.currency_code, country.currency_symbol) : "—"}
               </div>
               <div className="text-sm text-muted-foreground">/ {product.unit}</div>
+              {lowStock && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive">
+                  <Flame className="h-3.5 w-3.5" /> {t("product.lowStock", { count: stock })}
+                </span>
+              )}
+              {outOfStock && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                  {t("product.outOfStock")}
+                </span>
+              )}
             </div>
 
             {product.description && (
@@ -163,9 +193,12 @@ function ProductDetailPage() {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setQty((q) => q + 1)}
-                  className="grid h-11 w-11 place-items-center rounded-r-full transition-colors duration-200 hover:bg-secondary hover:text-gold active:scale-90"
+                  onClick={() =>
+                    setQty((q) => (stock !== undefined ? Math.min(stock, q + 1) : q + 1))
+                  }
+                  className="grid h-11 w-11 place-items-center rounded-r-full transition-colors duration-200 hover:bg-secondary hover:text-gold active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
                   aria-label={t("product.increase")}
+                  disabled={stock !== undefined && qty >= stock}
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -173,18 +206,77 @@ function ProductDetailPage() {
               <span className="text-sm text-muted-foreground">{product.unit}</span>
             </div>
 
+            {isKgProduct && (
+              <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+                {t("product.mealsEstimate", { count: mealsForQty })}
+              </div>
+            )}
+
+            {isKgProduct && (
+              <div className="mt-5 rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Calculator className="h-4 w-4 text-gold" /> {t("product.calculatorTitle")}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{t("product.calculatorNote")}</p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("product.householdSize")}
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={householdSize}
+                      onChange={(e) => setHouseholdSize(Math.max(1, Number(e.target.value)))}
+                      className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("product.mealsPerWeek")}
+                    </span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={21}
+                      value={mealsPerWeek}
+                      onChange={(e) => setMealsPerWeek(Math.max(1, Number(e.target.value)))}
+                      className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    />
+                  </label>
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gold/10 px-4 py-3">
+                  <span className="text-sm text-foreground/85">
+                    {t("product.recommendedQty", { count: recommendedKg })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQty(stock !== undefined ? Math.min(stock, recommendedKg) : recommendedKg)
+                    }
+                    className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90"
+                  >
+                    {t("product.applyQty")}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={handleAdd}
-                className="inline-flex items-center gap-2 rounded-full border border-primary bg-background px-6 py-3 text-sm font-semibold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary"
+                disabled={outOfStock}
+                className="inline-flex items-center gap-2 rounded-full border border-primary bg-background px-6 py-3 text-sm font-semibold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
               >
                 <ShoppingBag className="h-4 w-4" /> {t("product.addToCart")}
               </button>
               <button
                 type="button"
                 onClick={handleBuy}
-                className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
+                disabled={outOfStock}
+                className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
               >
                 {t("product.buyNow")}
               </button>

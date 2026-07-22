@@ -1,7 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, Mail, MapPin, MessageCircle, ArrowUpRight, Boxes } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import {
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  ArrowUpRight,
+  Boxes,
+  Send,
+  Building2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Reveal } from "@/components/reveal";
+
+const WHATSAPP_NUMBER = "2250584637219";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -41,7 +54,7 @@ function ContactPage() {
       external: false,
     },
     {
-      href: "apiahrose8@gmail.com",
+      href: "mailto:apiahrose8@gmail.com",
       icon: Mail,
       title: t("contact.email"),
       hours: t("contact.emailHours"),
@@ -85,6 +98,8 @@ function ContactPage() {
         </div>
       </Reveal>
 
+      <WholesaleForm />
+
       <div className="mt-12 grid gap-6 sm:grid-cols-2">
         {channels.map((c, idx) => (
           <Reveal key={c.title} delay={idx * 80}>
@@ -123,5 +138,214 @@ function ContactPage() {
         </Reveal>
       </div>
     </div>
+  );
+}
+
+type RequestType = "gros" | "distributeur" | "les_deux";
+
+function WholesaleForm() {
+  const { t } = useTranslation();
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#devis") return;
+    const el = sectionRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-gold/50");
+    const timer = window.setTimeout(() => el.classList.remove("ring-2", "ring-gold/50"), 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const [form, setForm] = useState({
+    contactName: "",
+    company: "",
+    phone: "",
+    email: "",
+    location: "",
+    requestType: "gros" as RequestType,
+    products: "",
+    quantity: "",
+    message: "",
+  });
+
+  const requestTypeLabel: Record<RequestType, string> = {
+    gros: t("contact.formTypeWholesale"),
+    distributeur: t("contact.formTypeDistributor"),
+    les_deux: t("contact.formTypeBoth"),
+  };
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.contactName.trim() || !form.phone.trim() || !form.location.trim()) {
+      toast.error(t("contact.formErrorRequired"));
+      return;
+    }
+
+    const lines = [
+      t("contact.formWhatsappIntro"),
+      "",
+      `${t("contact.formType")} : ${requestTypeLabel[form.requestType]}`,
+      `${t("contact.formContactName")} : ${form.contactName}`,
+      form.company ? `${t("contact.formCompany")} : ${form.company}` : null,
+      `${t("contact.formPhone")} : ${form.phone}`,
+      form.email ? `${t("contact.formEmail")} : ${form.email}` : null,
+      `${t("contact.formLocation")} : ${form.location}`,
+      form.products ? `${t("contact.formProducts")} : ${form.products}` : null,
+      form.quantity ? `${t("contact.formQuantity")} : ${form.quantity}` : null,
+      form.message ? `\n${form.message}` : null,
+    ].filter((l): l is string => l !== null);
+
+    const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+    window.open(href, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <Reveal delay={100}>
+      <div
+        id="devis"
+        ref={sectionRef}
+        className="mt-6 scroll-mt-24 rounded-2xl border border-border bg-card p-7 transition-shadow duration-500"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+            <Building2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="font-display text-xl font-bold text-primary">
+              {t("contact.formTitle")}
+            </h2>
+            <p className="text-sm text-muted-foreground">{t("contact.formSubtitle")}</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("contact.formType")}
+            </span>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["gros", "distributeur", "les_deux"] as RequestType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setForm((p) => ({ ...p, requestType: type }))}
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-300 ${
+                    form.requestType === type
+                      ? "border-gold bg-gold text-gold-foreground shadow-gold"
+                      : "border-border bg-background text-foreground/80 hover:border-gold/40"
+                  }`}
+                >
+                  {requestTypeLabel[type]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <FormField
+            label={t("contact.formContactName")}
+            value={form.contactName}
+            onChange={(v) => setForm((p) => ({ ...p, contactName: v }))}
+            required
+          />
+          <FormField
+            label={t("contact.formCompany")}
+            value={form.company}
+            onChange={(v) => setForm((p) => ({ ...p, company: v }))}
+          />
+          <FormField
+            label={t("contact.formPhone")}
+            value={form.phone}
+            onChange={(v) => setForm((p) => ({ ...p, phone: v }))}
+            placeholder="+225 …"
+            required
+          />
+          <FormField
+            label={t("contact.formEmail")}
+            value={form.email}
+            onChange={(v) => setForm((p) => ({ ...p, email: v }))}
+            type="email"
+          />
+          <FormField
+            label={t("contact.formLocation")}
+            value={form.location}
+            onChange={(v) => setForm((p) => ({ ...p, location: v }))}
+            placeholder={t("contact.formLocationPlaceholder")}
+            required
+          />
+          <FormField
+            label={t("contact.formQuantity")}
+            value={form.quantity}
+            onChange={(v) => setForm((p) => ({ ...p, quantity: v }))}
+            placeholder={t("contact.formQuantityPlaceholder")}
+          />
+          <div className="sm:col-span-2">
+            <FormField
+              label={t("contact.formProducts")}
+              value={form.products}
+              onChange={(v) => setForm((p) => ({ ...p, products: v }))}
+              placeholder={t("contact.formProductsPlaceholder")}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("contact.formMessage")}
+              </span>
+              <textarea
+                rows={3}
+                value={form.message}
+                onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+                className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+              />
+            </label>
+          </div>
+
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:brightness-95 sm:w-auto"
+            >
+              <Send className="h-4 w-4" /> {t("contact.formSubmit")}
+            </button>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MessageCircle className="h-3.5 w-3.5" /> {t("contact.formSubmitNote")}
+            </p>
+          </div>
+        </form>
+      </div>
+    </Reveal>
+  );
+}
+
+function FormField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  required,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  required?: boolean;
+  type?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        required={required}
+        className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+      />
+    </label>
   );
 }

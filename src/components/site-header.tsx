@@ -180,7 +180,7 @@ export function SiteHeader() {
             </Link>
           )}
 
-          <Link to="/cart" className={iconBtn} aria-label={t("nav.cart")}>
+          <Link id="site-cart-icon" to="/cart" className={iconBtn} aria-label={t("nav.cart")}>
             <ShoppingBag className="h-5 w-5" />
             {count > 0 && (
               <span

@@ -12,6 +12,8 @@
 //   informative. Aucune écriture en base ne doit s'y produire.
 import { parseNotification, verifyNotification, ApiError } from "cinetpay-js";
 import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
+import { sendEmail } from "@/lib/email/resend.server";
+import { buildPaymentReceivedAdminEmail } from "@/lib/email/templates";
 
 export async function handleCinetPayNotify(request: Request): Promise<Response> {
   if (request.method === "GET") {
@@ -35,7 +37,9 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
 
     const { data: order } = await supabaseAdmin
       .from("orders")
-      .select("id, status, payment_status, payment_notify_token, country_code")
+      .select(
+        "id, order_number, status, payment_status, payment_notify_token, country_code, total, currency_code, payment_method",
+      )
       .eq("payment_reference", notification.merchantTransactionId)
       .maybeSingle();
 
@@ -84,6 +88,30 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
         status: "paid",
         note: "Paiement confirmé par CinetPay",
       });
+
+      // Notification au propriétaire de la boutique — email en attendant que
+      // l'API WhatsApp Business soit en place (voir discussion du 22/07/2026).
+      // Best effort : ne doit jamais faire échouer le traitement du webhook.
+      try {
+        const ownerEmail = process.env.SHOP_OWNER_EMAIL;
+        if (ownerEmail) {
+          const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+          const emailContent = buildPaymentReceivedAdminEmail({
+            orderNumber: order.order_number,
+            amount: `${Number(order.total).toLocaleString("fr-FR")} ${order.currency_code}`,
+            countryCode: order.country_code,
+            paymentMethod: order.payment_method ?? "—",
+            adminUrl: `${appUrl}/admin/orders`,
+          });
+          await sendEmail({
+            to: ownerEmail,
+            subject: emailContent.subject,
+            html: emailContent.html,
+          });
+        }
+      } catch (err) {
+        console.error("[cinetpay:notify] échec de la notification email propriétaire", err);
+      }
     } else if (verification.status === "FAILED") {
       await supabaseAdmin.from("orders").update({ payment_status: "failed" }).eq("id", order.id);
     }

@@ -1,9 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Baby, User, ArrowUpRight } from "lucide-react";
+import { Baby, User, ArrowUpRight, Flame } from "lucide-react";
 import { imageFor } from "@/lib/products-meta";
 import { formatPrice } from "@/lib/format";
 import { useCountry } from "@/lib/country-context";
+
+// En dessous de ce seuil (en unités de stock réel, pas une fausse jauge), on
+// affiche une alerte de stock bas — urgence authentique, pas un compte à
+// rebours fictif.
+const LOW_STOCK_THRESHOLD = 15;
 
 type Props = {
   slug: string;
@@ -14,6 +19,7 @@ type Props = {
   prices: { country_code: string; price: number }[];
   audiences?: string[] | null;
   imageUrl?: string | null;
+  stock?: number;
 };
 
 export function ProductCard({
@@ -25,6 +31,7 @@ export function ProductCard({
   prices,
   audiences,
   imageUrl,
+  stock,
 }: Props) {
   const { country } = useCountry();
   const { t } = useTranslation();
@@ -38,6 +45,7 @@ export function ProductCard({
 
   const isKid = audiences?.includes("enfant");
   const isAdult = audiences?.includes("adulte");
+  const lowStock = typeof stock === "number" && stock > 0 && stock <= LOW_STOCK_THRESHOLD;
 
   return (
     <Link
@@ -78,6 +86,12 @@ export function ProductCard({
               </span>
             )}
           </div>
+        )}
+
+        {lowStock && (
+          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+            <Flame className="h-3 w-3" /> {t("products.lowStock", { count: stock })}
+          </span>
         )}
 
         {/* Icône "voir" qui apparaît en fondu au survol, en écho au bouton du bas */}

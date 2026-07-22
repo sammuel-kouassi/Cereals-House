@@ -34,7 +34,7 @@ function HomePage() {
       const { data } = await supabase
         .from("products")
         .select(
-          "id, slug, name, short_description, category, unit, is_featured, audiences, image_url, product_prices(country_code, price)",
+          "id, slug, name, short_description, category, unit, is_featured, audiences, image_url, stock, product_prices(country_code, price)",
         )
         .eq("is_active", true)
         .eq("is_featured", true)
@@ -197,15 +197,19 @@ function HomePage() {
                   <p className="mt-3 text-sm leading-relaxed text-primary-foreground/80 sm:text-base">
                     {t("home.bulkDesc")}
                   </p>
+                  <p className="mt-2 text-sm leading-relaxed text-primary-foreground/70 sm:text-base">
+                    {t("home.bulkDistribution")}
+                  </p>
                 </div>
               </div>
-              <Link
-                to="/contact"
+
+              <a
+                href="/contact#devis"
                 className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
               >
                 {t("home.bulkCta")}{" "}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Link>
+              </a>
             </div>
           </div>
         </Reveal>
@@ -248,6 +252,7 @@ function HomePage() {
                   unit={p.unit}
                   audiences={(p as unknown as { audiences?: string[] | null }).audiences}
                   imageUrl={(p as unknown as { image_url?: string | null }).image_url}
+                  stock={(p as unknown as { stock?: number }).stock}
                   prices={p.product_prices ?? []}
                 />
               </div>
