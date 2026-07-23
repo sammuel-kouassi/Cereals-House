@@ -265,6 +265,7 @@ export const fr = {
     paymentSection: "Méthode de paiement",
     securePayment: "Paiement sécurisé",
     notAvailable: "Non disponible en {{country}}",
+    shippingNote: "Livraison : {{details}} — {{base}} ailleurs en {{country}}",
     cardRedirectNote:
       "Vous entrerez les informations de votre carte directement sur la page sécurisée de CinetPay (3D Secure). Nous ne stockons jamais vos données bancaires.",
     demoNote:
@@ -387,6 +388,12 @@ export const fr = {
     copyReference: "Copier la référence de paiement",
     retryPayment: "Réessayer le paiement",
     retryPaymentError: "Impossible de démarrer le paiement. Réessayez dans un instant.",
+    cancelOrder: "Annuler la commande",
+    cancelConfirm:
+      "Voulez-vous vraiment annuler cette commande ? Si elle est déjà payée, le remboursement sera traité manuellement et peut prendre quelques jours.",
+    cancelledToast: "Commande annulée.",
+    cancelledRefundToast: "Commande annulée. Votre remboursement sera traité sous peu.",
+    cancelError: "Impossible d'annuler la commande pour le moment.",
     flow: {
       pending_payment: "Commande reçue",
       paid: "Paiement confirmé",

@@ -50,6 +50,38 @@ export type Database = {
         }
         Relationships: []
       }
+      city_shipping_rates: {
+        Row: {
+          city_name: string
+          country_code: string
+          created_at: string
+          id: string
+          shipping_fee: number
+        }
+        Insert: {
+          city_name: string
+          country_code: string
+          created_at?: string
+          id?: string
+          shipping_fee?: number
+        }
+        Update: {
+          city_name?: string
+          country_code?: string
+          created_at?: string
+          id?: string
+          shipping_fee?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "city_shipping_rates_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           id: string

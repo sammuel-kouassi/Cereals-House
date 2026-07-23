@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Lock,
@@ -126,6 +127,16 @@ function methodAvailableIn(m: PaymentMethod, countryCode: string): boolean {
   );
 }
 
+// Normalise pour une comparaison insensible à la casse et aux accents
+// ("Abidjan", "abidjan", "ABIDJAN", "Àbidjan" doivent tous correspondre).
+function normalizeCity(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Commande — Cereals House" }] }),
   beforeLoad: ({ context: _context, location }) => {
@@ -196,6 +207,28 @@ function CheckoutPage() {
     }
   }, [country?.code]);
 
+  // Tarifs de livraison par ville (exceptions au tarif de base du pays,
+  // gérées depuis /admin/shipping — ex: Abidjan moins cher que le reste de
+  // la Côte d'Ivoire). Doit rester AVANT tout retour conditionnel ci-dessous
+  // (règles des Hooks React : ordre d'appel toujours identique entre rendus).
+  const { data: cityRates } = useQuery({
+    queryKey: ["city-shipping-rates", country?.code],
+    enabled: !!country,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("city_shipping_rates")
+        .select("city_name, shipping_fee")
+        .eq("country_code", country!.code);
+      return data ?? [];
+    },
+  });
+
+  const cityOverrideFee = useMemo(() => {
+    if (!cityRates || !form.city.trim()) return undefined;
+    const match = cityRates.find((r) => normalizeCity(r.city_name) === normalizeCity(form.city));
+    return match ? Number(match.shipping_fee) : undefined;
+  }, [cityRates, form.city]);
+
   if (loading) return <PageLoader />;
 
   if (!user) {
@@ -220,7 +253,7 @@ function CheckoutPage() {
     throw redirect({ to: "/cart" });
   }
 
-  const shipping = country?.base_shipping_fee ?? 0;
+  const shipping = cityOverrideFee ?? country?.base_shipping_fee ?? 0;
   const total = subtotal + shipping;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -357,6 +390,24 @@ function CheckoutPage() {
                 value={form.city}
                 onChange={(v) => setForm({ ...form, city: v })}
               />
+              {country && cityRates && cityRates.length > 0 && (
+                <div className="sm:col-span-2 rounded-xl bg-secondary/40 px-4 py-2.5 text-xs text-muted-foreground">
+                  {t("checkout.shippingNote", {
+                    details: cityRates
+                      .map(
+                        (r) =>
+                          `${r.city_name} : ${formatPrice(Number(r.shipping_fee), country.currency_code, country.currency_symbol)}`,
+                      )
+                      .join(" · "),
+                    base: formatPrice(
+                      country.base_shipping_fee,
+                      country.currency_code,
+                      country.currency_symbol,
+                    ),
+                    country: country.name,
+                  })}
+                </div>
+              )}
               <Field
                 label={t("checkout.country")}
                 value={country?.name ?? ""}

@@ -266,6 +266,7 @@ export const en: Dict = {
     paymentSection: "Payment method",
     securePayment: "Secure payment",
     notAvailable: "Not available in {{country}}",
+    shippingNote: "Shipping: {{details}} — {{base}} elsewhere in {{country}}",
     cardRedirectNote:
       "You'll enter your card details directly on CinetPay's secure page (3D Secure). We never store your card data.",
     demoNote:
@@ -386,6 +387,12 @@ export const en: Dict = {
     copyReference: "Copy payment reference",
     retryPayment: "Retry payment",
     retryPaymentError: "Couldn't start the payment. Please try again in a moment.",
+    cancelOrder: "Cancel order",
+    cancelConfirm:
+      "Are you sure you want to cancel this order? If already paid, the refund will be processed manually and may take a few days.",
+    cancelledToast: "Order cancelled.",
+    cancelledRefundToast: "Order cancelled. Your refund will be processed shortly.",
+    cancelError: "Couldn't cancel the order right now.",
     flow: {
       pending_payment: "Order received",
       paid: "Payment confirmed",

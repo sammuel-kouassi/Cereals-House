@@ -116,3 +116,39 @@ export function buildPaymentReceivedAdminEmail(params: {
     </div>`,
   };
 }
+
+// Alerte propriétaire quand un CLIENT annule une commande DÉJÀ PAYÉE.
+// Rappel important : CinetPay n'a pas d'API de remboursement automatique —
+// ce mail signale juste qu'un remboursement manuel est à traiter côté
+// CinetPay, puis à confirmer en marquant la commande "remboursée" dans
+// /admin/orders (ce qui déclenchera l'email de confirmation au client).
+export function buildOrderCancelledAdminEmail(params: {
+  orderNumber: string;
+  amount: string;
+  countryCode: string;
+  reason?: string;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `⚠️ Commande annulée par le client — remboursement à traiter (${params.orderNumber})`,
+    html: `
+    <div style="font-family:Georgia,'Times New Roman',serif;padding:24px;background:${CREAM};">
+      <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;border:1px solid #eee;">
+        <h1 style="color:${BROWN};font-size:20px;margin:0 0 12px;">Commande annulée — remboursement à traiter</h1>
+        <p style="color:#333;font-size:14px;line-height:1.7;">
+          Le client a annulé une commande <strong>déjà payée en ligne</strong>.<br/><br/>
+          Commande <strong>${params.orderNumber}</strong><br/>
+          Montant à rembourser : <strong>${params.amount}</strong><br/>
+          Pays : ${params.countryCode}
+          ${params.reason ? `<br/>Motif indiqué : ${params.reason}` : ""}
+        </p>
+        <p style="color:#555;font-size:13px;line-height:1.6;background:${CREAM};padding:12px;border-radius:8px;">
+          CinetPay ne rembourse pas automatiquement : traite la demande de reversement depuis ton dashboard CinetPay, puis marque cette commande "Remboursée" dans l'admin une fois fait.
+        </p>
+        <a href="${params.adminUrl}" style="display:inline-block;margin-top:8px;background:${GOLD};color:${BROWN};text-decoration:none;font-weight:bold;padding:10px 20px;border-radius:999px;font-size:13px;">
+          Voir la commande
+        </a>
+      </div>
+    </div>`,
+  };
+}

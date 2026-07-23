@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Check,
@@ -12,6 +12,7 @@ import {
   Loader2,
   RefreshCw,
   Copy,
+  Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,10 @@ import { Reveal } from "@/components/reveal";
 import { PageLoader } from "@/components/page-loader";
 import { initiateCinetPayPaymentFn } from "@/lib/payments/cinetpay.functions";
 import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
+import { cancelOrderFn } from "@/lib/orders/cancel-order.functions";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+
+const NON_CANCELLABLE_STATUSES = new Set(["delivered", "cancelled", "refunded"]);
 
 const FLOW = [
   { key: "pending_payment", icon: Clock },
@@ -48,6 +53,9 @@ function OrderDetailPage() {
   const { id } = Route.useParams();
   const { t, i18n } = useTranslation();
   const [retrying, setRetrying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["order", id],
@@ -79,6 +87,24 @@ function OrderDetailPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("orderDetail.retryPaymentError"));
       setRetrying(false);
+    }
+  }
+
+  async function handleCancel() {
+    setCancelling(true);
+    try {
+      const result = await cancelOrderFn({ data: { orderId: id } });
+      toast.success(
+        result.requiresRefund
+          ? t("orderDetail.cancelledRefundToast")
+          : t("orderDetail.cancelledToast"),
+      );
+      queryClient.invalidateQueries({ queryKey: ["order", id] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("orderDetail.cancelError"));
+    } finally {
+      setCancelling(false);
+      setConfirmingCancel(false);
     }
   }
 
@@ -143,6 +169,21 @@ function OrderDetailPage() {
                   {t("orderDetail.retryPayment")}
                 </button>
               )}
+            {!NON_CANCELLABLE_STATUSES.has(data.status) && (
+              <button
+                type="button"
+                onClick={() => setConfirmingCancel(true)}
+                disabled={cancelling}
+                className="mt-3 ml-2 inline-flex items-center gap-2 rounded-full border border-destructive/30 px-4 py-2 text-xs font-semibold text-destructive transition-all duration-300 hover:-translate-y-0.5 hover:bg-destructive/10 disabled:translate-y-0 disabled:opacity-60"
+              >
+                {cancelling ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Ban className="h-3.5 w-3.5" />
+                )}
+                {t("orderDetail.cancelOrder")}
+              </button>
+            )}
           </div>
         </div>
       </Reveal>
@@ -319,6 +360,17 @@ function OrderDetailPage() {
           </section>
         </Reveal>
       </div>
+
+      <ConfirmDialog
+        open={confirmingCancel}
+        title={t("orderDetail.cancelOrder")}
+        message={t("orderDetail.cancelConfirm")}
+        confirmLabel={t("orderDetail.cancelOrder")}
+        cancelLabel={t("common.cancel")}
+        onConfirm={handleCancel}
+        onCancel={() => setConfirmingCancel(false)}
+        loading={cancelling}
+      />
     </div>
   );
 }
