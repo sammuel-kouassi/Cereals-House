@@ -2,8 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Package } from "lucide-react";
-import { listOrdersAdminFn, updateOrderStatusAdminFn } from "@/lib/admin/orders.functions";
+import { Loader2, Package, Download, Printer } from "lucide-react";
+import {
+  listOrdersAdminFn,
+  updateOrderStatusAdminFn,
+  exportOrdersAdminFn,
+  generatePackingSlipAdminFn,
+} from "@/lib/admin/orders.functions";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
 
@@ -52,6 +57,78 @@ function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [printingId, setPrintingId] = useState<string | null>(null);
+
+  async function handlePackingSlip(orderId: string) {
+    setPrintingId(orderId);
+    try {
+      const { pdfBase64 } = await generatePackingSlipAdminFn({ data: { orderId } });
+      const bytes = Uint8Array.from(atob(pdfBase64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec de la génération du bon");
+    } finally {
+      setPrintingId(null);
+    }
+  }
+
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      const { orders } = await exportOrdersAdminFn({
+        data: {
+          status: (statusFilter || undefined) as (typeof ORDER_STATUSES)[number] | undefined,
+          search: search || undefined,
+        },
+      });
+      if (orders.length === 0) {
+        toast.error("Aucune commande à exporter.");
+        return;
+      }
+
+      const columns: (keyof (typeof orders)[number])[] = [
+        "order_number",
+        "created_at",
+        "status",
+        "payment_status",
+        "payment_method",
+        "country_code",
+        "currency_code",
+        "subtotal",
+        "shipping_fee",
+        "total",
+        "shipping_full_name",
+        "shipping_phone",
+        "shipping_address",
+        "shipping_city",
+      ];
+      // Échappement CSV minimal : double les guillemets internes et entoure
+      // toute valeur contenant une virgule, un guillemet ou un retour ligne.
+      const escape = (v: unknown) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const header = columns.join(",");
+      const rows = orders.map((o) => columns.map((c) => escape(o[c])).join(","));
+      const csv = "\uFEFF" + [header, ...rows].join("\n"); // BOM pour Excel
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `commandes-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec de l'export");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-orders", statusFilter, search, page],
@@ -111,6 +188,19 @@ function AdminOrdersPage() {
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={exporting}
+          className="ml-auto inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/20 disabled:opacity-60"
+        >
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          Exporter CSV
+        </button>
       </div>
 
       {isLoading ? (
@@ -131,6 +221,7 @@ function AdminOrdersPage() {
                 <th className="px-4 py-3 font-semibold">Total</th>
                 <th className="px-4 py-3 font-semibold">Paiement</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
+                <th className="px-4 py-3 font-semibold" />
               </tr>
             </thead>
             <tbody>
@@ -173,6 +264,21 @@ function AdminOrdersPage() {
                         <Loader2 className="h-3.5 w-3.5 animate-spin text-gold" />
                       )}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      onClick={() => handlePackingSlip(o.id)}
+                      disabled={printingId === o.id}
+                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-secondary hover:text-gold"
+                      title="Bon de préparation"
+                    >
+                      {printingId === o.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Printer className="h-4 w-4" />
+                      )}
+                    </button>
                   </td>
                 </tr>
               ))}

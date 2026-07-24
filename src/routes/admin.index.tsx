@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { Package, ShoppingBag, TrendingUp, Globe } from "lucide-react";
+import { Package, ShoppingBag, TrendingUp, Globe, Mail, Loader2 } from "lucide-react";
 import { getAnalyticsAdminFn } from "@/lib/admin/analytics.functions";
+import { sendAbandonedCartRemindersFn } from "@/lib/orders/abandoned-cart.functions";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
 
@@ -36,6 +39,21 @@ function AdminDashboard() {
     queryKey: ["admin-analytics"],
     queryFn: () => getAnalyticsAdminFn(),
   });
+  const [sendingReminders, setSendingReminders] = useState(false);
+
+  async function handleSendReminders() {
+    setSendingReminders(true);
+    try {
+      const result = await sendAbandonedCartRemindersFn();
+      toast.success(
+        `${result.sent} relance(s) envoyée(s) sur ${result.total} panier(s) éligible(s)`,
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec de l'envoi des relances");
+    } finally {
+      setSendingReminders(false);
+    }
+  }
 
   if (isLoading || !data) return <PageLoader />;
 
@@ -57,6 +75,34 @@ function AdminDashboard() {
         />
         <SummaryCard icon={Globe} label="Pays actifs" value={String(data.countryStats.length)} />
       </div>
+
+      {/* Relance panier abandonné — déclenchement manuel pour l'instant */}
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-dashed border-gold/30 bg-gold/5 p-5">
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
+            <Mail className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-semibold text-primary">Relance panier abandonné</div>
+            <p className="text-sm text-muted-foreground">
+              Envoie un email aux clients dont le panier n'a pas bougé depuis plus de 3h.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleSendReminders}
+          disabled={sendingReminders}
+          className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 disabled:opacity-60"
+        >
+          {sendingReminders ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Mail className="h-4 w-4" />
+          )}
+          Envoyer les relances
+        </button>
+      </section>
 
       {/* Commandes par statut */}
       <section className="rounded-2xl border border-border bg-card p-6">

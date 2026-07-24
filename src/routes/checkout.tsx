@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -19,113 +19,15 @@ import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
 import { initiateCinetPayPaymentFn } from "@/lib/payments/cinetpay.functions";
 import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
+import { decrementStockAfterOrderFn } from "@/lib/products/stock.functions";
 import { PageLoader } from "@/components/page-loader";
 
-// Logos réels des opérateurs
-import orangeLogo from "@/assets/om.png";
-import waveLogo from "@/assets/waveci.jpg";
-import mtnLogo from "@/assets/mtn.jpg";
-import moovLogo from "@/assets/moov.png";
-import visaLogo from "@/assets/visa.png";
-
-// "cash_on_delivery" est un identifiant à part, distinct des méthodes en ligne ci-dessous.
-// Si la colonne "payment_method" de la table Supabase "orders" est un type enum restreint,
-// il faudra y ajouter cette valeur, sinon l'insertion échouera à la soumission.
-type PaymentId =
-  | "orange_money"
-  | "wave"
-  | "mtn_money"
-  | "moov_money"
-  | "tmoney"
-  | "visa"
-  | "cash_on_delivery";
-
-type PaymentMethod = {
-  id: Exclude<PaymentId, "cash_on_delivery">;
-  countries: string[];
-  bg: string;
-  fg: string;
-  ring: string;
-  badge: string;
-  logo?: string;
-};
-
-// Les pays disponibles par opérateur reflètent exactement ce que CinetPay
-// prend en charge (PAYMENT_METHODS_BY_COUNTRY du SDK cinetpay-js) : chaque
-// opérateur n'existe pas partout (ex : pas de Wave au Mali, pas d'Orange
-// Money au Togo/Bénin). Le Ghana n'apparaît volontairement dans AUCUNE liste
-// : CinetPay ne le prend en charge sur aucun opérateur pour l'instant.
-const PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    id: "orange_money",
-    countries: ["CI", "BF", "ML"],
-    bg: "bg-[#FF7900]",
-    fg: "text-white",
-    ring: "ring-[#FF7900]",
-    badge: "orange",
-    logo: orangeLogo,
-  },
-  {
-    id: "wave",
-    countries: ["CI", "BF"],
-    bg: "bg-[#1DC8F2]",
-    fg: "text-white",
-    ring: "ring-[#1DC8F2]",
-    badge: "wave~",
-    logo: waveLogo,
-  },
-  {
-    id: "mtn_money",
-    countries: ["CI", "BJ"],
-    bg: "bg-[#FFCC00]",
-    fg: "text-black",
-    ring: "ring-[#FFCC00]",
-    badge: "MTN",
-    logo: mtnLogo,
-  },
-  {
-    id: "moov_money",
-    countries: ["CI", "BF", "ML", "TG", "BJ"],
-    bg: "bg-[#005BAA]",
-    fg: "text-white",
-    ring: "ring-[#005BAA]",
-    badge: "moov",
-    logo: moovLogo,
-  },
-  {
-    id: "tmoney",
-    countries: ["TG"],
-    bg: "bg-[#F5A623]",
-    fg: "text-white",
-    ring: "ring-[#F5A623]",
-    badge: "TMoney",
-    // Pas de logo fourni pour l'instant — l'affichage bascule sur un badge
-    // texte stylé (voir le rendu de la carte plus bas).
-  },
-  {
-    id: "visa",
-    // Le Ghana, la France et les États-Unis ne sont pas des pays gérés par
-    // cette API CinetPay (ni comme "country" d'initialisation, ni comme
-    // marché) — Visa n'est donc disponible que là où on a déjà des
-    // identifiants CinetPay actifs.
-    countries: ["CI", "BF", "ML", "TG", "BJ"],
-    bg: "bg-gradient-to-br from-slate-800 to-slate-900",
-    fg: "text-white",
-    ring: "ring-slate-800",
-    badge: "VISA",
-    logo: visaLogo,
-  },
-];
-
-// Un opérateur n'est proposable que s'il existe dans le pays du client ET que
-// l'intégration CinetPay est réellement active pour ce pays (voir
-// CINETPAY_SUPPORTED_COUNTRIES — actuellement réduit à la Côte d'Ivoire).
-function methodAvailableIn(m: PaymentMethod, countryCode: string): boolean {
-  return (
-    (m.countries as readonly string[]).includes(countryCode) &&
-    isCinetPaySupportedCountry(countryCode)
-  );
-}
+import {
+  PAYMENT_METHODS,
+  methodAvailableIn,
+  type PaymentId,
+  type PaymentMethodDef as PaymentMethod,
+} from "@/lib/payments/payment-methods";
 
 // Normalise pour une comparaison insensible à la casse et aux accents
 // ("Abidjan", "abidjan", "ABIDJAN", "Àbidjan" doivent tous correspondre).
@@ -153,6 +55,12 @@ function CheckoutPage() {
   const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  // Une fois une commande créée avec succès, le panier est vidé — mais il ne
+  // faut plus jamais rediriger vers /cart après ça (même si le paiement en
+  // ligne échoue ensuite) : on est censé aller vers le suivi de la commande,
+  // pas revenir en arrière. Une ref plutôt qu'un state pour être disponible
+  // immédiatement, sans attendre un re-rendu.
+  const orderPlacedRef = useRef(false);
 
   const supportedDefault =
     !country || PAYMENT_METHODS.some((m) => methodAvailableIn(m, country.code))
@@ -249,7 +157,7 @@ function CheckoutPage() {
     );
   }
 
-  if (items.length === 0 && !submitting && !redirecting) {
+  if (items.length === 0 && !submitting && !redirecting && !orderPlacedRef.current) {
     throw redirect({ to: "/cart" });
   }
 
@@ -286,6 +194,10 @@ function CheckoutPage() {
         .single();
 
       if (orderErr || !order) throw orderErr;
+      // Dès que la commande existe vraiment en base, plus aucune redirection
+      // "panier vide" ne doit se déclencher — même si le paiement échoue
+      // ensuite, on va vers le suivi de la commande, jamais vers /cart.
+      orderPlacedRef.current = true;
 
       const { error: itemsErr } = await supabase.from("order_items").insert(
         items.map((it) => ({
@@ -301,6 +213,16 @@ function CheckoutPage() {
       if (itemsErr) throw itemsErr;
 
       clear();
+
+      // Best effort : la décrémentation de stock ne doit jamais faire
+      // échouer la commande elle-même si elle rencontre un problème.
+      try {
+        await decrementStockAfterOrderFn({
+          data: { items: items.map((it) => ({ productId: it.productId, quantity: it.quantity })) },
+        });
+      } catch (stockErr) {
+        console.error("Échec de la décrémentation de stock", stockErr);
+      }
 
       // Paiement en ligne (Mobile Money / carte) en Côte d'Ivoire : on part
       // réellement chez CinetPay. Pour les autres pays, l'intégration n'est

@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/admin/require-admin";
 import { sendEmail } from "@/lib/email/resend.server";
 import { buildOrderStatusEmail } from "@/lib/email/templates";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
+import { generatePackingSlipPdf } from "@/lib/receipt/generate-packing-slip.server";
 
 const ORDER_STATUSES = [
   "pending_payment",
@@ -54,6 +55,36 @@ export const listOrdersAdminFn = createServerFn({ method: "POST" })
     return { orders: orders ?? [], total: count ?? 0 };
   });
 
+const exportInputSchema = z.object({
+  status: z.enum(ORDER_STATUSES).optional(),
+  countryCode: z.string().optional(),
+  search: z.string().trim().optional(),
+});
+
+// Export CSV : mêmes filtres que la liste, mais sans pagination — jusqu'à
+// 5000 commandes en une fois, largement suffisant pour l'usage prévu.
+export const exportOrdersAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .validator((data: unknown) => exportInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let query = supabaseAdmin
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+
+    if (data.status) query = query.eq("status", data.status);
+    if (data.countryCode) query = query.eq("country_code", data.countryCode);
+    if (data.search) query = query.ilike("order_number", `%${data.search}%`);
+
+    const { data: orders, error } = await query;
+    if (error) throw new Error(error.message);
+
+    return { orders: orders ?? [] };
+  });
+
 const updateStatusInputSchema = z.object({
   orderId: z.string().uuid(),
   status: z.enum(ORDER_STATUSES),
@@ -97,14 +128,21 @@ async function notifyCustomerOfStatusChange(orderId: string, status: string) {
   const { data: order } = await supabaseAdmin
     .from("orders")
     .select(
-      "id, order_number, user_id, status, created_at, country_code, currency_code, subtotal, shipping_fee, total, payment_method, shipping_full_name, shipping_address, shipping_city",
+      "id, order_number, user_id, guest_email, status, created_at, country_code, currency_code, subtotal, shipping_fee, total, payment_method, shipping_full_name, shipping_address, shipping_city",
     )
     .eq("id", orderId)
     .maybeSingle();
   if (!order) return;
 
-  const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
-  const email = userRes?.user?.email;
+  // Commande invité (devis pro payé via lien) : pas de compte, l'email est
+  // celui renseigné à la création de la facture.
+  let email: string | undefined;
+  if (order.user_id) {
+    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+    email = userRes?.user?.email;
+  } else {
+    email = order.guest_email ?? undefined;
+  }
   if (!email) return;
 
   const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
@@ -167,3 +205,47 @@ async function notifyCustomerOfStatusChange(orderId: string, status: string) {
     attachments,
   });
 }
+
+const packingSlipInputSchema = z.object({ orderId: z.string().uuid() });
+
+export const generatePackingSlipAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .validator((data: unknown) => packingSlipInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select(
+        "order_number, created_at, shipping_full_name, shipping_phone, shipping_address, shipping_city, country_code, shipping_notes, payment_method, payment_status, order_items(product_name, quantity)",
+      )
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error || !order) throw new Error("Commande introuvable.");
+
+    const { data: country } = await supabaseAdmin
+      .from("countries")
+      .select("name")
+      .eq("code", order.country_code)
+      .maybeSingle();
+
+    const pdfBytes = await generatePackingSlipPdf({
+      orderNumber: order.order_number,
+      createdAt: order.created_at,
+      customerName: order.shipping_full_name,
+      customerPhone: order.shipping_phone,
+      shippingAddress: order.shipping_address,
+      shippingCity: order.shipping_city,
+      countryName: country?.name ?? order.country_code,
+      notes: order.shipping_notes,
+      paymentMethodLabel: order.payment_method ?? "Paiement à la livraison",
+      paymentStatus: order.payment_status,
+      items: (order.order_items ?? []).map((it) => ({
+        name: it.product_name,
+        quantity: it.quantity,
+        unit: "kg",
+      })),
+    });
+
+    return { pdfBase64: Buffer.from(pdfBytes).toString("base64") };
+  });

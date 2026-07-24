@@ -50,6 +50,65 @@ export type Database = {
         }
         Relationships: []
       }
+      cart_snapshots: {
+        Row: {
+          user_id: string
+          items: Json
+          updated_at: string
+          reminder_sent_at: string | null
+        }
+        Insert: {
+          user_id: string
+          items?: Json
+          updated_at?: string
+          reminder_sent_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          items?: Json
+          updated_at?: string
+          reminder_sent_at?: string | null
+        }
+        Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          id: string
+          product_id: string
+          user_id: string
+          rating: number
+          comment: string | null
+          reviewer_name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          user_id: string
+          rating: number
+          comment?: string | null
+          reviewer_name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          user_id?: string
+          rating?: number
+          comment?: string | null
+          reviewer_name?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       city_shipping_rates: {
         Row: {
           city_name: string
@@ -87,7 +146,7 @@ export type Database = {
           id: string
           line_total: number
           order_id: string
-          product_id: string
+          product_id: string | null
           product_image: string | null
           product_name: string
           quantity: number
@@ -97,7 +156,7 @@ export type Database = {
           id?: string
           line_total: number
           order_id: string
-          product_id: string
+          product_id?: string | null
           product_image?: string | null
           product_name: string
           quantity: number
@@ -107,7 +166,7 @@ export type Database = {
           id?: string
           line_total?: number
           order_id?: string
-          product_id?: string
+          product_id?: string | null
           product_image?: string | null
           product_name?: string
           quantity?: number
@@ -170,8 +229,10 @@ export type Database = {
           country_code: string
           created_at: string
           currency_code: string
+          guest_email: string | null
           id: string
           order_number: string
+          payment_link_token: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -187,14 +248,16 @@ export type Database = {
           subtotal: number
           total: number
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           country_code: string
           created_at?: string
           currency_code: string
+          guest_email?: string | null
           id?: string
           order_number?: string
+          payment_link_token?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -210,14 +273,16 @@ export type Database = {
           subtotal: number
           total: number
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           country_code?: string
           created_at?: string
           currency_code?: string
+          guest_email?: string | null
           id?: string
           order_number?: string
+          payment_link_token?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -233,7 +298,7 @@ export type Database = {
           subtotal?: number
           total?: number
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -409,6 +474,20 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      decrement_product_stock: {
+        Args: {
+          p_product_id: string
+          p_qty: number
+        }
+        Returns: number
+      }
+      increment_product_stock: {
+        Args: {
+          p_product_id: string
+          p_qty: number
+        }
+        Returns: number
       }
     }
     Enums: {

@@ -1,5 +1,13 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Package, ShoppingBag, ShieldAlert, Globe,Truck } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  ShieldAlert,
+  Globe,
+  Truck,
+  FileText,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useIsAdmin } from "@/lib/admin/use-is-admin";
 import { PageLoader } from "@/components/page-loader";
@@ -15,6 +23,7 @@ const TABS = [
   { to: "/admin/products", label: "Produits", icon: Package, exact: false },
   { to: "/admin/countries", label: "Pays", icon: Globe, exact: false },
   { to: "/admin/shipping", label: "Livraison", icon: Truck, exact: false },
+  { to: "/admin/invoice", label: "Facture pro", icon: FileText, exact: false },
 ] as const;
 
 function AdminLayout() {

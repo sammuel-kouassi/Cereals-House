@@ -20,10 +20,12 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PayOrderIdRouteImport } from './routes/pay.$orderId'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as AdminShippingRouteImport } from './routes/admin.shipping'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminInvoiceRouteImport } from './routes/admin.invoice'
 import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
 
 const ContactRoute = ContactRouteImport.update({
@@ -81,6 +83,11 @@ const ProductsSlugRoute = ProductsSlugRouteImport.update({
   path: '/products/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayOrderIdRoute = PayOrderIdRouteImport.update({
+  id: '/pay/$orderId',
+  path: '/pay/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
   id: '/orders/$id',
   path: '/orders/$id',
@@ -101,6 +108,11 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInvoiceRoute = AdminInvoiceRouteImport.update({
+  id: '/invoice',
+  path: '/invoice',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCountriesRoute = AdminCountriesRouteImport.update({
   id: '/countries',
   path: '/countries',
@@ -116,10 +128,12 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/admin/countries': typeof AdminCountriesRoute
+  '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/shipping': typeof AdminShippingRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
@@ -133,10 +147,12 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/admin/countries': typeof AdminCountriesRoute
+  '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/shipping': typeof AdminShippingRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin': typeof AdminIndexRoute
   '/orders': typeof OrdersIndexRoute
@@ -152,10 +168,12 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/admin/countries': typeof AdminCountriesRoute
+  '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/shipping': typeof AdminShippingRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
@@ -172,10 +190,12 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/admin/countries'
+    | '/admin/invoice'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/shipping'
     | '/orders/$id'
+    | '/pay/$orderId'
     | '/products/$slug'
     | '/admin/'
     | '/orders/'
@@ -189,10 +209,12 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/admin/countries'
+    | '/admin/invoice'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/shipping'
     | '/orders/$id'
+    | '/pay/$orderId'
     | '/products/$slug'
     | '/admin'
     | '/orders'
@@ -207,10 +229,12 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/admin/countries'
+    | '/admin/invoice'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/shipping'
     | '/orders/$id'
+    | '/pay/$orderId'
     | '/products/$slug'
     | '/admin/'
     | '/orders/'
@@ -226,6 +250,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   OrdersIdRoute: typeof OrdersIdRoute
+  PayOrderIdRoute: typeof PayOrderIdRoute
   ProductsSlugRoute: typeof ProductsSlugRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -310,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$orderId': {
+      id: '/pay/$orderId'
+      path: '/pay/$orderId'
+      fullPath: '/pay/$orderId'
+      preLoaderRoute: typeof PayOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/$id': {
       id: '/orders/$id'
       path: '/orders/$id'
@@ -338,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/invoice': {
+      id: '/admin/invoice'
+      path: '/invoice'
+      fullPath: '/admin/invoice'
+      preLoaderRoute: typeof AdminInvoiceRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/countries': {
       id: '/admin/countries'
       path: '/countries'
@@ -350,6 +389,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminCountriesRoute: typeof AdminCountriesRoute
+  AdminInvoiceRoute: typeof AdminInvoiceRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminShippingRoute: typeof AdminShippingRoute
@@ -358,6 +398,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCountriesRoute: AdminCountriesRoute,
+  AdminInvoiceRoute: AdminInvoiceRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminShippingRoute: AdminShippingRoute,
@@ -375,6 +416,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   OrdersIdRoute: OrdersIdRoute,
+  PayOrderIdRoute: PayOrderIdRoute,
   ProductsSlugRoute: ProductsSlugRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,

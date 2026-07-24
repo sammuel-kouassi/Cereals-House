@@ -35,7 +35,7 @@ export const cancelOrderFn = createServerFn({ method: "POST" })
     const { data: order, error } = await supabase
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, country_code, currency_code, total, payment_method",
+        "id, order_number, status, payment_status, country_code, currency_code, total, payment_method, order_items(product_id, quantity)",
       )
       .eq("id", data.orderId)
       .eq("user_id", userId)
@@ -55,6 +55,22 @@ export const cancelOrderFn = createServerFn({ method: "POST" })
       .update({ status: "cancelled" })
       .eq("id", order.id);
     if (updateErr) throw new Error(updateErr.message);
+
+    // Restaure le stock des articles annulés — best effort, ne doit jamais
+    // faire échouer l'annulation elle-même. Les lignes de devis personnalisé
+    // (product_id NULL, sans produit réel du catalogue) n'ont rien à
+    // restaurer.
+    for (const item of order.order_items ?? []) {
+      if (!item.product_id) continue;
+      try {
+        await supabaseAdmin.rpc("increment_product_stock", {
+          p_product_id: item.product_id,
+          p_qty: item.quantity,
+        });
+      } catch (err) {
+        console.error(`[orders] échec de la restauration du stock pour ${item.product_id}`, err);
+      }
+    }
 
     await supabaseAdmin.from("order_status_history").insert({
       order_id: order.id,

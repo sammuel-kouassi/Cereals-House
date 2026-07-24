@@ -78,8 +78,7 @@ function AdminShippingPage() {
 
   if (ratesLoading || countriesLoading || !ratesData || !countriesData) return <PageLoader />;
 
-  const countryName = (code: string) =>
-    countriesData.countries.find((c) => c.code === code)?.name ?? code;
+  const countryName = (code: string) => countriesData.countries.find((c) => c.code === code)?.name ?? code;
 
   return (
     <div>

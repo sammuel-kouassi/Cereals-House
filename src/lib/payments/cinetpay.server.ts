@@ -1,4 +1,3 @@
-
 // Client CinetPay — SERVEUR UNIQUEMENT. Utilise le SDK officiel `cinetpay-js`
 // (API "Direct v1").
 //
@@ -37,7 +36,9 @@ let _client: CinetPayClient | undefined;
 let _configuredCountries: Set<string> | undefined;
 
 function loadConfiguredCredentials(): ClientConfig["credentials"] {
-  const credentials: Partial<Record<SupportedCinetPayCountry, { apiKey: string; apiPassword: string }>> = {};
+  const credentials: Partial<
+    Record<SupportedCinetPayCountry, { apiKey: string; apiPassword: string }>
+  > = {};
 
   // Identifiants CI, utilisés en repli pour les autres pays UEMOA tant qu'ils
   // n'ont pas leurs propres variables dédiées (voir avertissement ci-dessus).

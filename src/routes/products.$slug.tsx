@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Minus,
@@ -16,6 +16,7 @@ import {
   ChefHat,
   Flame,
   Calculator,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,8 @@ import { formatPrice } from "@/lib/format";
 import { Reveal } from "@/components/reveal";
 import { PageLoader } from "@/components/page-loader";
 import { flyToCart } from "@/lib/fly-to-cart";
+import { useAuth } from "@/lib/auth-context";
+import { ProductCard } from "@/components/product-card";
 
 export const Route = createFileRoute("/products/$slug")({
   component: ProductDetailPage,
@@ -301,6 +304,8 @@ function ProductDetailPage() {
       </div>
 
       <ProductDetails product={product as unknown as Record<string, unknown>} />
+      <RelatedProducts currentProductId={product.id} category={product.category} />
+      <ProductReviews productId={product.id} />
     </div>
   );
 }
@@ -404,6 +409,231 @@ function ProductDetails({ product }: { product: Record<string, unknown> }) {
           );
         })}
       </div>
+    </section>
+  );
+}
+
+function RelatedProducts({
+  currentProductId,
+  category,
+}: {
+  currentProductId: string;
+  category: string | null;
+}) {
+  const { t } = useTranslation();
+
+  const { data: related = [] } = useQuery({
+    queryKey: ["related-products", currentProductId, category],
+    queryFn: async () => {
+      // On privilégie la même catégorie ; si ça ne donne pas assez de
+      // résultats, on complète avec d'autres produits actifs au hasard —
+      // mieux vaut montrer 4 produits pertinents que rien du tout.
+      let query = supabase
+        .from("products")
+        .select(
+          "id, slug, name, short_description, category, unit, audiences, image_url, stock, product_prices(country_code, price)",
+        )
+        .eq("is_active", true)
+        .neq("id", currentProductId)
+        .limit(4);
+      if (category) query = query.eq("category", category);
+
+      const { data } = await query;
+      if (data && data.length >= 4) return data;
+
+      // Complète avec des produits d'autres catégories si besoin.
+      const { data: fallback } = await supabase
+        .from("products")
+        .select(
+          "id, slug, name, short_description, category, unit, audiences, image_url, stock, product_prices(country_code, price)",
+        )
+        .eq("is_active", true)
+        .neq("id", currentProductId)
+        .limit(4);
+      return fallback ?? data ?? [];
+    },
+  });
+
+  if (related.length === 0) return null;
+
+  return (
+    <section className="mt-20">
+      <div className="mb-8">
+        <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+          {t("product.relatedEyebrow")}
+        </span>
+        <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
+          {t("product.relatedTitle")}
+        </h2>
+      </div>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {related.map((p) => (
+          <ProductCard
+            key={p.id}
+            slug={p.slug}
+            name={p.name}
+            shortDescription={p.short_description}
+            category={p.category}
+            unit={p.unit}
+            audiences={p.audiences}
+            imageUrl={p.image_url}
+            stock={p.stock}
+            prices={p.product_prices ?? []}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function StarRating({
+  value,
+  onChange,
+  size = "h-4 w-4",
+}: {
+  value: number;
+  onChange?: (v: number) => void;
+  size?: string;
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={!onChange}
+          onClick={() => onChange?.(n)}
+          className={onChange ? "cursor-pointer" : "cursor-default"}
+        >
+          <Star className={`${size} ${n <= value ? "fill-gold text-gold" : "text-border"}`} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ProductReviews({ productId }: { productId: string }) {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const { data: reviews = [], isLoading } = useQuery({
+    queryKey: ["product-reviews", productId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_reviews")
+        .select("*")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    },
+  });
+
+  const average = reviews.length
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
+  const myReview = reviews.find((r) => r.user_id === user?.id);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user || rating === 0) return;
+    setSubmitting(true);
+    try {
+      const reviewerName =
+        (user.user_metadata?.full_name as string | undefined)?.trim() ||
+        user.email?.split("@")[0] ||
+        "Client";
+
+      const { error } = await supabase.from("product_reviews").upsert(
+        {
+          product_id: productId,
+          user_id: user.id,
+          rating,
+          comment: comment.trim() || null,
+          reviewer_name: reviewerName,
+        },
+        { onConflict: "product_id,user_id" },
+      );
+      if (error) throw error;
+
+      toast.success(t("product.reviewSubmitted"));
+      setRating(0);
+      setComment("");
+      queryClient.invalidateQueries({ queryKey: ["product-reviews", productId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("product.reviewError"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mt-20">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+            {t("product.reviewsEyebrow")}
+          </span>
+          <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
+            {t("product.reviewsTitle")}
+          </h2>
+        </div>
+        {reviews.length > 0 && (
+          <div className="flex items-center gap-2">
+            <StarRating value={Math.round(average)} size="h-5 w-5" />
+            <span className="text-sm text-muted-foreground">
+              {average.toFixed(1)} · {t("product.reviewsCount", { count: reviews.length })}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {user && !myReview && (
+        <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-display text-lg font-bold text-primary">
+            {t("product.reviewFormTitle")}
+          </h3>
+          <div className="mt-3">
+            <StarRating value={rating} onChange={setRating} size="h-6 w-6" />
+          </div>
+          <textarea
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder={t("product.reviewPlaceholder")}
+            className="mt-3 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+          />
+          <button
+            type="submit"
+            disabled={submitting || rating === 0}
+            className="mt-3 rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 disabled:opacity-50"
+          >
+            {submitting ? t("checkout.submitting") : t("product.reviewSubmit")}
+          </button>
+        </form>
+      )}
+
+      {isLoading ? null : reviews.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t("product.noReviews")}</p>
+      ) : (
+        <div className="space-y-4">
+          {reviews.map((r) => (
+            <div key={r.id} className="rounded-2xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-primary">{r.reviewer_name}</div>
+                <StarRating value={r.rating} />
+              </div>
+              {r.comment && <p className="mt-2 text-sm text-foreground/80">{r.comment}</p>}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {new Date(r.created_at).toLocaleDateString("fr-FR")}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
