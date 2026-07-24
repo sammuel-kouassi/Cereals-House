@@ -1,5 +1,16 @@
 import "./lib/error-capture";
 
+// Force IPv4 en priorité pour toutes les résolutions DNS sortantes. Utile
+// surtout en développement local (npm run dev, environnement Node.js) : si
+// le réseau de la machine dispose à la fois d'IPv4 et d'IPv6, Node peut
+// choisir IPv6 pour joindre l'API CinetPay — une adresse différente de
+// celle whitelistée côté CinetPay, provoquant un rejet "IP non autorisée"
+// même quand l'IPv4 est correctement configurée. Sans effet en production
+// sur Cloudflare Workers (runtime différent, ce réglage Node est ignoré
+// silencieusement — donc aucun risque à le laisser en place partout).
+import dns from "node:dns";
+dns.setDefaultResultOrder("ipv4first");
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleCinetPayNotify, handleCinetPayReturn } from "./lib/payments/cinetpay.webhook.server";

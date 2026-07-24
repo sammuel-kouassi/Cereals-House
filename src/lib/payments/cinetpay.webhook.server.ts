@@ -10,6 +10,7 @@
 //   client.payment.getStatus() — ne jamais faire confiance au seul webhook.
 // - successUrl/failedUrl : redirection navigateur après paiement, purement
 //   informative. Aucune écriture en base ne doit s'y produire.
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { parseNotification, verifyNotification, ApiError } from "cinetpay-js";
 import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
 import { sendEmail } from "@/lib/email/resend.server";
@@ -95,7 +96,7 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
       try {
         const ownerEmail = process.env.SHOP_OWNER_EMAIL;
         if (ownerEmail) {
-          const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+          const appUrl = getPublicAppUrl();
           const emailContent = buildPaymentReceivedAdminEmail({
             orderNumber: order.order_number,
             amount: `${Number(order.total).toLocaleString("fr-FR")} ${order.currency_code}`,

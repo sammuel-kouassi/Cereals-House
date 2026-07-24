@@ -6,6 +6,7 @@
 // Si le stock d'un produit passe sous le seuil bas après décrément, un email
 // récapitulatif est envoyé au propriétaire — un seul email même si plusieurs
 // produits de la même commande sont concernés, pour éviter de le spammer.
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -55,7 +56,7 @@ export const decrementStockAfterOrderFn = createServerFn({ method: "POST" })
       try {
         const ownerEmail = process.env.SHOP_OWNER_EMAIL;
         if (ownerEmail) {
-          const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+          const appUrl = getPublicAppUrl();
           const emailContent = buildLowStockAdminEmail({
             products: lowStockProducts,
             adminUrl: `${appUrl}/admin/products`,

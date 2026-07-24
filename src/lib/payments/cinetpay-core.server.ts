@@ -12,6 +12,7 @@ import {
 } from "@/lib/payments/cinetpay.server";
 import { ApiError, ValidationError } from "cinetpay-js";
 import type { PaymentMethod } from "cinetpay-js";
+import { getAppUrl } from "@/lib/app-url.server";
 
 // Correspondance (pays, moyen de paiement de notre UI) → code opérateur exact
 // attendu par CinetPay. Gardée pour TOUS les pays UEMOA visés (même ceux
@@ -24,17 +25,6 @@ export const PAYMENT_METHOD_MAP: Partial<Record<string, Partial<Record<string, P
   TG: { moov_money: "MOOV_TG", tmoney: "TMONEY_TG" },
   BJ: { moov_money: "MOOV_BJ", mtn_money: "MTN_BJ" },
 };
-
-export function getAppUrl(): string {
-  const url = process.env.APP_URL;
-  if (!url) {
-    throw new Error(
-      "Variable d'environnement APP_URL manquante (ex: https://cerealshouse.com). " +
-        "Nécessaire pour construire les URLs successUrl/failedUrl/notifyUrl envoyées à CinetPay.",
-    );
-  }
-  return url.replace(/\/$/, "");
-}
 
 // Découpe grossière "Prénom Nom" en (prénom, nom) — CinetPay exige les deux
 // séparément.

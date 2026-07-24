@@ -9,6 +9,7 @@
 // policies RLS classiques (orders_view_own compare à auth.uid(), qui ne
 // matche jamais NULL) — seul ce jeton donne accès, exclusivement via ces
 // server functions (service_role), jamais en lecture directe côté client.
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
@@ -91,7 +92,7 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
     );
     if (itemsErr) throw new Error(itemsErr.message);
 
-    const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+    const appUrl = getPublicAppUrl();
     return {
       orderId: order.id,
       orderNumber: order.order_number,

@@ -8,6 +8,7 @@
 // pas testable depuis le développement local/ngrok, donc pour l'instant
 // c'est un déclenchement manuel — voir la discussion pour le mettre en
 // place plus tard.
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -72,7 +73,7 @@ export const sendAbandonedCartRemindersFn = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     let sent = 0;
-    const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+    const appUrl = getPublicAppUrl();
 
     for (const cart of carts ?? []) {
       try {

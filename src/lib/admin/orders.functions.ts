@@ -3,6 +3,7 @@
 // car les policies RLS actuelles ne permettent à un utilisateur (même admin)
 // de voir que ses PROPRES commandes côté client — voir require-admin.ts pour
 // le détail de cette décision d'architecture.
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
@@ -145,7 +146,7 @@ async function notifyCustomerOfStatusChange(orderId: string, status: string) {
   }
   if (!email) return;
 
-  const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+  const appUrl = getPublicAppUrl();
   const trackingUrl = `${appUrl}/orders/${order.id}`;
   const emailContent = buildOrderStatusEmail({
     orderNumber: order.order_number,

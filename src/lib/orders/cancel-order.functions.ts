@@ -11,6 +11,7 @@
 // remboursement côté CinetPay, puis marque la commande "remboursée" dans
 // /admin/orders une fois fait (ce qui déclenche l'email de confirmation au
 // client, déjà en place).
+import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -82,7 +83,7 @@ export const cancelOrderFn = createServerFn({ method: "POST" })
     // Email de confirmation au client — best effort, ne doit jamais faire
     // échouer l'annulation elle-même.
     try {
-      const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+      const appUrl = getPublicAppUrl();
       const emailContent = buildOrderStatusEmail({
         orderNumber: order.order_number,
         status: "cancelled",
@@ -104,7 +105,7 @@ export const cancelOrderFn = createServerFn({ method: "POST" })
       try {
         const ownerEmail = process.env.SHOP_OWNER_EMAIL;
         if (ownerEmail) {
-          const appUrl = process.env.APP_URL?.replace(/\/$/, "") ?? "";
+          const appUrl = getPublicAppUrl();
           const emailContent = buildOrderCancelledAdminEmail({
             orderNumber: order.order_number,
             amount: `${Number(order.total).toLocaleString("fr-FR")} ${order.currency_code}`,
