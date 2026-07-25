@@ -237,6 +237,7 @@ export type Database = {
           payment_reference: string | null
           payment_status: Database["public"]["Enums"]["payment_status"]
           payment_notify_token: string | null
+          cinetpay_transaction_id: string | null
           payment_token: string | null
           shipping_address: string
           shipping_city: string
@@ -262,6 +263,7 @@ export type Database = {
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_notify_token?: string | null
+          cinetpay_transaction_id?: string | null
           payment_token?: string | null
           shipping_address: string
           shipping_city: string
@@ -287,6 +289,7 @@ export type Database = {
           payment_reference?: string | null
           payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_notify_token?: string | null
+          cinetpay_transaction_id?: string | null
           payment_token?: string | null
           shipping_address?: string
           shipping_city?: string

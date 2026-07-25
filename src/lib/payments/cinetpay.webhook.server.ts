@@ -10,11 +10,8 @@
 //   client.payment.getStatus() — ne jamais faire confiance au seul webhook.
 // - successUrl/failedUrl : redirection navigateur après paiement, purement
 //   informative. Aucune écriture en base ne doit s'y produire.
-import { getPublicAppUrl } from "@/lib/app-url.server";
 import { parseNotification, verifyNotification, ApiError } from "cinetpay-js";
-import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
-import { sendEmail } from "@/lib/email/resend.server";
-import { buildPaymentReceivedAdminEmail } from "@/lib/email/templates";
+import { verifyAndConfirmPayment } from "@/lib/payments/payment-confirmation.server";
 
 export async function handleCinetPayNotify(request: Request): Promise<Response> {
   if (request.method === "GET") {
@@ -39,7 +36,7 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
     const { data: order } = await supabaseAdmin
       .from("orders")
       .select(
-        "id, order_number, status, payment_status, payment_notify_token, country_code, total, currency_code, payment_method",
+        "id, order_number, status, payment_status, payment_notify_token, country_code, total, currency_code, payment_method, cinetpay_transaction_id",
       )
       .eq("payment_reference", notification.merchantTransactionId)
       .maybeSingle();
@@ -61,63 +58,10 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
       return new Response("Invalid token", { status: 401 });
     }
 
-    // Anti-rejeu : si déjà marquée payée, inutile de retraiter.
-    if (order.payment_status === "paid") {
-      return new Response("OK", { status: 200 });
-    }
-
-    // On ne fait JAMAIS confiance au statut du webhook lui-même : on reconfirme
-    // auprès de CinetPay via l'API de statut, avec le VRAI pays de la commande
-    // (et non "CI" en dur — indispensable maintenant que plusieurs pays sont actifs).
-    const client = getCinetPayClient();
-    const verification = await client.payment.getStatus(
-      notification.transactionId,
-      order.country_code as SupportedCinetPayCountry,
-    );
-
-    if (verification.status === "SUCCESS") {
-      await supabaseAdmin
-        .from("orders")
-        .update({
-          payment_status: "paid",
-          status: order.status === "pending_payment" ? "paid" : order.status,
-        })
-        .eq("id", order.id);
-
-      await supabaseAdmin.from("order_status_history").insert({
-        order_id: order.id,
-        status: "paid",
-        note: "Paiement confirmé par CinetPay",
-      });
-
-      // Notification au propriétaire de la boutique — email en attendant que
-      // l'API WhatsApp Business soit en place (voir discussion du 22/07/2026).
-      // Best effort : ne doit jamais faire échouer le traitement du webhook.
-      try {
-        const ownerEmail = process.env.SHOP_OWNER_EMAIL;
-        if (ownerEmail) {
-          const appUrl = getPublicAppUrl();
-          const emailContent = buildPaymentReceivedAdminEmail({
-            orderNumber: order.order_number,
-            amount: `${Number(order.total).toLocaleString("fr-FR")} ${order.currency_code}`,
-            countryCode: order.country_code,
-            paymentMethod: order.payment_method ?? "—",
-            adminUrl: `${appUrl}/admin/orders`,
-          });
-          await sendEmail({
-            to: ownerEmail,
-            subject: emailContent.subject,
-            html: emailContent.html,
-          });
-        }
-      } catch (err) {
-        console.error("[cinetpay:notify] échec de la notification email propriétaire", err);
-      }
-    } else if (verification.status === "FAILED") {
-      await supabaseAdmin.from("orders").update({ payment_status: "failed" }).eq("id", order.id);
-    }
-    // INITIATED / PENDING : statut transitoire, on ne fait rien — CinetPay
-    // renverra une nouvelle notification au prochain changement d'état.
+    // On ne fait JAMAIS confiance au statut du webhook lui-même : on
+    // reconfirme toujours auprès de CinetPay (voir payment-confirmation.server.ts,
+    // partagée avec la vérification active déclenchée au retour du client).
+    await verifyAndConfirmPayment(order);
 
     return new Response("OK", { status: 200 });
   } catch (error) {
@@ -147,10 +91,18 @@ export async function handleCinetPayReturn(request: Request): Promise<Response> 
       // Lecture seule : aucune mise à jour ne doit avoir lieu ici.
       const { data: order } = await supabaseAdmin
         .from("orders")
-        .select("id")
+        .select("id, user_id, payment_link_token")
         .eq("payment_reference", merchantTransactionId)
         .maybeSingle();
-      if (order) redirectPath = `/orders/${order.id}`;
+      if (order) {
+        // Commande invité (devis pro payé via lien, pas de compte) : la page
+        // /orders/$id est inaccessible sans connexion (RLS), il faut
+        // renvoyer vers la même page de paiement publique, qui affichera
+        // "déjà payée" une fois le statut confirmé.
+        redirectPath = order.user_id
+          ? `/orders/${order.id}`
+          : `/pay/${order.id}?token=${order.payment_link_token}`;
+      }
     } catch (error) {
       console.error("[cinetpay:return] erreur de lookup", error);
     }

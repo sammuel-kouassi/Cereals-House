@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, ShieldCheck, Lock } from "lucide-react";
@@ -8,6 +8,7 @@ import {
   getPublicQuoteOrderFn,
   initiateGuestQuotePaymentFn,
 } from "@/lib/orders/quote-order.functions";
+import { checkGuestPaymentStatusFn } from "@/lib/payments/check-status.functions";
 import { PAYMENT_METHODS, methodAvailableIn } from "@/lib/payments/payment-methods";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/pay/$orderId")({
 function PayPage() {
   const { orderId } = Route.useParams();
   const { token } = Route.useSearch();
+  const queryClient = useQueryClient();
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -36,7 +38,38 @@ function PayPage() {
     queryKey: ["quote-order", orderId, token],
     queryFn: () => getPublicQuoteOrderFn({ data: { orderId, token } }),
     retry: false,
+    // Une fois qu'un paiement a été tenté (le client revient de CinetPay), on
+    // re-vérifie régulièrement pendant que le statut reste "en attente" — la
+    // vérification active ci-dessous confirme auprès de CinetPay et met à
+    // jour la base ; ce polling se contente de rafraîchir l'affichage une
+    // fois que c'est fait.
+    refetchInterval: (query) => (query.state.data?.paymentStatus === "pending" ? 3000 : false),
   });
+
+  // Vérification ACTIVE auprès de CinetPay — indépendante du webhook, qui
+  // peut être retardé ou (en développement local) ne jamais arriver si le
+  // tunnel ngrok a un souci au mauvais moment.
+  useEffect(() => {
+    if (!order || order.paymentStatus !== "pending") return;
+
+    let cancelled = false;
+    async function check() {
+      try {
+        await checkGuestPaymentStatusFn({ data: { orderId, token } });
+        if (!cancelled)
+          queryClient.invalidateQueries({ queryKey: ["quote-order", orderId, token] });
+      } catch (err) {
+        console.error("Échec de la vérification active du paiement", err);
+      }
+    }
+
+    check();
+    const interval = window.setInterval(check, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [order?.paymentStatus, orderId, token, queryClient]);
 
   async function handlePay(e: React.FormEvent) {
     e.preventDefault();

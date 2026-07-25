@@ -143,6 +143,7 @@ export async function initiateCinetPayForOrder(params: {
       .from("orders")
       .update({
         payment_reference: merchantTransactionId,
+        cinetpay_transaction_id: result.transactionId,
         payment_token: result.paymentToken,
         payment_notify_token: result.notifyToken,
         ...(params.paymentMethodOverride

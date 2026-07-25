@@ -250,3 +250,28 @@ export const generatePackingSlipAdminFn = createServerFn({ method: "POST" })
 
     return { pdfBase64: Buffer.from(pdfBytes).toString("base64") };
   });
+
+const checkStatusInputSchema = z.object({ orderId: z.string().uuid() });
+
+// Vérification ACTIVE réservée à l'admin — contrairement à checkPaymentStatusFn
+// (qui ne vérifie que les commandes du client connecté), celle-ci peut
+// vérifier n'importe quelle commande, y compris celles des invités
+// (devis pro payés via lien, sans compte).
+export const checkOrderPaymentStatusAdminFn = createServerFn({ method: "POST" })
+  .middleware([requireAdmin])
+  .validator((data: unknown) => checkStatusInputSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { verifyAndConfirmPayment } = await import("@/lib/payments/payment-confirmation.server");
+
+    const { data: order, error } = await supabaseAdmin
+      .from("orders")
+      .select(
+        "id, order_number, status, payment_status, country_code, total, currency_code, payment_method, cinetpay_transaction_id",
+      )
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (error || !order) throw new Error("Commande introuvable.");
+
+    return verifyAndConfirmPayment(order);
+  });

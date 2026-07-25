@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Check,
   Clock,
@@ -21,6 +21,7 @@ import { formatPrice } from "@/lib/format";
 import { Reveal } from "@/components/reveal";
 import { PageLoader } from "@/components/page-loader";
 import { initiateCinetPayPaymentFn } from "@/lib/payments/cinetpay.functions";
+import { checkPaymentStatusFn } from "@/lib/payments/check-status.functions";
 import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
 import { cancelOrderFn } from "@/lib/orders/cancel-order.functions";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -78,6 +79,33 @@ function OrderDetailPage() {
       return stillPending ? 3000 : false;
     },
   });
+
+  // Vérification ACTIVE auprès de CinetPay (indépendante du webhook, qui
+  // peut être retardé ou — en développement local — ne jamais arriver si le
+  // tunnel ngrok a un souci). Se déclenche dès l'arrivée sur la page (juste
+  // après la redirection de paiement) puis se répète tant que le paiement
+  // reste en attente.
+  useEffect(() => {
+    const stillPending = data?.payment_status === "pending" && data.status === "pending_payment";
+    if (!stillPending) return;
+
+    let cancelled = false;
+    async function check() {
+      try {
+        await checkPaymentStatusFn({ data: { orderId: id } });
+        if (!cancelled) queryClient.invalidateQueries({ queryKey: ["order", id] });
+      } catch (err) {
+        console.error("Échec de la vérification active du paiement", err);
+      }
+    }
+
+    check();
+    const interval = window.setInterval(check, 4000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [data?.payment_status, data?.status, id, queryClient]);
 
   async function handleRetryPayment() {
     setRetrying(true);

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   Package,
   ArrowUpRight,
@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
 import { Reveal } from "@/components/reveal";
 import { initiateCinetPayPaymentFn } from "@/lib/payments/cinetpay.functions";
+import { checkPaymentStatusFn } from "@/lib/payments/check-status.functions";
 import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
 import { PageLoader } from "@/components/page-loader";
 
@@ -44,6 +45,7 @@ function OrdersPage() {
   const { user, loading } = useAuth();
   const { t, i18n } = useTranslation();
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["orders", user?.id],
@@ -58,6 +60,41 @@ function OrdersPage() {
       return data ?? [];
     },
   });
+
+  // Vérification ACTIVE de toutes les commandes en attente de paiement de la
+  // liste — sans ça, seule la page de détail d'une commande déclenchait
+  // cette vérification, laissant la liste figée sur "en attente" tant qu'on
+  // ne cliquait pas dedans (indépendant du webhook, qui peut être retardé ou,
+  // en développement local, ne jamais arriver si le tunnel ngrok a un souci).
+  useEffect(() => {
+    const pendingOrders = orders.filter(
+      (o) => o.payment_status === "pending" && o.status === "pending_payment",
+    );
+    if (pendingOrders.length === 0) return;
+
+    let cancelled = false;
+    async function checkAll() {
+      const results = await Promise.allSettled(
+        pendingOrders.map((o) => checkPaymentStatusFn({ data: { orderId: o.id } })),
+      );
+      const anyChanged = results.some(
+        (r) => r.status === "fulfilled" && r.value.status !== "pending",
+      );
+      if (!cancelled && anyChanged) {
+        queryClient.invalidateQueries({ queryKey: ["orders", user?.id] });
+      }
+    }
+
+    checkAll();
+    const interval = window.setInterval(checkAll, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+    // On ne redéclenche que si l'ensemble des commandes en attente change
+    // (nombre + identifiants), pas à chaque nouveau rendu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders.map((o) => `${o.id}:${o.payment_status}`).join(","), user?.id, queryClient]);
 
   async function handleRetryPayment(orderId: string, e: React.MouseEvent) {
     e.preventDefault();

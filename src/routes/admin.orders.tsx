@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2, Package, Download, Printer } from "lucide-react";
 import {
@@ -8,6 +8,7 @@ import {
   updateOrderStatusAdminFn,
   exportOrdersAdminFn,
   generatePackingSlipAdminFn,
+  checkOrderPaymentStatusAdminFn,
 } from "@/lib/admin/orders.functions";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
@@ -142,6 +143,37 @@ function AdminOrdersPage() {
         },
       }),
   });
+
+  // Vérification ACTIVE des commandes en attente affichées dans la liste —
+  // sans ça, le statut ne se met à jour qu'en rechargeant après être passé
+  // par la fiche détail d'une commande, ou en attendant le webhook.
+  useEffect(() => {
+    const pendingOrders = (data?.orders ?? []).filter(
+      (o) => o.payment_status === "pending" && o.status === "pending_payment",
+    );
+    if (pendingOrders.length === 0) return;
+
+    let cancelled = false;
+    async function checkAll() {
+      const results = await Promise.allSettled(
+        pendingOrders.map((o) => checkOrderPaymentStatusAdminFn({ data: { orderId: o.id } })),
+      );
+      const anyChanged = results.some(
+        (r) => r.status === "fulfilled" && r.value.status !== "pending",
+      );
+      if (!cancelled && anyChanged) {
+        queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      }
+    }
+
+    checkAll();
+    const interval = window.setInterval(checkAll, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(data?.orders ?? []).map((o) => `${o.id}:${o.payment_status}`).join(","), queryClient]);
 
   async function handleStatusChange(orderId: string, status: string) {
     setUpdatingId(orderId);
