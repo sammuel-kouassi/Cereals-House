@@ -1,16 +1,8 @@
-// Logique partagée pour confirmer qu'une commande est payée, une fois
-// vérifiée auprès de CinetPay (jamais à partir du seul webhook — voir
-// cinetpay.webhook.server.ts). Utilisée par DEUX points d'entrée :
-//   1. Le webhook CinetPay (notification serveur-à-serveur, passive —
-//      peut être retardée, perdue, ou jamais reçue si le tunnel de
-//      développement tombe entre l'initiation et le paiement).
-//   2. La vérification active (checkPaymentStatusFn / checkGuestPaymentStatusFn)
-//      déclenchée quand le client revient sur le site après paiement — ne
-//      dépend d'aucune notification externe, donc plus fiable en pratique.
 import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 import { sendEmail } from "@/lib/email/resend.server";
 import { buildPaymentReceivedAdminEmail } from "@/lib/email/templates";
+import { query, queryOne } from "@/integrations/neon/db.server";
 
 type OrderForConfirmation = {
   id: string;
@@ -24,13 +16,6 @@ type OrderForConfirmation = {
   cinetpay_transaction_id: string | null;
 };
 
-/**
- * Vérifie le statut réel auprès de CinetPay et met à jour la commande en
- * conséquence. Idempotent : si déjà payée, ne fait rien et retourne
- * immédiatement — peut donc être appelée autant de fois que nécessaire
- * (webhook ET vérification active peuvent toutes les deux y arriver en
- * même temps sans risque de double-traitement).
- */
 export async function verifyAndConfirmPayment(
   order: OrderForConfirmation,
 ): Promise<{ status: "paid" | "failed" | "pending" }> {
@@ -41,8 +26,6 @@ export async function verifyAndConfirmPayment(
     return { status: "pending" };
   }
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
   const client = getCinetPayClient();
   const verification = await client.payment.getStatus(
     order.cinetpay_transaction_id,
@@ -50,32 +33,24 @@ export async function verifyAndConfirmPayment(
   );
 
   if (verification.status === "SUCCESS") {
-    await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_status: "paid",
-        status: order.status === "pending_payment" ? "paid" : (order.status as never),
-      })
-      .eq("id", order.id);
+    const nextStatus = order.status === "pending_payment" ? "paid" : order.status;
+    await query(
+      `UPDATE orders SET payment_status = 'paid', status = $1, updated_at = now() WHERE id = $2`,
+      [nextStatus, order.id]
+    );
 
-    // Anti-doublon : n'insère l'entrée d'historique et n'envoie l'email
-    // que si ce n'est pas déjà fait (webhook et vérification active
-    // pourraient sinon créer deux entrées pour le même événement).
-    const { data: existingHistory } = await supabaseAdmin
-      .from("order_status_history")
-      .select("id")
-      .eq("order_id", order.id)
-      .eq("status", "paid")
-      .maybeSingle();
+    const existingHistory = await queryOne<{ id: string }>(
+      `SELECT id FROM order_status_history WHERE order_id = $1 AND status = 'paid' LIMIT 1`,
+      [order.id]
+    );
 
     if (!existingHistory) {
-      await supabaseAdmin.from("order_status_history").insert({
-        order_id: order.id,
-        status: "paid",
-        note: "Paiement confirmé par CinetPay",
-      });
+      await query(
+        `INSERT INTO order_status_history (order_id, status, note)
+         VALUES ($1, 'paid', 'Paiement confirmé par CinetPay')`,
+        [order.id]
+      );
 
-      // Notification au propriétaire de la boutique — best effort.
       try {
         const ownerEmail = process.env.SHOP_OWNER_EMAIL;
         if (ownerEmail) {
@@ -102,10 +77,9 @@ export async function verifyAndConfirmPayment(
   }
 
   if (verification.status === "FAILED") {
-    await supabaseAdmin.from("orders").update({ payment_status: "failed" }).eq("id", order.id);
+    await query(`UPDATE orders SET payment_status = 'failed', updated_at = now() WHERE id = $1`, [order.id]);
     return { status: "failed" };
   }
 
-  // INITIATED / PENDING : toujours en cours côté CinetPay.
   return { status: "pending" };
 }

@@ -1,20 +1,16 @@
-// Server functions d'administration pour la table "countries". C'est la
-// table de référence dont dépendent les prix produits (product_prices.
-// country_code) et les commandes — elle doit être peuplée AVANT les produits.
+// Server functions d'administration pour la table "countries" avec Neon DB
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { query } from "@/integrations/neon/db.server";
 
 export const listCountriesAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("countries")
-      .select("*")
-      .order("sort_order", { ascending: true });
-    if (error) throw new Error(error.message);
-    return { countries: data ?? [] };
+    const countries = await query<any>(
+      `SELECT * FROM countries ORDER BY sort_order ASC`
+    );
+    return { countries: countries ?? [] };
   });
 
 const upsertCountryInputSchema = z.object({
@@ -36,7 +32,6 @@ const upsertCountryInputSchema = z.object({
   flag_emoji: z.string().trim().max(10).optional().nullable(),
   is_active: z.boolean(),
   sort_order: z.number().int().default(0),
-  fx_rate_from_xof: z.number().positive().default(1),
   isNew: z.boolean().default(false),
 });
 
@@ -44,16 +39,53 @@ export const upsertCountryAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => upsertCountryInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { isNew, ...fields } = data;
 
     if (isNew) {
-      const { error } = await supabaseAdmin.from("countries").insert(fields);
-      if (error) throw new Error(error.message);
+      await query(
+        `INSERT INTO countries (code, name, currency_code, currency_symbol, base_shipping_fee, flag_emoji, is_active, sort_order)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (code) DO UPDATE SET
+           name = EXCLUDED.name,
+           currency_code = EXCLUDED.currency_code,
+           currency_symbol = EXCLUDED.currency_symbol,
+           base_shipping_fee = EXCLUDED.base_shipping_fee,
+           flag_emoji = EXCLUDED.flag_emoji,
+           is_active = EXCLUDED.is_active,
+           sort_order = EXCLUDED.sort_order`,
+        [
+          fields.code,
+          fields.name,
+          fields.currency_code,
+          fields.currency_symbol,
+          fields.base_shipping_fee,
+          fields.flag_emoji || null,
+          fields.is_active,
+          fields.sort_order,
+        ]
+      );
     } else {
-      const { code, ...rest } = fields;
-      const { error } = await supabaseAdmin.from("countries").update(rest).eq("code", code);
-      if (error) throw new Error(error.message);
+      await query(
+        `UPDATE countries SET
+           name = $1,
+           currency_code = $2,
+           currency_symbol = $3,
+           base_shipping_fee = $4,
+           flag_emoji = $5,
+           is_active = $6,
+           sort_order = $7
+         WHERE code = $8`,
+        [
+          fields.name,
+          fields.currency_code,
+          fields.currency_symbol,
+          fields.base_shipping_fee,
+          fields.flag_emoji || null,
+          fields.is_active,
+          fields.sort_order,
+          fields.code,
+        ]
+      );
     }
     return { success: true };
   });
@@ -64,13 +96,6 @@ export const deactivateCountryAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => deactivateCountryInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Désactivation plutôt que suppression : un pays peut être référencé par
-    // des commandes/prix existants (ON DELETE CASCADE les supprimerait aussi).
-    const { error } = await supabaseAdmin
-      .from("countries")
-      .update({ is_active: false })
-      .eq("code", data.code);
-    if (error) throw new Error(error.message);
+    await query(`UPDATE countries SET is_active = false WHERE code = $1`, [data.code]);
     return { success: true };
   });

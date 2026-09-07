@@ -1,16 +1,14 @@
-// Server functions d'administration pour les commandes. Toutes utilisent
-// supabaseAdmin (service_role) pour les lectures/écritures cross-utilisateurs,
-// car les policies RLS actuelles ne permettent à un utilisateur (même admin)
-// de voir que ses PROPRES commandes côté client — voir require-admin.ts pour
-// le détail de cette décision d'architecture.
+// Server functions d'administration pour les commandes avec Neon DB
 import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { query, queryOne } from "@/integrations/neon/db.server";
 import { sendEmail } from "@/lib/email/resend.server";
 import { buildOrderStatusEmail } from "@/lib/email/templates";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 import { generatePackingSlipPdf } from "@/lib/receipt/generate-packing-slip.server";
+import { verifyAndConfirmPayment } from "@/lib/payments/payment-confirmation.server";
 
 const ORDER_STATUSES = [
   "pending_payment",
@@ -35,25 +33,45 @@ export const listOrdersAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => listInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let whereClauses: string[] = [];
+    let params: any[] = [];
 
-    let query = supabaseAdmin
-      .from("orders")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false });
+    if (data.status) {
+      params.push(data.status);
+      whereClauses.push(`status = $${params.length}`);
+    }
+    if (data.countryCode) {
+      params.push(data.countryCode);
+      whereClauses.push(`country_code = $${params.length}`);
+    }
+    if (data.search) {
+      params.push(`%${data.search}%`);
+      whereClauses.push(`order_number ILIKE $${params.length}`);
+    }
 
-    if (data.status) query = query.eq("status", data.status);
-    if (data.countryCode) query = query.eq("country_code", data.countryCode);
-    if (data.search) query = query.ilike("order_number", `%${data.search}%`);
+    const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-    const from = data.page * data.pageSize;
-    const to = from + data.pageSize - 1;
-    query = query.range(from, to);
+    const countRes = await queryOne<{ count: string }>(
+      `SELECT count(*) as count FROM orders ${whereStr}`,
+      params
+    );
+    const total = parseInt(countRes?.count ?? "0", 10);
 
-    const { data: orders, error, count } = await query;
-    if (error) throw new Error(error.message);
+    const limit = data.pageSize;
+    const offset = data.page * data.pageSize;
+    params.push(limit, offset);
 
-    return { orders: orders ?? [], total: count ?? 0 };
+    const orders = await query<any>(
+      `SELECT o.*, c.name as country_name, c.currency_symbol, c.flag_emoji
+       FROM orders o
+       LEFT JOIN countries c ON c.code = o.country_code
+       ${whereStr}
+       ORDER BY o.created_at DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+
+    return { orders: orders ?? [], total };
   });
 
 const exportInputSchema = z.object({
@@ -62,32 +80,38 @@ const exportInputSchema = z.object({
   search: z.string().trim().optional(),
 });
 
-// Export CSV : mêmes filtres que la liste, mais sans pagination — jusqu'à
-// 5000 commandes en une fois, largement suffisant pour l'usage prévu.
 export const exportOrdersAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => exportInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let whereClauses: string[] = [];
+    let params: any[] = [];
 
-    let query = supabaseAdmin
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5000);
+    if (data.status) {
+      params.push(data.status);
+      whereClauses.push(`status = $${params.length}`);
+    }
+    if (data.countryCode) {
+      params.push(data.countryCode);
+      whereClauses.push(`country_code = $${params.length}`);
+    }
+    if (data.search) {
+      params.push(`%${data.search}%`);
+      whereClauses.push(`order_number ILIKE $${params.length}`);
+    }
 
-    if (data.status) query = query.eq("status", data.status);
-    if (data.countryCode) query = query.eq("country_code", data.countryCode);
-    if (data.search) query = query.ilike("order_number", `%${data.search}%`);
+    const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-    const { data: orders, error } = await query;
-    if (error) throw new Error(error.message);
+    const orders = await query<any>(
+      `SELECT * FROM orders ${whereStr} ORDER BY created_at DESC LIMIT 5000`,
+      params
+    );
 
     return { orders: orders ?? [] };
   });
 
 const updateStatusInputSchema = z.object({
-  orderId: z.string().uuid(),
+  orderId: z.string(),
   status: z.enum(ORDER_STATUSES),
   note: z.string().trim().max(500).optional(),
 });
@@ -96,24 +120,17 @@ export const updateOrderStatusAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => updateStatusInputSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await query(
+      `UPDATE orders SET status = $1, updated_at = now() WHERE id = $2`,
+      [data.status, data.orderId]
+    );
 
-    const { error: updateErr } = await supabaseAdmin
-      .from("orders")
-      .update({ status: data.status })
-      .eq("id", data.orderId);
-    if (updateErr) throw new Error(updateErr.message);
+    await query(
+      `INSERT INTO order_status_history (order_id, status, note, created_by)
+       VALUES ($1, $2, $3, $4)`,
+      [data.orderId, data.status, data.note ?? null, context?.user?.id || null]
+    );
 
-    const { error: historyErr } = await supabaseAdmin.from("order_status_history").insert({
-      order_id: data.orderId,
-      status: data.status,
-      note: data.note ?? null,
-      created_by: context.userId,
-    });
-    if (historyErr) throw new Error(historyErr.message);
-
-    // Notification email au client — best effort : un échec d'envoi ne doit
-    // jamais faire échouer la mise à jour de statut elle-même.
     try {
       await notifyCustomerOfStatusChange(data.orderId, data.status);
     } catch (err) {
@@ -124,25 +141,19 @@ export const updateOrderStatusAdminFn = createServerFn({ method: "POST" })
   });
 
 async function notifyCustomerOfStatusChange(orderId: string, status: string) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  const { data: order } = await supabaseAdmin
-    .from("orders")
-    .select(
-      "id, order_number, user_id, guest_email, status, created_at, country_code, currency_code, subtotal, shipping_fee, total, payment_method, shipping_full_name, shipping_address, shipping_city",
-    )
-    .eq("id", orderId)
-    .maybeSingle();
+  const order = await queryOne<any>(
+    `SELECT id, order_number, user_id, status, created_at, country_code, currency_code,
+            subtotal, shipping_fee, total, payment_method, shipping_full_name,
+            shipping_address, shipping_city
+     FROM orders WHERE id = $1 LIMIT 1`,
+    [orderId]
+  );
   if (!order) return;
 
-  // Commande invité (devis pro payé via lien) : pas de compte, l'email est
-  // celui renseigné à la création de la facture.
   let email: string | undefined;
   if (order.user_id) {
-    const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
-    email = userRes?.user?.email;
-  } else {
-    email = order.guest_email ?? undefined;
+    const u = await queryOne<{ email: string }>(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [order.user_id]);
+    email = u?.email;
   }
   if (!email) return;
 
@@ -153,21 +164,14 @@ async function notifyCustomerOfStatusChange(orderId: string, status: string) {
     status,
     trackingUrl,
   });
-  if (!emailContent) return; // statut sans notification prévue (ex: pending_payment)
+  if (!emailContent) return;
 
   let attachments: { filename: string; content: string }[] | undefined;
 
   if (status === "delivered") {
     try {
-      const { data: country } = await supabaseAdmin
-        .from("countries")
-        .select("name, currency_symbol")
-        .eq("code", order.country_code)
-        .maybeSingle();
-      const { data: items } = await supabaseAdmin
-        .from("order_items")
-        .select("product_name, quantity, line_total")
-        .eq("order_id", order.id);
+      const country = await queryOne<any>(`SELECT name, currency_symbol FROM countries WHERE code = $1 LIMIT 1`, [order.country_code]);
+      const items = await query<any>(`SELECT product_name, quantity, line_total FROM order_items WHERE order_id = $1`, [order.id]);
 
       const pdfBytes = await generateReceiptPdf({
         orderNumber: order.order_number,
@@ -207,28 +211,21 @@ async function notifyCustomerOfStatusChange(orderId: string, status: string) {
   });
 }
 
-const packingSlipInputSchema = z.object({ orderId: z.string().uuid() });
+const packingSlipInputSchema = z.object({ orderId: z.string() });
 
 export const generatePackingSlipAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => packingSlipInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const order = await queryOne<any>(
+      `SELECT order_number, created_at, shipping_full_name, shipping_phone, shipping_address, shipping_city, country_code, shipping_notes, payment_method, payment_status
+       FROM orders WHERE id = $1 LIMIT 1`,
+      [data.orderId]
+    );
+    if (!order) throw new Error("Commande introuvable.");
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select(
-        "order_number, created_at, shipping_full_name, shipping_phone, shipping_address, shipping_city, country_code, shipping_notes, payment_method, payment_status, order_items(product_name, quantity)",
-      )
-      .eq("id", data.orderId)
-      .maybeSingle();
-    if (error || !order) throw new Error("Commande introuvable.");
-
-    const { data: country } = await supabaseAdmin
-      .from("countries")
-      .select("name")
-      .eq("code", order.country_code)
-      .maybeSingle();
+    const country = await queryOne<any>(`SELECT name FROM countries WHERE code = $1 LIMIT 1`, [order.country_code]);
+    const items = await query<any>(`SELECT product_name, quantity FROM order_items WHERE order_id = $1`, [data.orderId]);
 
     const pdfBytes = await generatePackingSlipPdf({
       orderNumber: order.order_number,
@@ -241,7 +238,7 @@ export const generatePackingSlipAdminFn = createServerFn({ method: "POST" })
       notes: order.shipping_notes,
       paymentMethodLabel: order.payment_method ?? "Paiement à la livraison",
       paymentStatus: order.payment_status,
-      items: (order.order_items ?? []).map((it) => ({
+      items: (items ?? []).map((it) => ({
         name: it.product_name,
         quantity: it.quantity,
         unit: "kg",
@@ -251,27 +248,19 @@ export const generatePackingSlipAdminFn = createServerFn({ method: "POST" })
     return { pdfBase64: Buffer.from(pdfBytes).toString("base64") };
   });
 
-const checkStatusInputSchema = z.object({ orderId: z.string().uuid() });
+const checkStatusInputSchema = z.object({ orderId: z.string() });
 
-// Vérification ACTIVE réservée à l'admin — contrairement à checkPaymentStatusFn
-// (qui ne vérifie que les commandes du client connecté), celle-ci peut
-// vérifier n'importe quelle commande, y compris celles des invités
-// (devis pro payés via lien, sans compte).
 export const checkOrderPaymentStatusAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => checkStatusInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { verifyAndConfirmPayment } = await import("@/lib/payments/payment-confirmation.server");
-
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select(
-        "id, order_number, status, payment_status, country_code, total, currency_code, payment_method, cinetpay_transaction_id",
-      )
-      .eq("id", data.orderId)
-      .maybeSingle();
-    if (error || !order) throw new Error("Commande introuvable.");
+    const order = await queryOne<any>(
+      `SELECT id, order_number, status, payment_status, country_code, total,
+              currency_code, payment_method, cinetpay_transaction_id
+       FROM orders WHERE id = $1 LIMIT 1`,
+      [data.orderId]
+    );
+    if (!order) throw new Error("Commande introuvable.");
 
     return verifyAndConfirmPayment(order);
   });

@@ -1,14 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listCountriesFn, type CountryItem } from "@/lib/products/products.functions";
 
-export type Country = {
-  code: string;
-  name: string;
-  currency_code: string;
-  currency_symbol: string;
-  base_shipping_fee: number;
-  flag_emoji: string | null;
-};
+export type Country = CountryItem;
 
 type Ctx = {
   countries: Country[];
@@ -28,13 +21,15 @@ export function CountryProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
     if (saved) setCode(saved);
-    supabase
-      .from("countries")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order")
-      .then(({ data }) => {
+
+    listCountriesFn()
+      .then((data) => {
         setCountries(data ?? []);
+      })
+      .catch((err) => {
+        console.error("[CountryProvider load error]", err);
+      })
+      .finally(() => {
         setLoading(false);
       });
   }, []);

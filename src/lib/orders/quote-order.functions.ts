@@ -1,20 +1,10 @@
-// Flux "devis pro payé en ligne" : après négociation manuelle sur WhatsApp,
-// l'admin crée une commande (createQuoteOrderAdminFn) qui génère un lien de
-// paiement unique. Le client ouvre ce lien SANS COMPTE (getPublicQuoteOrderFn
-// pour afficher le récapitulatif, initiateGuestQuotePaymentFn pour payer) —
-// le jeton dans le lien fait office d'autorisation à la place d'une connexion.
-//
-// Sécurité : payment_link_token est un secret aléatoire de 32 octets, non
-// devinable. Toute commande invité (user_id NULL) reste invisible via les
-// policies RLS classiques (orders_view_own compare à auth.uid(), qui ne
-// matche jamais NULL) — seul ce jeton donne accès, exclusivement via ces
-// server functions (service_role), jamais en lecture directe côté client.
 import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { isCinetPayCountryReady } from "@/lib/payments/cinetpay.server";
 import { initiateCinetPayForOrder } from "@/lib/payments/cinetpay-core.server";
+import { query, queryOne } from "@/integrations/neon/db.server";
 
 function generateToken(): string {
   const bytes = new Uint8Array(32);
@@ -46,51 +36,45 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => createQuoteInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: country, error: countryErr } = await supabaseAdmin
-      .from("countries")
-      .select("code, currency_code")
-      .eq("code", data.countryCode.toUpperCase())
-      .maybeSingle();
-    if (countryErr || !country) throw new Error("Pays introuvable.");
+    const country = await queryOne<any>(
+      `SELECT code, currency_code FROM countries WHERE code = $1 LIMIT 1`,
+      [data.countryCode.toUpperCase()]
+    );
+    if (!country) throw new Error("Pays introuvable.");
 
     const subtotal = data.items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
     const total = subtotal + data.shippingFee;
     const token = generateToken();
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .insert({
-        user_id: null,
-        guest_email: data.email ?? null,
-        payment_link_token: token,
-        country_code: country.code,
-        currency_code: country.currency_code,
+    const order = await queryOne<any>(
+      `INSERT INTO orders (
+        user_id, country_code, currency_code, subtotal, shipping_fee, total,
+        shipping_full_name, shipping_phone, shipping_address, shipping_city, shipping_notes
+      )
+      VALUES (null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, order_number`,
+      [
+        country.code,
+        country.currency_code,
         subtotal,
-        shipping_fee: data.shippingFee,
+        data.shippingFee,
         total,
-        shipping_full_name: data.customerName,
-        shipping_phone: data.phone,
-        shipping_address: data.address,
-        shipping_city: data.city,
-        shipping_notes: data.notes ?? null,
-      })
-      .select("id, order_number")
-      .single();
-    if (error || !order) throw new Error(error?.message ?? "Échec de la création de la commande.");
-
-    const { error: itemsErr } = await supabaseAdmin.from("order_items").insert(
-      data.items.map((it) => ({
-        order_id: order.id,
-        product_id: null,
-        product_name: it.name,
-        unit_price: it.unitPrice,
-        quantity: it.quantity,
-        line_total: it.unitPrice * it.quantity,
-      })) as never,
+        data.customerName,
+        data.phone,
+        data.address,
+        data.city,
+        data.notes || null,
+      ]
     );
-    if (itemsErr) throw new Error(itemsErr.message);
+    if (!order) throw new Error("Échec de la création du devis.");
+
+    for (const it of data.items) {
+      await query(
+        `INSERT INTO order_items (order_id, product_id, product_name, unit_price, quantity, line_total)
+         VALUES ($1, null, $2, $3, $4, $5)`,
+        [order.id, it.name, it.unitPrice, it.quantity, it.unitPrice * it.quantity]
+      );
+    }
 
     const appUrl = getPublicAppUrl();
     return {
@@ -100,89 +84,79 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
     };
   });
 
-const publicOrderInputSchema = z.object({
-  orderId: z.string().uuid(),
-  token: z.string().min(10),
+const getQuoteInputSchema = z.object({
+  orderId: z.string(),
+  token: z.string().min(5),
 });
 
-// Lecture publique (pas de middleware d'auth) — protégée uniquement par la
-// correspondance exacte du jeton.
 export const getPublicQuoteOrderFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => publicOrderInputSchema.parse(data))
+  .validator((data: unknown) => getQuoteInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const order = await queryOne<any>(
+      `SELECT id, order_number, status, payment_status, country_code, currency_code,
+              subtotal, shipping_fee, total, shipping_full_name, shipping_phone,
+              shipping_address, shipping_city, shipping_notes, created_at
+       FROM orders WHERE id = $1 LIMIT 1`,
+      [data.orderId]
+    );
+    if (!order) throw new Error("Lien de paiement invalide ou expiré.");
 
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select(
-        "id, order_number, status, payment_status, country_code, currency_code, subtotal, shipping_fee, total, shipping_full_name, order_items(product_name, quantity, line_total)",
-      )
-      .eq("id", data.orderId)
-      .eq("payment_link_token", data.token)
-      .maybeSingle();
-    if (error || !order) throw new Error("Lien de paiement invalide ou expiré.");
+    const country = await queryOne<any>(
+      `SELECT name, currency_symbol FROM countries WHERE code = $1 LIMIT 1`,
+      [order.country_code]
+    );
 
-    const { data: country } = await supabaseAdmin
-      .from("countries")
-      .select("name, currency_symbol")
-      .eq("code", order.country_code)
-      .maybeSingle();
+    const items = await query<any>(
+      `SELECT product_name, quantity, unit_price, line_total FROM order_items WHERE order_id = $1`,
+      [order.id]
+    );
+
+    const canPayOnline = isCinetPayCountryReady(order.country_code);
 
     return {
+      id: order.id,
       orderNumber: order.order_number,
       status: order.status,
       paymentStatus: order.payment_status,
+      customerName: order.shipping_full_name || "Client",
+      countryCode: order.country_code,
+      countryName: country?.name ?? order.country_code,
       currencyCode: order.currency_code,
       currencySymbol: country?.currency_symbol ?? order.currency_code,
-      countryName: country?.name ?? order.country_code,
-      countryCode: order.country_code,
-      customerName: order.shipping_full_name,
-      subtotal: Number(order.subtotal),
-      shippingFee: Number(order.shipping_fee),
-      total: Number(order.total),
-      items: (order.order_items ?? []).map((it) => ({
+      subtotal: Number(order.subtotal || 0),
+      shippingFee: Number(order.shipping_fee || 0),
+      total: Number(order.total || 0),
+      canPayOnline,
+      items: (items ?? []).map((it: any) => ({
         name: it.product_name,
         quantity: it.quantity,
-        lineTotal: Number(it.line_total),
+        unitPrice: Number(it.unit_price || 0),
+        lineTotal: Number(it.line_total || 0),
       })),
-      canPayOnline: isCinetPayCountryReady(order.country_code),
     };
   });
 
-const guestPaymentInputSchema = z.object({
-  orderId: z.string().uuid(),
-  token: z.string().min(10),
+const initiateGuestInputSchema = z.object({
+  orderId: z.string(),
+  token: z.string().min(5),
+  email: z.string().email(),
   paymentMethod: z.string(),
-  phoneNumber: z.string().trim().min(8).max(20),
-  email: z.string().trim().email().optional(),
+  phoneNumber: z.string().optional(),
 });
 
-// Paiement invité — même autorisation par jeton, réutilise le cœur CinetPay
-// partagé avec le flux authentifié (cinetpay-core.server.ts).
 export const initiateGuestQuotePaymentFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => guestPaymentInputSchema.parse(data))
+  .validator((data: unknown) => initiateGuestInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: order, error } = await supabaseAdmin
-      .from("orders")
-      .select(
-        "id, order_number, country_code, payment_status, payment_method, shipping_full_name, shipping_phone, total, guest_email",
-      )
-      .eq("id", data.orderId)
-      .eq("payment_link_token", data.token)
-      .maybeSingle();
-    if (error || !order) throw new Error("Lien de paiement invalide ou expiré.");
-
-    const email = data.email ?? order.guest_email ?? undefined;
-    if (!email) {
-      throw new Error("Un email est nécessaire pour recevoir la confirmation de paiement.");
-    }
+    const order = await queryOne<any>(
+      `SELECT * FROM orders WHERE id = $1 LIMIT 1`,
+      [data.orderId]
+    );
+    if (!order) throw new Error("Commande introuvable.");
 
     return initiateCinetPayForOrder({
       order,
-      email,
-      phoneNumberOverride: data.phoneNumber,
+      email: data.email,
       paymentMethodOverride: data.paymentMethod,
+      phoneNumberOverride: data.phoneNumber,
     });
   });

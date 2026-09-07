@@ -16,6 +16,8 @@ export type PaymentId =
 
 export type PaymentMethodDef = {
   id: Exclude<PaymentId, "cash_on_delivery">;
+  name: string;
+  tagline?: string;
   countries: string[];
   bg: string;
   fg: string;
@@ -32,6 +34,8 @@ export type PaymentMethodDef = {
 export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "orange_money",
+    name: "Orange Money",
+    tagline: "Paiement sécurisé via Orange Money",
     countries: ["CI", "BF", "ML"],
     bg: "bg-[#FF7900]",
     fg: "text-white",
@@ -41,6 +45,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "wave",
+    name: "Wave",
+    tagline: "Paiement instantané sans frais",
     countries: ["CI", "BF"],
     bg: "bg-[#1DC8F2]",
     fg: "text-white",
@@ -50,6 +56,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "mtn_money",
+    name: "MTN Mobile Money",
+    tagline: "Paiement rapide via MoMo",
     countries: ["CI", "BJ"],
     bg: "bg-[#FFCC00]",
     fg: "text-black",
@@ -59,6 +67,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "moov_money",
+    name: "Moov Money",
+    tagline: "Réglez directement avec Flooz / Moov",
     countries: ["CI", "BF", "ML", "TG", "BJ"],
     bg: "bg-[#005BAA]",
     fg: "text-white",
@@ -68,6 +78,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "tmoney",
+    name: "TMoney",
+    tagline: "Paiement via Togocom TMoney",
     countries: ["TG"],
     bg: "bg-[#F5A623]",
     fg: "text-white",
@@ -76,6 +88,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "visa",
+    name: "Carte bancaire (Visa / Mastercard)",
+    tagline: "Paiement sécurisé par carte",
     countries: ["CI", "BF", "ML", "TG", "BJ"],
     bg: "bg-gradient-to-br from-slate-800 to-slate-900",
     fg: "text-white",

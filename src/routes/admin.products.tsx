@@ -12,7 +12,6 @@ import {
 } from "@/lib/admin/products.functions";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/products")({
   component: AdminProductsPage,
@@ -188,7 +187,7 @@ function AdminProductsPage() {
                     {p.product_prices.length === 0
                       ? "Aucun prix"
                       : p.product_prices
-                          .map((pp) => {
+                          .map((pp: { country_code: string; price: number }) => {
                             const c = data.countries.find((c) => c.code === pp.country_code);
                             return `${pp.country_code} ${formatPrice(Number(pp.price), c?.currency_code ?? "", c?.currency_symbol ?? "")}`;
                           })
@@ -271,7 +270,7 @@ function ProductForm({
   const [audiencesInput, setAudiencesInput] = useState((product?.audiences ?? []).join(", "));
   const [prices, setPrices] = useState<Record<string, string>>(
     Object.fromEntries(
-      (product?.product_prices ?? []).map((pp) => [pp.country_code, String(pp.price)]),
+      (product?.product_prices ?? []).map((pp: { country_code: string; price: number }) => [pp.country_code, String(pp.price)]),
     ),
   );
   const [saving, setSaving] = useState(false);
@@ -279,7 +278,7 @@ function ProductForm({
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    e.target.value = ""; // permet de re-sélectionner le même fichier ensuite
+    e.target.value = "";
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -293,21 +292,20 @@ function ProductForm({
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const safeSlug = (form.slug || "produit").replace(/[^a-z0-9-]/g, "");
-      const path = `${safeSlug}-${Date.now()}.${ext}`;
-
-      const { error: uploadErr } = await supabase.storage
-        .from("products")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
-      if (uploadErr) throw uploadErr;
-
-      const { data: pub } = supabase.storage.from("products").getPublicUrl(path);
-      setForm((prev) => ({ ...prev, image_url: pub.publicUrl }));
-      toast.success("Image envoyée");
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        setForm((prev) => ({ ...prev, image_url: result }));
+        toast.success("Image chargée avec succès");
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Échec de la lecture du fichier image");
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Échec de l'envoi de l'image");
-    } finally {
       setUploading(false);
     }
   }
@@ -322,7 +320,7 @@ function ProductForm({
           ...form,
           audiences: audiencesInput
             .split(",")
-            .map((a) => a.trim())
+            .map((a: string) => a.trim())
             .filter(Boolean),
         },
       });

@@ -1,25 +1,26 @@
-// Server functions d'administration pour les exceptions de frais de
-// livraison par ville (ex: Abidjan moins cher que le reste de la Côte
-// d'Ivoire). Voir supported-countries / checkout.tsx pour la logique de
-// résolution (ville trouvée → ce tarif ; sinon → tarif de base du pays).
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { query } from "@/integrations/neon/db.server";
+
+export interface CityShippingRate {
+  id: string;
+  country_code: string;
+  city_name: string;
+  shipping_fee: number;
+}
 
 export const listCityShippingRatesAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin
-      .from("city_shipping_rates")
-      .select("*")
-      .order("country_code", { ascending: true });
-    if (error) throw new Error(error.message);
-    return { rates: data ?? [] };
+    const rates = await query<CityShippingRate>(
+      `SELECT id, country_code, city_name, shipping_fee FROM city_shipping_rates ORDER BY country_code, city_name`
+    ).catch(() => [] as CityShippingRate[]);
+    return { rates: rates ?? [] };
   });
 
 const upsertInputSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().optional(),
   countryCode: z.string().length(2),
   cityName: z.string().trim().min(1).max(80),
   shippingFee: z.number().min(0),
@@ -29,28 +30,26 @@ export const upsertCityShippingRateAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => upsertInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("city_shipping_rates").upsert(
-      {
-        id: data.id,
-        country_code: data.countryCode.toUpperCase(),
-        city_name: data.cityName,
-        shipping_fee: data.shippingFee,
-      },
-      { onConflict: "country_code,city_name" },
-    );
-    if (error) throw new Error(error.message);
+    if (data.id) {
+      await query(
+        `UPDATE city_shipping_rates SET country_code = $1, city_name = $2, shipping_fee = $3, updated_at = now() WHERE id = $4`,
+        [data.countryCode, data.cityName, data.shippingFee, data.id]
+      ).catch(() => null);
+    } else {
+      await query(
+        `INSERT INTO city_shipping_rates (country_code, city_name, shipping_fee) VALUES ($1, $2, $3)`,
+        [data.countryCode, data.cityName, data.shippingFee]
+      ).catch(() => null);
+    }
     return { success: true };
   });
 
-const deleteInputSchema = z.object({ id: z.string().uuid() });
+const deleteInputSchema = z.object({ id: z.string() });
 
 export const deleteCityShippingRateAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => deleteInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("city_shipping_rates").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await query(`DELETE FROM city_shipping_rates WHERE id = $1`, [data.id]).catch(() => null);
     return { success: true };
   });

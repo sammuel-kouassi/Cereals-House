@@ -1,9 +1,3 @@
-// Cœur de l'initiation de paiement CinetPay, extrait de cinetpay.functions.ts
-// pour être partagé entre deux points d'entrée :
-//   - le client authentifié (checkout.tsx, orders.$id.tsx)
-//   - le client "invité" via un lien de paiement (devis pro négocié sur
-//     WhatsApp, voir quote-order.functions.ts) — même logique de paiement,
-//     juste une autorisation différente en amont.
 import {
   getCinetPayClient,
   isCinetPayCountryReady,
@@ -13,11 +7,8 @@ import {
 import { ApiError, ValidationError } from "cinetpay-js";
 import type { PaymentMethod } from "cinetpay-js";
 import { getAppUrl } from "@/lib/app-url.server";
+import { query } from "@/integrations/neon/db.server";
 
-// Correspondance (pays, moyen de paiement de notre UI) → code opérateur exact
-// attendu par CinetPay. Gardée pour TOUS les pays UEMOA visés (même ceux
-// actuellement inactifs, voir supported-countries.ts) afin de ne pas perdre
-// ce travail de correspondance pour quand on les réactivera.
 export const PAYMENT_METHOD_MAP: Partial<Record<string, Partial<Record<string, PaymentMethod>>>> = {
   CI: { orange_money: "OM_CI", wave: "WAVE_CI", mtn_money: "MTN_CI", moov_money: "MOOV_CI" },
   BF: { orange_money: "OM_BF", wave: "WAVE_BF", moov_money: "MOOV_BF" },
@@ -26,8 +17,6 @@ export const PAYMENT_METHOD_MAP: Partial<Record<string, Partial<Record<string, P
   BJ: { moov_money: "MOOV_BJ", mtn_money: "MTN_BJ" },
 };
 
-// Découpe grossière "Prénom Nom" en (prénom, nom) — CinetPay exige les deux
-// séparément.
 function splitName(fullName: string): { firstName: string; lastName: string } {
   const parts = fullName.trim().split(/\s+/);
   if (parts.length === 1) return { firstName: parts[0], lastName: parts[0] };
@@ -49,7 +38,7 @@ export async function initiateCinetPayForOrder(params: {
   order: OrderForPayment;
   email: string;
   phoneNumberOverride?: string;
-  paymentMethodOverride?: string; // utilisé par le flux invité, choisi au moment de payer
+  paymentMethodOverride?: string;
 }): Promise<{ paymentUrl: string }> {
   const { order, email } = params;
   const country = order.country_code;
@@ -63,10 +52,6 @@ export async function initiateCinetPayForOrder(params: {
 
   const chosenMethod = params.paymentMethodOverride ?? order.payment_method;
 
-  // "visa" est un cas particulier : il n'existe aucun code PaymentMethod
-  // dédié à la carte bancaire dans cette API — en omettant le champ,
-  // CinetPay affiche automatiquement l'univers carte bancaire (3D Secure)
-  // sur sa page hébergée, en plus du mobile money.
   let paymentMethod: PaymentMethod | undefined;
   if (chosenMethod === "visa") {
     paymentMethod = undefined;
@@ -91,13 +76,8 @@ export async function initiateCinetPayForOrder(params: {
     throw new Error("Un email valide est nécessaire pour payer en ligne.");
   }
 
-  // merchant_transaction_id unique par tentative : on peut relancer un
-  // paiement plusieurs fois sur la même commande (ex : après un échec) sans
-  // collision (max 30 caractères imposé par CinetPay).
   const merchantTransactionId = `${order.order_number}-${Date.now().toString(36)}`.slice(0, 30);
   const { firstName, lastName } = splitName(order.shipping_full_name);
-  // Normalisation minimale : CinetPay exige un format international sans
-  // espaces (+XXXXXXXXXXXX).
   const phoneNumber = (params.phoneNumberOverride ?? order.shipping_phone).replace(/\s+/g, "");
   const appUrl = getAppUrl();
 
@@ -123,10 +103,6 @@ export async function initiateCinetPayForOrder(params: {
       country as never,
     );
 
-    // Garde-fou : si CinetPay répond 200 sans fournir d'URL de paiement
-    // (ex: paiement refusé immédiatement pour ce pays/opérateur), on lève
-    // une erreur claire plutôt que de rediriger silencieusement vers
-    // "undefined" (qui atterrit sur le 404 de notre propre site).
     if (!result.paymentUrl) {
       throw new Error(
         result.details?.message ||
@@ -134,23 +110,24 @@ export async function initiateCinetPayForOrder(params: {
       );
     }
 
-    // On enregistre la référence, le notifyToken ET le moyen de paiement
-    // choisi (utile pour le flux invité où il n'était pas encore fixé) AVANT
-    // de rediriger l'utilisateur : le webhook doit pouvoir retrouver la
-    // commande et vérifier l'authenticité de la notification.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin
-      .from("orders")
-      .update({
-        payment_reference: merchantTransactionId,
-        cinetpay_transaction_id: result.transactionId,
-        payment_token: result.paymentToken,
-        payment_notify_token: result.notifyToken,
-        ...(params.paymentMethodOverride
-          ? { payment_method: params.paymentMethodOverride as never }
-          : {}),
-      })
-      .eq("id", order.id);
+    await query(
+      `UPDATE orders SET
+         payment_reference = $1,
+         cinetpay_transaction_id = $2,
+         payment_token = $3,
+         payment_notify_token = $4,
+         payment_method = COALESCE($5, payment_method),
+         updated_at = now()
+       WHERE id = $6`,
+      [
+        merchantTransactionId,
+        result.transactionId,
+        result.paymentToken,
+        result.notifyToken,
+        params.paymentMethodOverride || null,
+        order.id,
+      ]
+    );
 
     return { paymentUrl: result.paymentUrl };
   } catch (err) {

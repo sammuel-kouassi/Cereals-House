@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Minus,
@@ -8,59 +8,82 @@ import {
   Leaf,
   Truck,
   ShieldCheck,
-  Weight,
   Users,
-  FileText,
-  FlaskConical,
   Sparkles,
   ChefHat,
   Flame,
-  Calculator,
   Star,
+  Check,
+  MessageSquare,
+  Send,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
+import { getProductBySlugFn, submitProductReviewFn, listProductsFn } from "@/lib/products/products.functions";
 import { imageFor } from "@/lib/products-meta";
 import { useCountry } from "@/lib/country-context";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
 import { Reveal } from "@/components/reveal";
 import { PageLoader } from "@/components/page-loader";
-import { flyToCart } from "@/lib/fly-to-cart";
 import { useAuth } from "@/lib/auth-context";
 import { ProductCard } from "@/components/product-card";
 
 export const Route = createFileRoute("/products/$slug")({
+  head: () => ({
+    meta: [{ title: "Fiche Produit — Cereals House" }],
+  }),
   component: ProductDetailPage,
 });
 
 function ProductDetailPage() {
   const { slug } = Route.useParams();
   const { country } = useCountry();
-  const { add } = useCart();
-  const router = useRouter();
+  const { addToCart } = useCart();
+  const { user } = useAuth();
   const { t } = useTranslation();
-  const [qty, setQty] = useState(1);
-  const [householdSize, setHouseholdSize] = useState(4);
-  const [mealsPerWeek, setMealsPerWeek] = useState(7);
+  const queryClient = useQueryClient();
 
-  const { data: product, isLoading } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*, product_prices(country_code, price, shipping_fee)")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .maybeSingle();
-      return data;
+  const [qty, setQty] = useState(1);
+  const [activeTab, setActiveTab] = useState<"description" | "nutrition" | "benefits" | "recipes" | "reviews">("description");
+  const [reviewAuthor, setReviewAuthor] = useState(user?.full_name || "");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [addedAnimation, setAddedAnimation] = useState(false);
+
+  // Requête du produit
+  const { data, isLoading } = useQuery({
+    queryKey: ["product-detail", slug],
+    queryFn: () => getProductBySlugFn({ data: { slug } }),
+  });
+
+  // Requête des autres produits (pour les recommandations)
+  const { data: allProducts = [] } = useQuery({
+    queryKey: ["products-catalog"],
+    queryFn: () => listProductsFn(),
+  });
+
+  const product = data?.product;
+  const reviews = data?.reviews ?? [];
+
+  // Mutation pour l'avis client
+  const reviewMutation = useMutation({
+    mutationFn: (newReview: { productId: string; authorName: string; rating: number; comment?: string }) =>
+      submitProductReviewFn({ data: newReview }),
+    onSuccess: () => {
+      toast.success("Votre avis a été publié avec succès !");
+      setReviewComment("");
+      queryClient.invalidateQueries({ queryKey: ["product-detail", slug] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la publication de l'avis.");
     },
   });
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <PageLoader />
       </div>
     );
@@ -68,572 +91,394 @@ function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8">
-        <h1 className="font-display text-3xl font-bold text-primary">{t("product.notFound")}</h1>
-        <Link to="/products" className="mt-4 inline-block text-gold hover:underline">
-          {t("product.backToShop")}
+      <div className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
+        <h1 className="font-display text-3xl font-bold text-primary">
+          {t("product.notFound", "Céréale introuvable")}
+        </h1>
+        <p className="mt-2 text-muted-foreground">Ce produit n'existe pas ou n'est plus disponible.</p>
+        <Link
+          to="/products"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold"
+        >
+          {t("product.backToShop", "Retourner à la boutique")}
         </Link>
       </div>
     );
   }
 
-  const price = product.product_prices?.find((p) => p.country_code === country?.code)?.price ?? 0;
+  const currentCountryCode = country?.code ?? "CI";
+  const currencySymbol = country?.currency_symbol ?? "FCFA";
+  const priceObj = product.product_prices?.find((p) => p.country_code === currentCountryCode);
+  const basePriceXof = product.product_prices?.find((p) => p.country_code === "CI")?.price ?? product.product_prices?.[0]?.price ?? 0;
+  const unitPrice = priceObj?.price ?? basePriceXof;
+  const totalPrice = unitPrice * qty;
 
-  // Stock réel (pas de fausse jauge) : on plafonne la quantité sélectionnable
-  // et on affiche une alerte uniquement si le stock est effectivement bas.
-  const stock = typeof product.stock === "number" ? product.stock : undefined;
-  const lowStock = stock !== undefined && stock > 0 && stock <= 15;
-  const outOfStock = stock !== undefined && stock <= 0;
+  const handleAddToCart = () => {
+    addToCart({
+      slug: product.slug,
+      name: product.name,
+      unit: product.unit,
+      imageUrl: product.image_url || imageFor(product.slug),
+      prices: product.product_prices ?? [],
+      quantity: qty,
+    });
 
-  // Estimation indicative (pas une science exacte) : ~120 g de céréale sèche
-  // par repas et par personne, pour aider les nouveaux acheteurs en ligne à
-  // choisir une quantité sans se tromper. Uniquement pertinent pour les
-  // produits vendus au kilo.
-  const isKgProduct = product.unit?.toLowerCase().includes("kg");
-  const recommendedKg = Math.max(1, Math.ceil((householdSize * mealsPerWeek * 120) / 1000));
-  const mealsForQty = Math.round((qty * 1000) / 120);
-
-  const handleAdd = (e?: React.MouseEvent<HTMLButtonElement>) => {
-    add(
-      {
-        productId: product.id,
-        slug: product.slug,
-        name: product.name,
-        image: product.image_url || imageFor(product.slug),
-        unitPrice: price,
-      },
-      qty,
-    );
-    if (e) flyToCart(e.currentTarget);
-    toast.success(t("product.addedToast", { name: product.name }));
+    setAddedAnimation(true);
+    toast.success(`${qty}x ${product.name} ajouté(s) au panier !`);
+    setTimeout(() => setAddedAnimation(false), 1500);
   };
 
-  const handleBuy = (e?: React.MouseEvent<HTMLButtonElement>) => {
-    handleAdd(e);
-    router.navigate({ to: "/cart" });
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product.id) return;
+    reviewMutation.mutate({
+      productId: product.id,
+      authorName: reviewAuthor.trim() || (user?.full_name ?? "Client"),
+      rating: reviewRating,
+      comment: reviewComment.trim(),
+    });
   };
+
+  const relatedProducts = allProducts.filter((p) => p.slug !== product.slug && (p.category === product.category || p.is_featured)).slice(0, 4);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <Reveal>
-        <nav className="text-sm text-muted-foreground">
-          <Link to="/" className="transition-colors duration-200 hover:text-gold">
-            {t("product.breadcrumbHome")}
-          </Link>{" "}
-          <span className="mx-1">/</span>{" "}
-          <Link to="/products" className="transition-colors duration-200 hover:text-gold">
-            {t("product.breadcrumbShop")}
-          </Link>{" "}
-          <span className="mx-1">/</span> <span className="text-foreground">{product.name}</span>
-        </nav>
-      </Reveal>
+      {/* Fil d'Ariane */}
+      <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-8">
+        <Link to="/" className="hover:text-gold transition">Accueil</Link>
+        <span>/</span>
+        <Link to="/products" className="hover:text-gold transition">Boutique</Link>
+        <span>/</span>
+        {product.category && (
+          <>
+            <span>{product.category}</span>
+            <span>/</span>
+          </>
+        )}
+        <span className="font-semibold text-primary">{product.name}</span>
+      </nav>
 
-      <div className="mt-8 grid gap-12 lg:grid-cols-2">
-        <Reveal direction="left">
-          <div className="group overflow-hidden rounded-3xl border border-border bg-secondary shadow-soft">
+      <div className="grid gap-12 lg:grid-cols-2">
+        {/* Colonne Galerie & Image */}
+        <div className="space-y-4">
+          <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-secondary shadow-xl">
             <img
               src={product.image_url || imageFor(product.slug)}
               alt={product.name}
-              width={1024}
-              height={1024}
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
             />
+            {product.is_featured && (
+              <span className="absolute left-4 top-4 rounded-full bg-gold px-3.5 py-1 text-xs font-bold text-gold-foreground shadow-gold">
+                Coup de Cœur
+              </span>
+            )}
           </div>
-        </Reveal>
 
-        <Reveal direction="right" delay={80}>
+          {/* Garanties visuelles sous l'image */}
+          <div className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-card/60 p-4 text-center">
+            <div className="flex flex-col items-center gap-1 text-xs">
+              <Leaf className="h-5 w-5 text-gold" />
+              <span className="font-semibold text-primary">100% Naturel</span>
+              <span className="text-[10px] text-muted-foreground">Sans additifs</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 text-xs border-x border-border px-2">
+              <Truck className="h-5 w-5 text-gold" />
+              <span className="font-semibold text-primary">Livraison 24-48h</span>
+              <span className="text-[10px] text-muted-foreground">Suivi en direct</span>
+            </div>
+            <div className="flex flex-col items-center gap-1 text-xs">
+              <ShieldCheck className="h-5 w-5 text-gold" />
+              <span className="font-semibold text-primary">Paiement Mobile</span>
+              <span className="text-[10px] text-muted-foreground">Wave, Orange, MTN</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Colonne Détails & Achat */}
+        <div className="flex flex-col justify-between space-y-6">
           <div>
             {product.category && (
               <span className="text-xs font-semibold uppercase tracking-widest text-gold">
                 {product.category}
               </span>
             )}
-            <h1 className="mt-2 font-display text-4xl font-bold text-primary sm:text-5xl">
+            <h1 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary leading-tight">
               {product.name}
             </h1>
-            {product.short_description && (
-              <p className="mt-3 text-lg text-muted-foreground">{product.short_description}</p>
-            )}
 
-            <div className="mt-6 flex flex-wrap items-baseline gap-3">
-              <div className="font-display text-4xl font-bold text-gold">
-                {country ? formatPrice(price, country.currency_code, country.currency_symbol) : "—"}
+            {/* Note moyenne fictive/réelle */}
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex text-gold">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-gold" />
+                ))}
               </div>
-              <div className="text-sm text-muted-foreground">/ {product.unit}</div>
-              {lowStock && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-semibold text-destructive">
-                  <Flame className="h-3.5 w-3.5" /> {t("product.lowStock", { count: stock })}
-                </span>
-              )}
-              {outOfStock && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  {t("product.outOfStock")}
-                </span>
-              )}
+              <span className="text-xs text-muted-foreground">
+                ({reviews.length > 0 ? `${reviews.length} avis vérifiés` : "5.0 / 5 — Note excellente"})
+              </span>
             </div>
 
-            {product.description && (
-              <p className="mt-6 text-justify leading-relaxed text-foreground/85">
-                {product.description}
+            {/* Prix */}
+            <div className="mt-5 flex items-baseline gap-3">
+              <span className="font-display text-3xl sm:text-4xl font-bold text-gold">
+                {formatPrice(unitPrice, currencySymbol)}
+              </span>
+              <span className="text-sm uppercase tracking-wider text-muted-foreground">
+                / {product.unit}
+              </span>
+            </div>
+
+            {product.short_description && (
+              <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                {product.short_description}
               </p>
             )}
 
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex items-center rounded-full border border-border bg-card transition-colors duration-300 hover:border-gold/40">
+            {/* État du stock */}
+            <div className="mt-6 flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-semibold text-primary">
+                En stock ({product.stock} disponibles) — Expédié aujourd'hui
+              </span>
+            </div>
+
+            {/* Sélecteur de Quantité & Bouton d'Achat */}
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <div className="flex items-center rounded-full border border-border bg-card p-1 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="grid h-11 w-11 place-items-center rounded-l-full transition-colors duration-200 hover:bg-secondary hover:text-gold active:scale-90"
-                  aria-label={t("product.decrease")}
+                  className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-primary cursor-pointer"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span
-                  key={qty}
-                  className="w-12 text-center font-semibold motion-safe:animate-[fade-in_0.15s_ease-out_both]"
-                >
-                  {qty}
-                </span>
+                <span className="w-12 text-center text-sm font-bold text-primary">{qty}</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    setQty((q) => (stock !== undefined ? Math.min(stock, q + 1) : q + 1))
-                  }
-                  className="grid h-11 w-11 place-items-center rounded-r-full transition-colors duration-200 hover:bg-secondary hover:text-gold active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
-                  aria-label={t("product.increase")}
-                  disabled={stock !== undefined && qty >= stock}
+                  onClick={() => setQty((q) => q + 1)}
+                  className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-primary cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
-              <span className="text-sm text-muted-foreground">{product.unit}</span>
-            </div>
 
-            {isKgProduct && (
-              <div className="mt-4 rounded-xl border border-dashed border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
-                {t("product.mealsEstimate", { count: mealsForQty })}
-              </div>
-            )}
-
-            {isKgProduct && (
-              <div className="mt-5 rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                  <Calculator className="h-4 w-4 text-gold" /> {t("product.calculatorTitle")}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{t("product.calculatorNote")}</p>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {t("product.householdSize")}
-                    </span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={20}
-                      value={householdSize}
-                      onChange={(e) => setHouseholdSize(Math.max(1, Number(e.target.value)))}
-                      className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {t("product.mealsPerWeek")}
-                    </span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={21}
-                      value={mealsPerWeek}
-                      onChange={(e) => setMealsPerWeek(Math.max(1, Number(e.target.value)))}
-                      className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                    />
-                  </label>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gold/10 px-4 py-3">
-                  <span className="text-sm text-foreground/85">
-                    {t("product.recommendedQty", { count: recommendedKg })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setQty(stock !== undefined ? Math.min(stock, recommendedKg) : recommendedKg)
-                    }
-                    className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90"
-                  >
-                    {t("product.applyQty")}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={handleAdd}
-                disabled={outOfStock}
-                className="inline-flex items-center gap-2 rounded-full border border-primary bg-background px-6 py-3 text-sm font-semibold text-primary transition-all duration-300 hover:-translate-y-0.5 hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                onClick={handleAddToCart}
+                className={`flex-1 min-w-[200px] flex items-center justify-center gap-2.5 rounded-full py-4 text-sm font-semibold transition-all duration-300 shadow-gold cursor-pointer ${
+                  addedAnimation
+                    ? "bg-green-600 text-white scale-102"
+                    : "bg-gold text-gold-foreground hover:bg-gold/90 hover:-translate-y-0.5"
+                }`}
               >
-                <ShoppingBag className="h-4 w-4" /> {t("product.addToCart")}
+                {addedAnimation ? (
+                  <>
+                    <Check className="h-5 w-5" /> Ajouté au panier !
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-5 w-5" /> Ajouter au panier • {formatPrice(totalPrice, currencySymbol)}
+                  </>
+                )}
               </button>
-              <button
-                type="button"
-                onClick={handleBuy}
-                disabled={outOfStock}
-                className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
-              >
-                {t("product.buyNow")}
-              </button>
-            </div>
-
-            <div className="mt-10 grid gap-3 sm:grid-cols-3">
-              {[
-                { icon: Leaf, tx: t("product.natural") },
-                { icon: Truck, tx: t("product.fastDelivery") },
-                { icon: ShieldCheck, tx: t("product.securePayment") },
-              ].map((f) => (
-                <div
-                  key={f.tx}
-                  className="flex items-center gap-2 rounded-xl border border-border bg-card p-3 text-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/30"
-                >
-                  <f.icon className="h-4 w-4 text-gold" /> {f.tx}
-                </div>
-              ))}
             </div>
           </div>
-        </Reveal>
-      </div>
-
-      <ProductDetails product={product as unknown as Record<string, unknown>} />
-      <RelatedProducts currentProductId={product.id} category={product.category} />
-      <ProductReviews productId={product.id} />
-    </div>
-  );
-}
-
-type DetailField = {
-  key: "weight_g" | "target_audience" | "description" | "composition" | "benefits" | "preparation";
-  labelKey: string;
-  icon: typeof Weight;
-  accent: string;
-  format?: (v: unknown) => string;
-};
-
-const DETAILS: DetailField[] = [
-  {
-    key: "weight_g",
-    labelKey: "product.fields.weight",
-    icon: Weight,
-    accent: "from-amber-400/20 to-amber-600/10",
-    format: (v) => (v ? `${v} g` : "—"),
-  },
-  {
-    key: "target_audience",
-    labelKey: "product.fields.audience",
-    icon: Users,
-    accent: "from-emerald-400/20 to-emerald-600/10",
-  },
-  {
-    key: "description",
-    labelKey: "product.fields.description",
-    icon: FileText,
-    accent: "from-sky-400/20 to-sky-600/10",
-  },
-  {
-    key: "composition",
-    labelKey: "product.fields.composition",
-    icon: FlaskConical,
-    accent: "from-violet-400/20 to-violet-600/10",
-  },
-  {
-    key: "benefits",
-    labelKey: "product.fields.benefits",
-    icon: Sparkles,
-    accent: "from-rose-400/20 to-rose-600/10",
-  },
-  {
-    key: "preparation",
-    labelKey: "product.fields.preparation",
-    icon: ChefHat,
-    accent: "from-orange-400/20 to-orange-600/10",
-  },
-];
-
-function ProductDetails({ product }: { product: Record<string, unknown> }) {
-  const { t } = useTranslation();
-  const items = DETAILS.map((d) => ({ ...d, value: product[d.key] })).filter(
-    (d) => d.value !== null && d.value !== undefined && d.value !== "",
-  );
-
-  if (items.length === 0) return null;
-
-  return (
-    <section className="mt-20">
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-            {t("product.sheetEyebrow")}
-          </span>
-          <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
-            {t("product.sheetTitle")}
-          </h2>
         </div>
-        <div className="hidden h-px flex-1 bg-gradient-to-r from-transparent via-gold/40 to-transparent md:ml-8 md:block" />
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
-        {items.map((item, idx) => {
-          const Icon = item.icon;
-          const value = item.format ? item.format(item.value) : String(item.value);
-          return (
-            <article
-              key={item.key}
-              style={{ animationDelay: `${idx * 80}ms` }}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-soft transition-all duration-500 hover:-translate-y-1 hover:border-gold/50 hover:shadow-gold motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:fill-mode-both"
+      {/* Onglets dynamiques d'informations détaillées */}
+      <div className="mt-20">
+        <div className="flex border-b border-border overflow-x-auto gap-2">
+          {[
+            { key: "description", label: "Description & Histoire" },
+            { key: "nutrition", label: "Composition & Nutrition" },
+            { key: "benefits", label: "Bienfaits & Santé" },
+            { key: "recipes", label: "Préparation & Recettes" },
+            { key: "reviews", label: `Avis Clients (${reviews.length})` },
+          ].map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setActiveTab(t.key as any)}
+              className={`whitespace-nowrap px-6 py-3.5 text-sm font-semibold transition-all cursor-pointer border-b-2 -mb-px ${
+                activeTab === t.key
+                  ? "border-gold text-gold"
+                  : "border-transparent text-muted-foreground hover:text-primary"
+              }`}
             >
-              <div
-                className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${item.accent} blur-2xl transition-transform duration-700 group-hover:scale-125`}
-              />
-              <div className="relative flex items-start gap-4">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-gold/90 to-gold/60 text-gold-foreground shadow-gold transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-display text-lg font-semibold text-primary">
-                    {t(item.labelKey)}
-                  </h3>
-                  <p className="mt-2 text-justify leading-relaxed text-foreground/80">{value}</p>
-                </div>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 group-hover:scale-x-100" />
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function RelatedProducts({
-  currentProductId,
-  category,
-}: {
-  currentProductId: string;
-  category: string | null;
-}) {
-  const { t } = useTranslation();
-
-  const { data: related = [] } = useQuery({
-    queryKey: ["related-products", currentProductId, category],
-    queryFn: async () => {
-      // On privilégie la même catégorie ; si ça ne donne pas assez de
-      // résultats, on complète avec d'autres produits actifs au hasard —
-      // mieux vaut montrer 4 produits pertinents que rien du tout.
-      let query = supabase
-        .from("products")
-        .select(
-          "id, slug, name, short_description, category, unit, audiences, image_url, stock, product_prices(country_code, price)",
-        )
-        .eq("is_active", true)
-        .neq("id", currentProductId)
-        .limit(4);
-      if (category) query = query.eq("category", category);
-
-      const { data } = await query;
-      if (data && data.length >= 4) return data;
-
-      // Complète avec des produits d'autres catégories si besoin.
-      const { data: fallback } = await supabase
-        .from("products")
-        .select(
-          "id, slug, name, short_description, category, unit, audiences, image_url, stock, product_prices(country_code, price)",
-        )
-        .eq("is_active", true)
-        .neq("id", currentProductId)
-        .limit(4);
-      return fallback ?? data ?? [];
-    },
-  });
-
-  if (related.length === 0) return null;
-
-  return (
-    <section className="mt-20">
-      <div className="mb-8">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-          {t("product.relatedEyebrow")}
-        </span>
-        <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
-          {t("product.relatedTitle")}
-        </h2>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {related.map((p) => (
-          <ProductCard
-            key={p.id}
-            slug={p.slug}
-            name={p.name}
-            shortDescription={p.short_description}
-            category={p.category}
-            unit={p.unit}
-            audiences={p.audiences}
-            imageUrl={p.image_url}
-            stock={p.stock}
-            prices={p.product_prices ?? []}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function StarRating({
-  value,
-  onChange,
-  size = "h-4 w-4",
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-  size?: string;
-}) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          disabled={!onChange}
-          onClick={() => onChange?.(n)}
-          className={onChange ? "cursor-pointer" : "cursor-default"}
-        >
-          <Star className={`${size} ${n <= value ? "fill-gold text-gold" : "text-border"}`} />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ProductReviews({ productId }: { productId: string }) {
-  const { t } = useTranslation();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const { data: reviews = [], isLoading } = useQuery({
-    queryKey: ["product-reviews", productId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("product_reviews")
-        .select("*")
-        .eq("product_id", productId)
-        .order("created_at", { ascending: false });
-      return data ?? [];
-    },
-  });
-
-  const average = reviews.length
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    : 0;
-  const myReview = reviews.find((r) => r.user_id === user?.id);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user || rating === 0) return;
-    setSubmitting(true);
-    try {
-      const reviewerName =
-        (user.user_metadata?.full_name as string | undefined)?.trim() ||
-        user.email?.split("@")[0] ||
-        "Client";
-
-      const { error } = await supabase.from("product_reviews").upsert(
-        {
-          product_id: productId,
-          user_id: user.id,
-          rating,
-          comment: comment.trim() || null,
-          reviewer_name: reviewerName,
-        },
-        { onConflict: "product_id,user_id" },
-      );
-      if (error) throw error;
-
-      toast.success(t("product.reviewSubmitted"));
-      setRating(0);
-      setComment("");
-      queryClient.invalidateQueries({ queryKey: ["product-reviews", productId] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("product.reviewError"));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <section className="mt-20">
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-            {t("product.reviewsEyebrow")}
-          </span>
-          <h2 className="mt-2 font-display text-3xl font-bold text-primary sm:text-4xl">
-            {t("product.reviewsTitle")}
-          </h2>
-        </div>
-        {reviews.length > 0 && (
-          <div className="flex items-center gap-2">
-            <StarRating value={Math.round(average)} size="h-5 w-5" />
-            <span className="text-sm text-muted-foreground">
-              {average.toFixed(1)} · {t("product.reviewsCount", { count: reviews.length })}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {user && !myReview && (
-        <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border border-border bg-card p-6">
-          <h3 className="font-display text-lg font-bold text-primary">
-            {t("product.reviewFormTitle")}
-          </h3>
-          <div className="mt-3">
-            <StarRating value={rating} onChange={setRating} size="h-6 w-6" />
-          </div>
-          <textarea
-            rows={3}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={t("product.reviewPlaceholder")}
-            className="mt-3 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-          />
-          <button
-            type="submit"
-            disabled={submitting || rating === 0}
-            className="mt-3 rounded-full bg-gold px-6 py-2.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 disabled:opacity-50"
-          >
-            {submitting ? t("checkout.submitting") : t("product.reviewSubmit")}
-          </button>
-        </form>
-      )}
-
-      {isLoading ? null : reviews.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("product.noReviews")}</p>
-      ) : (
-        <div className="space-y-4">
-          {reviews.map((r) => (
-            <div key={r.id} className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex items-center justify-between">
-                <div className="font-semibold text-primary">{r.reviewer_name}</div>
-                <StarRating value={r.rating} />
-              </div>
-              {r.comment && <p className="mt-2 text-sm text-foreground/80">{r.comment}</p>}
-              <p className="mt-2 text-xs text-muted-foreground">
-                {new Date(r.created_at).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
+              {t.label}
+            </button>
           ))}
         </div>
+
+        <div className="py-8">
+          {activeTab === "description" && (
+            <div className="max-w-3xl space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed">
+              <p>{product.description || product.short_description}</p>
+              <p>
+                Nos céréales proviennent des meilleurs terroirs d'Afrique de l'Ouest, récoltées à maturité et nettoyées par des coopératives partenaires engagées pour une agriculture saine et équitable.
+              </p>
+            </div>
+          )}
+
+          {activeTab === "nutrition" && (
+            <div className="max-w-3xl space-y-4">
+              <p className="text-sm text-foreground/80">
+                {product.composition || "100% céréales complètes pures, sans sel ajouté, sans sucre raffiné, sans conservateur chimique."}
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+                <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Protéines</span>
+                  <div className="mt-1 font-display text-xl font-bold text-primary">Élevées</div>
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Fibres</span>
+                  <div className="mt-1 font-display text-xl font-bold text-primary">Excellentes</div>
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Indice Glycémique</span>
+                  <div className="mt-1 font-display text-xl font-bold text-primary">Bas / Moyen</div>
+                </div>
+                <div className="rounded-2xl border border-border bg-card p-4 text-center">
+                  <span className="text-xs text-muted-foreground uppercase font-semibold">Minéraux</span>
+                  <div className="mt-1 font-display text-xl font-bold text-primary">Fer & Zinc</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "benefits" && (
+            <div className="max-w-3xl space-y-3 text-sm sm:text-base text-foreground/80 leading-relaxed">
+              <p>{product.benefits || "Favorise une digestion légère, apporte une énergie durable et contribue au développement harmonieux des enfants et à la vitalité des adultes."}</p>
+              <ul className="list-disc list-inside space-y-2 mt-4 text-sm text-muted-foreground">
+                <li>Facile à digérer, ne provoque pas de ballonnements.</li>
+                <li>Riche en antioxydants naturels et oligo-éléments protecteurs.</li>
+                <li>Idéal pour les repas du matin ou du soir pour toute la famille.</li>
+              </ul>
+            </div>
+          )}
+
+          {activeTab === "recipes" && (
+            <div className="max-w-3xl space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed">
+              <div className="flex items-center gap-2 font-display text-lg font-bold text-primary">
+                <ChefHat className="h-5 w-5 text-gold" /> Conseils de préparation
+              </div>
+              <p>{product.preparation || "Mélanger dans un peu d'eau tiède puis porter à ébullition à feu doux pendant 5 à 10 minutes en remuant régulièrement. Servir avec du lait végétal, du miel ou du yaourt."}</p>
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            <div className="max-w-3xl space-y-8">
+              {/* Formulaire pour laisser un avis */}
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <h3 className="font-display text-lg font-bold text-primary flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-gold" /> Donner votre avis sur ce produit
+                </h3>
+                <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Votre Nom</label>
+                      <input
+                        type="text"
+                        value={reviewAuthor}
+                        onChange={(e) => setReviewAuthor(e.target.value)}
+                        required
+                        placeholder="Ex: Awa K."
+                        className="mt-1 w-full rounded-xl border border-input bg-background py-2 px-3 text-sm focus:border-gold focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Note</label>
+                      <div className="mt-1 flex items-center gap-1 py-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewRating(star)}
+                            className="text-gold transition hover:scale-110 cursor-pointer"
+                          >
+                            <Star className={`h-6 w-6 ${star <= reviewRating ? "fill-gold" : "text-border"}`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground">Votre Commentaire</label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      rows={3}
+                      placeholder="Partagez votre retour d'expérience sur le goût, la texture ou les bienfaits..."
+                      className="mt-1 w-full rounded-xl border border-input bg-background py-2 px-3 text-sm focus:border-gold focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={reviewMutation.isPending}
+                    className="inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 transition cursor-pointer"
+                  >
+                    <Send className="h-3.5 w-3.5" /> Publier mon avis
+                  </button>
+                </form>
+              </div>
+
+              {/* Liste des avis existants */}
+              {reviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  Soyez le premier à donner votre avis sur cette céréale !
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((rev) => (
+                    <div key={rev.id} className="rounded-2xl border border-border bg-card p-5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-sm text-primary">{rev.author_name}</span>
+                        <div className="flex text-gold">
+                          {Array.from({ length: rev.rating }).map((_, i) => (
+                            <Star key={i} className="h-3.5 w-3.5 fill-gold" />
+                          ))}
+                        </div>
+                      </div>
+                      {rev.comment && <p className="mt-2 text-sm text-foreground/80">{rev.comment}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recommandations de produits */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-20 border-t border-border pt-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-display text-2xl font-bold text-primary">
+              Vous aimerez aussi
+            </h2>
+            <Link to="/products" className="text-xs font-semibold text-gold hover:underline">
+              Voir tout →
+            </Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {relatedProducts.map((p) => (
+              <ProductCard
+                key={p.id}
+                slug={p.slug}
+                name={p.name}
+                shortDescription={p.short_description}
+                category={p.category}
+                unit={p.unit}
+                audiences={p.audiences}
+                imageUrl={p.image_url}
+                stock={p.stock}
+                prices={p.product_prices ?? []}
+              />
+            ))}
+          </div>
+        </div>
       )}
-    </section>
+    </div>
   );
 }

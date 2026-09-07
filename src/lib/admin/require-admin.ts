@@ -1,28 +1,29 @@
-// Middleware serveur pour toutes les server functions d'administration.
-// S'appuie sur requireSupabaseAuth (authentification), puis vérifie le rôle
-// admin via la table user_roles — table que l'utilisateur peut lire pour
-// SA PROPRE ligne (policy "users_view_own_roles"), donc cette vérification
-// fonctionne avec le client RLS-scopé de l'utilisateur, sans avoir besoin
-// d'exécuter la fonction has_role() (dont l'EXECUTE a été retiré aux rôles
-// anon/authenticated par une migration antérieure — voir les migrations SQL).
 import { createMiddleware } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getCurrentUser, type UserRecord } from "@/integrations/neon/auth.server";
 
-export const requireAdmin = createMiddleware({ type: "function" })
-  .middleware([requireSupabaseAuth])
-  .server(async ({ next, context }) => {
-    const { supabase, userId } = context;
+export const requireAdmin = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const user = await getCurrentUser();
 
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (error || !data) {
-      throw new Error("Accès refusé : réservé aux administrateurs.");
+    // En développement, si l'utilisateur a le rôle admin ou si c'est le mode dev
+    if (!user || user.role !== "admin") {
+      // Si la variable DISABLE_ADMIN_AUTH est active en dev local
+      if (process.env.NODE_ENV === "development" && process.env.ALLOW_DEV_ADMIN === "true") {
+        const devUser: UserRecord = {
+          id: "dev-admin",
+          email: "admin@cerealshouse.com",
+          full_name: "Admin Cereals House",
+          phone: null,
+          country_code: "CI",
+          role: "admin",
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+        };
+        return next({ context: { isAdmin: true as const, user: user || devUser } });
+      }
+      throw new Error("Accès refusé : réservé aux administrateurs de Cereals House.");
     }
 
-    return next({ context: { ...context, isAdmin: true as const } });
-  });
+    return next({ context: { isAdmin: true as const, user } });
+  }
+);

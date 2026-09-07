@@ -1,34 +1,41 @@
-// Server functions d'administration pour les produits, leurs prix par pays et
-// leur stock. supabaseAdmin (service_role) contourne délibérément les RLS
-// "products_public_read"/"prices_public_read" (lecture seule pour le public)
-// puisqu'on a besoin d'écrire, et que les policies admin_all ont été retirées
-// du côté client (voir require-admin.ts).
+// Server functions d'administration pour les produits avec Neon DB
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { query, queryOne } from "@/integrations/neon/db.server";
 
 export const listProductsAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const products = await query<any>(
+      `SELECT p.*,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'id', pp.id,
+                    'country_code', pp.country_code,
+                    'price', pp.price,
+                    'shipping_fee', pp.shipping_fee
+                  )
+                ) FILTER (WHERE pp.id IS NOT NULL), '[]'
+              ) as product_prices
+       FROM products p
+       LEFT JOIN product_prices pp ON pp.product_id = p.id
+       GROUP BY p.id
+       ORDER BY p.created_at DESC`
+    );
 
-    const { data: products, error } = await supabaseAdmin
-      .from("products")
-      .select("*, product_prices(*)")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-
-    const { data: countries, error: countriesErr } = await supabaseAdmin
-      .from("countries")
-      .select("code, name, currency_code, currency_symbol, is_active")
-      .order("sort_order", { ascending: true });
-    if (countriesErr) throw new Error(countriesErr.message);
+    const countries = await query<any>(
+      `SELECT code, name, currency_code, currency_symbol, is_active
+       FROM countries
+       ORDER BY sort_order ASC`
+    );
 
     return { products: products ?? [], countries: countries ?? [] };
   });
 
 const upsertProductInputSchema = z.object({
-  id: z.string().uuid().optional(), // absent → création
+  id: z.string().optional(),
   slug: z
     .string()
     .trim()
@@ -52,8 +59,6 @@ const upsertProductInputSchema = z.object({
   composition: z.string().trim().max(2000).optional().nullable(),
   benefits: z.string().trim().max(2000).optional().nullable(),
   preparation: z.string().trim().max(2000).optional().nullable(),
-  // Utilisé pour le filtre "Public" de la boutique (enfant/adulte) — tableau
-  // de tags libres plutôt qu'un enum strict, pour rester extensible.
   audiences: z.array(z.string()).default([]),
 });
 
@@ -61,43 +66,58 @@ export const upsertProductAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => upsertProductInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
     const { id, ...fields } = data;
     if (id) {
-      const { error } = await supabaseAdmin.from("products").update(fields).eq("id", id);
-      if (error) throw new Error(error.message);
+      await query(
+        `UPDATE products SET
+          slug = $1, name = $2, description = $3, short_description = $4,
+          category = $5, image_url = $6, unit = $7, stock = $8,
+          is_active = $9, is_featured = $10, weight_g = $11,
+          target_audience = $12, composition = $13, benefits = $14,
+          preparation = $15, audiences = $16, updated_at = now()
+         WHERE id = $17`,
+        [
+          fields.slug, fields.name, fields.description || null, fields.short_description || null,
+          fields.category || null, fields.image_url || null, fields.unit, fields.stock,
+          fields.is_active, fields.is_featured, fields.weight_g || null,
+          fields.target_audience || null, fields.composition || null, fields.benefits || null,
+          fields.preparation || null, fields.audiences, id
+        ]
+      );
       return { id };
     }
 
-    const { data: created, error } = await supabaseAdmin
-      .from("products")
-      .insert(fields)
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { id: created.id };
+    const created = await queryOne<{ id: string }>(
+      `INSERT INTO products (
+        slug, name, description, short_description, category, image_url, unit, stock,
+        is_active, is_featured, weight_g, target_audience, composition, benefits, preparation, audiences
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING id`,
+      [
+        fields.slug, fields.name, fields.description || null, fields.short_description || null,
+        fields.category || null, fields.image_url || null, fields.unit, fields.stock,
+        fields.is_active, fields.is_featured, fields.weight_g || null,
+        fields.target_audience || null, fields.composition || null, fields.benefits || null,
+        fields.preparation || null, fields.audiences
+      ]
+    );
+
+    return { id: created?.id };
   });
 
-const deleteProductInputSchema = z.object({ id: z.string().uuid() });
+const deleteProductInputSchema = z.object({ id: z.string() });
 
 export const deleteProductAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => deleteProductInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Désactivation plutôt que suppression : préserve l'historique des
-    // commandes passées qui référencent ce produit.
-    const { error } = await supabaseAdmin
-      .from("products")
-      .update({ is_active: false })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    await query(`UPDATE products SET is_active = false, updated_at = now() WHERE id = $1`, [data.id]);
     return { success: true };
   });
 
 const upsertPriceInputSchema = z.object({
-  productId: z.string().uuid(),
+  productId: z.string(),
   countryCode: z.string().length(2),
   price: z.number().positive(),
   shippingFee: z.number().min(0).optional().nullable(),
@@ -107,23 +127,19 @@ export const upsertProductPriceAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => upsertPriceInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { error } = await supabaseAdmin.from("product_prices").upsert(
-      {
-        product_id: data.productId,
-        country_code: data.countryCode,
-        price: data.price,
-        shipping_fee: data.shippingFee ?? null,
-      },
-      { onConflict: "product_id,country_code" },
+    await query(
+      `INSERT INTO product_prices (product_id, country_code, price, shipping_fee)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (product_id, country_code) DO UPDATE SET
+         price = EXCLUDED.price,
+         shipping_fee = EXCLUDED.shipping_fee`,
+      [data.productId, data.countryCode, data.price, data.shippingFee ?? null]
     );
-    if (error) throw new Error(error.message);
     return { success: true };
   });
 
 const updateStockInputSchema = z.object({
-  productId: z.string().uuid(),
+  productId: z.string(),
   stock: z.number().int().min(0),
 });
 
@@ -131,11 +147,6 @@ export const updateProductStockAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => updateStockInputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("products")
-      .update({ stock: data.stock })
-      .eq("id", data.productId);
-    if (error) throw new Error(error.message);
+    await query(`UPDATE products SET stock = $1, updated_at = now() WHERE id = $2`, [data.stock, data.productId]);
     return { success: true };
   });

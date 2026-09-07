@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useRouter, redirect } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   Lock,
@@ -12,70 +11,49 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/lib/cart-context";
 import { useCountry } from "@/lib/country-context";
 import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
+import { createOrderFn } from "@/lib/orders/orders.functions";
 import { initiateCinetPayPaymentFn } from "@/lib/payments/cinetpay.functions";
 import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
-import { decrementStockAfterOrderFn } from "@/lib/products/stock.functions";
 import { PageLoader } from "@/components/page-loader";
-
 import {
   PAYMENT_METHODS,
   methodAvailableIn,
   type PaymentId,
-  type PaymentMethodDef as PaymentMethod,
 } from "@/lib/payments/payment-methods";
 
-// Normalise pour une comparaison insensible à la casse et aux accents
-// ("Abidjan", "abidjan", "ABIDJAN", "Àbidjan" doivent tous correspondre).
-function normalizeCity(s: string): string {
-  return s
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
 export const Route = createFileRoute("/checkout")({
-  head: () => ({ meta: [{ title: "Commande — Cereals House" }] }),
-  beforeLoad: ({ context: _context, location }) => {
-    void location;
-  },
+  head: () => ({ meta: [{ title: "Validation de Commande — Cereals House" }] }),
   component: CheckoutPage,
 });
 
 function CheckoutPage() {
-  const { items, subtotal, clear } = useCart();
+  const { items, clearCart, totalItems } = useCart();
   const { country } = useCountry();
   const { user, loading } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
-  // Une fois une commande créée avec succès, le panier est vidé — mais il ne
-  // faut plus jamais rediriger vers /cart après ça (même si le paiement en
-  // ligne échoue ensuite) : on est censé aller vers le suivi de la commande,
-  // pas revenir en arrière. Une ref plutôt qu'un state pour être disponible
-  // immédiatement, sans attendre un re-rendu.
   const orderPlacedRef = useRef(false);
 
   const supportedDefault =
     !country || PAYMENT_METHODS.some((m) => methodAvailableIn(m, country.code))
       ? (PAYMENT_METHODS.find((m) => !country || methodAvailableIn(m, country.code))?.id ?? "visa")
       : "cash_on_delivery";
+
   const [form, setForm] = useState({
-    full_name: "",
-    phone: "",
+    full_name: user?.full_name ?? "",
+    phone: user?.phone ?? "",
     address: "",
     city: "",
     notes: "",
     payment_method: supportedDefault as PaymentId,
   });
 
-  // Mode de règlement : en ligne (Mobile Money / carte) ou à la livraison.
   const paymentMode: "online" | "cod" =
     form.payment_method === "cash_on_delivery" ? "cod" : "online";
   const [lastOnlineMethod, setLastOnlineMethod] = useState<Exclude<PaymentId, "cash_on_delivery">>(
@@ -92,66 +70,39 @@ function CheckoutPage() {
     setForm((prev) => ({ ...prev, payment_method: "cash_on_delivery" }));
   }
 
-  // Numéro saisi par le client pour l'opérateur mobile money choisi — transmis
-  // à CinetPay en priorité sur le téléphone de livraison (voir handleSubmit).
   const [momoNumber, setMomoNumber] = useState("");
 
-  useEffect(() => {
-    if (!country || paymentMode === "cod") return;
-    const supported = PAYMENT_METHODS.some(
-      (m) => methodAvailableIn(m, country.code) && m.id === form.payment_method,
-    );
-    if (!supported) {
-      const fallback = PAYMENT_METHODS.find((m) => methodAvailableIn(m, country.code))?.id;
-      if (fallback) {
-        setForm((prev) => ({ ...prev, payment_method: fallback }));
-        setLastOnlineMethod(fallback);
-      } else {
-        // Aucun moyen en ligne réellement actif pour ce pays : on bascule
-        // proprement sur le paiement à la livraison plutôt que de laisser
-        // affiché un moyen qui échouerait à coup sûr.
-        setForm((prev) => ({ ...prev, payment_method: "cash_on_delivery" }));
-      }
-    }
-  }, [country?.code]);
+  const currentCountryCode = country?.code ?? "CI";
+  const currencySymbol = country?.currency_symbol ?? "FCFA";
+  const currencyCode = country?.currency_code ?? "XOF";
 
-  // Tarifs de livraison par ville (exceptions au tarif de base du pays,
-  // gérées depuis /admin/shipping — ex: Abidjan moins cher que le reste de
-  // la Côte d'Ivoire). Doit rester AVANT tout retour conditionnel ci-dessous
-  // (règles des Hooks React : ordre d'appel toujours identique entre rendus).
-  const { data: cityRates } = useQuery({
-    queryKey: ["city-shipping-rates", country?.code],
-    enabled: !!country,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("city_shipping_rates")
-        .select("city_name, shipping_fee")
-        .eq("country_code", country!.code);
-      return data ?? [];
-    },
-  });
+  // Calcul du sous-total
+  const subtotal = items.reduce((acc, it) => {
+    const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
+    const unitPrice = Number(priceObj?.price ?? it.unitPrice ?? 0);
+    return acc + unitPrice * Number(it.quantity || 1);
+  }, 0);
 
-  const cityOverrideFee = useMemo(() => {
-    if (!cityRates || !form.city.trim()) return undefined;
-    const match = cityRates.find((r) => normalizeCity(r.city_name) === normalizeCity(form.city));
-    return match ? Number(match.shipping_fee) : undefined;
-  }, [cityRates, form.city]);
+  const shipping = Number(country?.base_shipping_fee ?? 1500);
+  const total = Number(subtotal) + Number(shipping);
 
   if (loading) return <PageLoader />;
 
   if (!user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-20 text-center sm:px-6">
+      <div className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
         <h1 className="font-display text-3xl font-bold text-primary">
-          {t("checkout.signInTitle")}
+          {t("checkout.signInTitle", "Finaliser votre commande")}
         </h1>
-        <p className="mt-2 text-muted-foreground">{t("checkout.signInDesc")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("checkout.signInDesc", "Veuillez vous connecter ou créer un compte pour suivre l'acheminement de votre colis.")}
+        </p>
         <Link
           to="/auth"
           search={{ redirect: "/checkout" }}
-          className="mt-6 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
+          className="mt-6 inline-flex rounded-full bg-gold px-7 py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90"
         >
-          {t("checkout.signIn")}
+          {t("checkout.signIn", "Se connecter / S'inscrire")}
         </Link>
       </div>
     );
@@ -161,98 +112,87 @@ function CheckoutPage() {
     throw redirect({ to: "/cart" });
   }
 
-  const shipping = cityOverrideFee ?? country?.base_shipping_fee ?? 0;
-  const total = subtotal + shipping;
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!country || !user) return;
-    if (!form.full_name || !form.phone || !form.address || !form.city) {
-      toast.error(t("checkout.errorFields"));
+    if (!country) return;
+    if (!form.full_name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
+      toast.error("Veuillez remplir tous les champs obligatoires (nom, téléphone, adresse, ville).");
       return;
     }
 
     setSubmitting(true);
     try {
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          user_id: user.id,
-          country_code: country.code,
-          currency_code: country.currency_code,
-          subtotal,
-          shipping_fee: shipping,
-          total,
-          payment_method: form.payment_method,
-          shipping_full_name: form.full_name,
-          shipping_phone: form.phone,
-          shipping_address: form.address,
-          shipping_city: form.city,
-          shipping_notes: form.notes || null,
-        })
-        .select()
-        .single();
+      const orderPayloadItems = items.map((it) => {
+        const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
+        const unitPrice = Number(priceObj?.price ?? it.unitPrice ?? 0);
+        const quantity = Number(it.quantity || 1);
+        return {
+          productId: it.slug,
+          productName: it.name,
+          productImage: it.imageUrl ?? it.image ?? null,
+          unitPrice,
+          quantity,
+          lineTotal: unitPrice * quantity,
+        };
+      });
 
-      if (orderErr || !order) throw orderErr;
-      // Dès que la commande existe vraiment en base, plus aucune redirection
-      // "panier vide" ne doit se déclencher — même si le paiement échoue
-      // ensuite, on va vers le suivi de la commande, jamais vers /cart.
+      const orderRes = await createOrderFn({
+        data: {
+          countryCode: currentCountryCode,
+          currencyCode,
+          subtotal: Number(subtotal),
+          shippingFee: Number(shipping),
+          total: Number(total),
+          paymentMethod: form.payment_method,
+          shippingFullName: form.full_name.trim(),
+          shippingPhone: form.phone.trim(),
+          shippingAddress: form.address.trim(),
+          shippingCity: form.city.trim(),
+          shippingNotes: form.notes.trim() || null,
+          items: orderPayloadItems,
+        },
+      });
+
       orderPlacedRef.current = true;
+      clearCart();
 
-      const { error: itemsErr } = await supabase.from("order_items").insert(
-        items.map((it) => ({
-          order_id: order.id,
-          product_id: it.productId,
-          product_name: it.name,
-          product_image: it.image,
-          unit_price: it.unitPrice,
-          quantity: it.quantity,
-          line_total: it.unitPrice * it.quantity,
-        })),
-      );
-      if (itemsErr) throw itemsErr;
-
-      clear();
-
-      // Best effort : la décrémentation de stock ne doit jamais faire
-      // échouer la commande elle-même si elle rencontre un problème.
-      try {
-        await decrementStockAfterOrderFn({
-          data: { items: items.map((it) => ({ productId: it.productId, quantity: it.quantity })) },
-        });
-      } catch (stockErr) {
-        console.error("Échec de la décrémentation de stock", stockErr);
-      }
-
-      // Paiement en ligne (Mobile Money / carte) en Côte d'Ivoire : on part
-      // réellement chez CinetPay. Pour les autres pays, l'intégration n'est
-      // pas encore branchée (voir le mode démo ci-dessous).
-      if (paymentMode === "online" && isCinetPaySupportedCountry(country?.code)) {
+      // En ligne avec CinetPay si disponible
+      if (paymentMode === "online" && isCinetPaySupportedCountry(currentCountryCode)) {
         try {
-          // Le numéro saisi dans le champ spécifique à l'opérateur (s'il est
-          // rempli) prime sur le téléphone de livraison — c'est celui que le
-          // client vient de confirmer pour CE moyen de paiement précis.
-          const phoneOverride = momoNumber.trim() || undefined;
+          const phoneOverride = momoNumber.trim() || form.phone.trim();
           setRedirecting(true);
           const { paymentUrl } = await initiateCinetPayPaymentFn({
-            data: { orderId: order.id, phoneNumber: phoneOverride },
+            data: { orderId: orderRes.id, phoneNumber: phoneOverride },
           });
           window.location.href = paymentUrl;
           return;
         } catch (payErr) {
           setRedirecting(false);
           console.error(payErr);
-          toast.error(payErr instanceof Error ? payErr.message : t("checkout.errorToast"));
-          router.navigate({ to: "/orders/$id", params: { id: order.id } });
+          toast.error(payErr instanceof Error ? payErr.message : "Erreur de paiement en ligne.");
+          router.navigate({ to: "/orders/$id", params: { id: orderRes.id } });
           return;
         }
       }
 
-      toast.success(t("checkout.successToast"));
-      router.navigate({ to: "/orders/$id", params: { id: order.id } });
+      toast.success("Commande enregistrée avec succès !");
+      router.navigate({ to: "/orders/$id", params: { id: orderRes.id } });
     } catch (err) {
       console.error(err);
-      toast.error(t("checkout.errorToast"));
+      let message = "Une erreur est survenue lors de la commande.";
+      if (err instanceof Error) {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (Array.isArray(parsed) && parsed[0]?.message) {
+            message = parsed.map((e: any) => `${e.path?.join(".") || "Champ"}: ${e.message}`).join(", ");
+          } else {
+            message = err.message;
+          }
+        } catch {
+          message = err.message;
+        }
+      }
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -263,421 +203,250 @@ function CheckoutPage() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
         <Loader2 className="h-10 w-10 animate-spin text-gold" />
         <p className="font-display text-lg font-semibold text-primary">
-          {t("checkout.redirectingTitle")}
+          Redirection vers la passerelle sécurisée Mobile Money...
         </p>
-        <p className="max-w-sm text-sm text-muted-foreground">{t("checkout.redirectingDesc")}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          Veuillez patienter pendant l'initialisation du paiement sécurisé.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="motion-safe:animate-[fade-in_0.5s_ease-out_both]">
+      <div>
         <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold">
-          <span className="h-px w-5 bg-gold" /> {t("checkout.shippingSection")} →{" "}
-          {t("checkout.paymentSection")}
+          Étape finale
         </span>
-        <h1 className="mt-2 font-display text-4xl font-bold text-primary">{t("checkout.title")}</h1>
+        <h1 className="mt-1 font-display text-3xl sm:text-4xl font-bold text-primary">
+          Validation & Paiement de votre Commande
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="mt-8 grid gap-10 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
-          <section
-            className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-soft motion-safe:animate-[fade-in_0.5s_ease-out_both]"
-            style={{ animationDelay: "60ms" }}
-          >
-            <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-gold via-gold/70 to-transparent" />
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+          {/* Section 1 : Adresse de livraison */}
+          <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-xs">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
                 <Truck className="h-5 w-5" />
               </div>
-              <h2 className="font-display text-xl font-bold text-primary">
-                {t("checkout.shippingSection")}
-              </h2>
+              <div>
+                <h2 className="font-display text-xl font-bold text-primary">
+                  1. Adresse de livraison
+                </h2>
+                <p className="text-xs text-muted-foreground">Où souhaitez-vous recevoir vos céréales ?</p>
+              </div>
             </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                label={t("checkout.fullName")}
+                label="Nom & Prénom"
                 value={form.full_name}
                 onChange={(v) => setForm({ ...form, full_name: v })}
+                placeholder="Ex: Kouamé Samuel"
               />
               <Field
-                label={t("checkout.phone")}
+                label="Numéro de Téléphone"
                 value={form.phone}
                 onChange={(v) => setForm({ ...form, phone: v })}
-                placeholder="+225 …"
+                placeholder="Ex: +225 07 00 00 00 00"
               />
               <Field
-                label={t("checkout.city")}
+                label="Ville de livraison"
                 value={form.city}
                 onChange={(v) => setForm({ ...form, city: v })}
+                placeholder="Ex: Abidjan, Dakar, Bamako..."
               />
-              {country && cityRates && cityRates.length > 0 && (
-                <div className="sm:col-span-2 rounded-xl bg-secondary/40 px-4 py-2.5 text-xs text-muted-foreground">
-                  {t("checkout.shippingNote", {
-                    details: cityRates
-                      .map(
-                        (r) =>
-                          `${r.city_name} : ${formatPrice(Number(r.shipping_fee), country.currency_code, country.currency_symbol)}`,
-                      )
-                      .join(" · "),
-                    base: formatPrice(
-                      country.base_shipping_fee,
-                      country.currency_code,
-                      country.currency_symbol,
-                    ),
-                    country: country.name,
-                  })}
-                </div>
-              )}
               <Field
-                label={t("checkout.country")}
+                label="Pays sélectionné"
                 value={country?.name ?? ""}
                 onChange={() => {}}
                 disabled
               />
               <div className="sm:col-span-2">
                 <Field
-                  label={t("checkout.address")}
+                  label="Adresse exacte / Quartier / Repère"
                   value={form.address}
                   onChange={(v) => setForm({ ...form, address: v })}
+                  placeholder="Ex: Cocody Angré 8ème tranche, près de la pharmacie..."
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="group block">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-200 group-focus-within:text-gold">
-                    {t("checkout.notes")}
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Instructions particulières pour le livreur (optionnel)
                   </span>
                   <textarea
                     rows={2}
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
+                    placeholder="Ex: Appeler à l'arrivée, sonnette rez-de-chaussée..."
+                    className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none"
                   />
                 </label>
               </div>
             </div>
           </section>
 
-          <section
-            className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-shadow duration-300 hover:shadow-soft motion-safe:animate-[fade-in_0.5s_ease-out_both]"
-            style={{ animationDelay: "120ms" }}
-          >
-            <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-gold via-gold/70 to-transparent" />
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Section 2 : Mode de règlement */}
+          <section className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/10 text-gold">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
                   <CreditCard className="h-5 w-5" />
                 </div>
-                <h2 className="font-display text-xl font-bold text-primary">
-                  {t("checkout.paymentSection")}
-                </h2>
+                <div>
+                  <h2 className="font-display text-xl font-bold text-primary">
+                    2. Mode de Règlement
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Choisissez votre moyen de paiement sécurisé</p>
+                </div>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                {paymentMode === "online" ? (
-                  <>
-                    <ShieldCheck className="h-3.5 w-3.5" /> {t("checkout.securePayment")}
-                  </>
-                ) : (
-                  <>
-                    <Banknote className="h-3.5 w-3.5" /> {t("checkout.codBadge")}
-                  </>
-                )}
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                <ShieldCheck className="h-4 w-4" /> 100% Sécurisé
               </span>
             </div>
 
-            {/* Sélecteur : payer en ligne ou à la livraison */}
-            <div className="mt-5 inline-flex w-full gap-1 rounded-full border border-border bg-secondary/40 p-1 sm:w-auto">
+            {/* Bascule En ligne vs Livraison */}
+            <div className="inline-flex w-full gap-1 rounded-full border border-border bg-secondary/50 p-1 sm:w-auto mb-6">
               <button
                 type="button"
                 onClick={selectOnlineMode}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 sm:flex-none ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
                   paymentMode === "online"
                     ? "bg-gold text-gold-foreground shadow-gold"
                     : "text-foreground/70 hover:text-primary"
                 }`}
               >
-                <CreditCard className="h-4 w-4" /> {t("checkout.paymentModeOnline")}
+                <CreditCard className="h-4 w-4" /> Mobile Money / Carte
               </button>
               <button
                 type="button"
                 onClick={selectCodMode}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 sm:flex-none ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold transition-all cursor-pointer ${
                   paymentMode === "cod"
                     ? "bg-gold text-gold-foreground shadow-gold"
                     : "text-foreground/70 hover:text-primary"
                 }`}
               >
-                <Banknote className="h-4 w-4" /> {t("checkout.paymentModeCod")}
+                <Banknote className="h-4 w-4" /> Paiement à la livraison
               </button>
             </div>
 
             {paymentMode === "online" ? (
-              <>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {PAYMENT_METHODS.map((m, idx) => {
-                    const selected = form.payment_method === m.id;
-                    const supported = !country || methodAvailableIn(m, country.code);
-                    const label = t(`checkout.payment.${m.id}`);
-                    const tagline = t(`checkout.paymentTag.${m.id}`);
-                    return (
-                      <label
-                        key={m.id}
-                        style={{ animationDelay: `${idx * 60}ms` }}
-                        className={`group relative flex items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition-all duration-300 motion-safe:animate-[fade-in_0.5s_ease-out_both] ${
-                          selected && supported
-                            ? `border-transparent ring-2 ${m.ring} shadow-soft`
-                            : supported
-                              ? "border-border hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-soft cursor-pointer"
-                              : "border-border opacity-60 cursor-not-allowed"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="payment"
-                          className="sr-only"
-                          checked={selected}
-                          disabled={!supported}
-                          onChange={() => {
-                            if (!supported) return;
-                            setLastOnlineMethod(m.id);
-                            setForm({ ...form, payment_method: m.id });
-                          }}
-                        />
-                        <div className="grid h-14 w-20 shrink-0 place-items-center overflow-hidden rounded-xl border border-border/60 bg-white shadow-sm transition-transform duration-300 group-hover:scale-105">
-                          {m.logo ? (
-                            <img
-                              src={m.logo}
-                              alt={label}
-                              className="h-full max-h-10 w-full max-w-16 object-contain"
-                            />
-                          ) : (
-                            <span
-                              className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white ${m.bg}`}
-                            >
-                              {m.badge.slice(0, 2).toUpperCase()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-semibold text-primary">{label}</div>
-                          <div className="text-xs text-muted-foreground">{tagline}</div>
-                          {!supported && country && (
-                            <div className="mt-0.5 text-[10px] font-medium text-amber-600">
-                              {t("checkout.notAvailable", { country: country.name })}
-                            </div>
-                          )}
-                        </div>
-                        <div
-                          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-all duration-300 ${selected ? "border-gold bg-gold" : "border-border"}`}
-                        >
-                          {selected && (
-                            <span className="h-2 w-2 rounded-full bg-gold-foreground motion-safe:animate-[fade-in_0.2s_ease-out_both]" />
-                          )}
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {PAYMENT_METHODS.map((m) => {
+                  const selected = form.payment_method === m.id;
+                  const supported = !country || methodAvailableIn(m, country.code);
+                  const label = t(`checkout.payment.${m.id}`, m.name);
 
-                {form.payment_method === "visa" && (
-                  <div
-                    key="visa"
-                    className="mt-5 flex items-start gap-3 rounded-2xl border border-dashed border-border bg-secondary/40 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <Lock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      {t("checkout.cardRedirectNote")}
-                    </p>
-                  </div>
-                )}
-
-                {form.payment_method === "orange_money" && (
-                  <div
-                    key="orange_money"
-                    className="mt-5 rounded-2xl border border-dashed border-[#FF7900]/30 bg-[#FF7900]/5 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#FF7900]">
-                      {t("checkout.momoNumber", { brand: "Orange Money" })}
+                  return (
+                    <label
+                      key={m.id}
+                      className={`group relative flex items-center gap-4 overflow-hidden rounded-2xl border bg-background p-4 transition-all duration-200 cursor-pointer ${
+                        selected && supported
+                          ? "border-gold ring-2 ring-gold/40 shadow-soft"
+                          : supported
+                          ? "border-border hover:border-gold/50"
+                          : "border-border opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        className="sr-only"
+                        checked={selected}
+                        disabled={!supported}
+                        onChange={() => {
+                          if (!supported) return;
+                          setLastOnlineMethod(m.id as any);
+                          setForm({ ...form, payment_method: m.id });
+                        }}
+                      />
+                      <div className="grid h-12 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border/60 bg-white p-1">
+                        {m.logo ? (
+                          <img src={m.logo} alt={label} className="h-full w-full object-contain" />
+                        ) : (
+                          <span className="font-bold text-xs text-primary">{m.name.slice(0, 3)}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-sm text-primary">{label}</div>
+                        <div className="text-[11px] text-muted-foreground">{m.tagline}</div>
+                      </div>
+                      <div className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? "border-gold bg-gold text-white" : "border-border"}`}>
+                        {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+                      </div>
                     </label>
-                    <input
-                      value={momoNumber}
-                      onChange={(e) => setMomoNumber(e.target.value)}
-                      placeholder="+225 07 00 00 00 00"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border border-[#FF7900]/20 bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-[#FF7900]/50 focus:outline-none focus:ring-2 focus:ring-[#FF7900]/20"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("checkout.momoNoteOrange")}
-                    </p>
-                  </div>
-                )}
-
-                {form.payment_method === "mtn_money" && (
-                  <div
-                    key="mtn_money"
-                    className="mt-5 rounded-2xl border border-dashed border-[#FFCC00]/40 bg-[#FFCC00]/10 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#B38F00]">
-                      {t("checkout.momoNumber", { brand: "MTN Mobile Money" })}
-                    </label>
-                    <input
-                      value={momoNumber}
-                      onChange={(e) => setMomoNumber(e.target.value)}
-                      placeholder="+225 05 00 00 00 00"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border border-[#FFCC00]/30 bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-[#B38F00]/60 focus:outline-none focus:ring-2 focus:ring-[#FFCC00]/30"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("checkout.momoNoteMtn")}
-                    </p>
-                  </div>
-                )}
-
-                {form.payment_method === "wave" && (
-                  <div
-                    key="wave"
-                    className="mt-5 rounded-2xl border border-dashed border-[#1DC8F2]/30 bg-[#1DC8F2]/5 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#0E8DA8]">
-                      {t("checkout.momoNumber", { brand: "Wave" })}
-                    </label>
-                    <input
-                      value={momoNumber}
-                      onChange={(e) => setMomoNumber(e.target.value)}
-                      placeholder="+225 01 00 00 00 00"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border border-[#1DC8F2]/20 bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-[#0E8DA8]/50 focus:outline-none focus:ring-2 focus:ring-[#1DC8F2]/20"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("checkout.momoNoteWave")}
-                    </p>
-                  </div>
-                )}
-
-                {form.payment_method === "moov_money" && (
-                  <div
-                    key="moov_money"
-                    className="mt-5 rounded-2xl border border-dashed border-[#005BAA]/30 bg-[#005BAA]/5 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#005BAA]">
-                      {t("checkout.momoNumber", { brand: "Moov Money" })}
-                    </label>
-                    <input
-                      value={momoNumber}
-                      onChange={(e) => setMomoNumber(e.target.value)}
-                      placeholder="+225 06 00 00 00 00"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border border-[#005BAA]/20 bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-[#005BAA]/50 focus:outline-none focus:ring-2 focus:ring-[#005BAA]/20"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("checkout.momoNoteMoov")}
-                    </p>
-                  </div>
-                )}
-
-                {form.payment_method === "tmoney" && (
-                  <div
-                    key="tmoney"
-                    className="mt-5 rounded-2xl border border-dashed border-[#F5A623]/30 bg-[#F5A623]/5 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]"
-                  >
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-[#B37B10]">
-                      {t("checkout.momoNumber", { brand: "TMoney" })}
-                    </label>
-                    <input
-                      value={momoNumber}
-                      onChange={(e) => setMomoNumber(e.target.value)}
-                      placeholder="+228 90 00 00 00"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border border-[#F5A623]/20 bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-[#B37B10]/60 focus:outline-none focus:ring-2 focus:ring-[#F5A623]/20"
-                    />
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("checkout.momoNoteTmoney")}
-                    </p>
-                  </div>
-                )}
-              </>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="mt-5 flex items-start gap-4 rounded-2xl border border-dashed border-gold/30 bg-gold/5 p-5 motion-safe:animate-[fade-in_0.35s_ease-out_both]">
+              <div className="flex items-start gap-4 rounded-2xl border border-dashed border-gold/30 bg-gold/5 p-5">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gold/15 text-gold">
                   <Banknote className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="font-display text-lg font-bold text-primary">
-                    {t("checkout.codTitle")}
+                  <div className="font-display text-base font-bold text-primary">
+                    Paiement en espèces à la livraison
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">{t("checkout.codDesc")}</p>
-                  <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
-                    <li className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-gold" />{" "}
-                      {t("checkout.codNote1")}
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-gold" />{" "}
-                      {t("checkout.codNote2")}
-                    </li>
-                  </ul>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Vous réglerez le montant exact directement auprès de notre coursier lors de la remise de votre colis.
+                  </p>
                 </div>
               </div>
             )}
           </section>
         </div>
 
-        <aside
-          className="relative h-fit overflow-hidden rounded-2xl border border-border bg-card p-6 motion-safe:animate-[fade-in_0.5s_ease-out_both] lg:sticky lg:top-24"
-          style={{ animationDelay: "180ms" }}
-        >
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-gold via-gold/70 to-transparent" />
-          <h2 className="font-display text-xl font-bold text-primary">{t("checkout.summary")}</h2>
-          <ul className="mt-4 space-y-2 text-sm">
-            {items.map((it) => (
-              <li key={it.productId} className="flex justify-between">
-                <span className="text-muted-foreground">
-                  {it.name} × {it.quantity}
-                </span>
-                <span>
-                  {country
-                    ? formatPrice(
-                        it.unitPrice * it.quantity,
-                        country.currency_code,
-                        country.currency_symbol,
-                      )
-                    : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <dl className="mt-4 space-y-2 border-t border-border pt-3 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t("checkout.subtotal")}</dt>
-              <dd>
-                {country
-                  ? formatPrice(subtotal, country.currency_code, country.currency_symbol)
-                  : ""}
-              </dd>
+        {/* Colonne Récapitulatif Panier */}
+        <aside className="relative h-fit overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-24 space-y-4">
+          <h2 className="font-display text-xl font-bold text-primary">
+            Récapitulatif de la commande
+          </h2>
+
+          <div className="divide-y divide-border text-sm max-h-60 overflow-y-auto">
+            {items.map((it) => {
+              const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
+              const unitPrice = priceObj?.price ?? it.unitPrice ?? 0;
+
+              return (
+                <div key={it.slug} className="py-2.5 flex justify-between items-center text-xs">
+                  <div>
+                    <span className="font-semibold text-primary">{it.name}</span>
+                    <span className="text-muted-foreground"> × {it.quantity}</span>
+                  </div>
+                  <span className="font-semibold text-primary">
+                    {formatPrice(unitPrice * it.quantity, currencySymbol)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-border pt-4 space-y-2 text-xs">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Sous-total</span>
+              <span>{formatPrice(subtotal, currencySymbol)}</span>
             </div>
-            <div className="flex justify-between">
-              <dt className="text-muted-foreground">{t("checkout.shipping")}</dt>
-              <dd>
-                {country
-                  ? formatPrice(shipping, country.currency_code, country.currency_symbol)
-                  : ""}
-              </dd>
+            <div className="flex justify-between text-muted-foreground">
+              <span>Frais de livraison ({country?.name})</span>
+              <span>{formatPrice(shipping, currencySymbol)}</span>
             </div>
-            <div className="flex justify-between border-t border-border pt-3 text-base font-bold">
-              <dt>{t("checkout.total")}</dt>
-              <dd className="text-gold">
-                {country ? formatPrice(total, country.currency_code, country.currency_symbol) : ""}
-              </dd>
+            <div className="flex justify-between font-display text-lg font-bold text-primary pt-3 border-t border-border">
+              <span>Total à payer</span>
+              <span className="text-gold">{formatPrice(total, currencySymbol)}</span>
             </div>
-          </dl>
+          </div>
+
           <button
             type="submit"
             disabled={submitting}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] disabled:translate-y-0 disabled:opacity-50"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold py-4 text-sm font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
           >
             {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            {submitting ? t("checkout.submitting") : t("checkout.confirm")}
+            {submitting ? "Enregistrement..." : "Confirmer et Commander"}
           </button>
         </aside>
       </form>
@@ -691,27 +460,25 @@ function Field({
   onChange,
   placeholder,
   disabled,
-  type = "text",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   disabled?: boolean;
-  type?: string;
 }) {
   return (
-    <label className="group block">
-      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-200 group-focus-within:text-gold">
+    <label className="block">
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
       <input
-        type={type}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm transition-all duration-200 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20 disabled:opacity-70"
+        className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:border-gold focus:outline-none disabled:opacity-70"
       />
     </label>
   );

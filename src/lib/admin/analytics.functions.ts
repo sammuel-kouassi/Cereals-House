@@ -1,9 +1,7 @@
-// Server function d'administration : agrégations pour le dashboard analytique.
-// Important : chaque pays a sa PROPRE devise (XOF, GHS, EUR, USD…) — on ne
-// mélange donc jamais les montants de pays différents dans un seul total.
-// Toutes les figures financières restent groupées par pays/devise.
+// Server function d'administration : agrégations pour le dashboard analytique avec Neon DB
 import { createServerFn } from "@tanstack/react-start";
 import { requireAdmin } from "@/lib/admin/require-admin";
+import { query } from "@/integrations/neon/db.server";
 
 const ORDER_STATUSES = [
   "pending_payment",
@@ -16,34 +14,26 @@ const ORDER_STATUSES = [
   "refunded",
 ] as const;
 
-// Seules les commandes ayant dépassé "pending_payment" comptent comme du
-// chiffre d'affaires réel (une commande jamais payée n'est pas une vente).
 const REVENUE_STATUSES = new Set(["paid", "preparing", "shipped", "in_transit", "delivered"]);
 
 export const getAnalyticsAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const [
-      { data: orders, error: ordersErr },
-      { data: items, error: itemsErr },
-      { data: countries },
-    ] = await Promise.all([
-      supabaseAdmin
-        .from("orders")
-        .select("id, country_code, currency_code, total, status, payment_method, created_at"),
-      supabaseAdmin.from("order_items").select("order_id, product_name, quantity, line_total"),
-      supabaseAdmin.from("countries").select("code, name, currency_code, currency_symbol"),
+    const [orders, items, countries] = await Promise.all([
+      query<any>(
+        `SELECT id, country_code, currency_code, total, status, payment_method, created_at FROM orders`
+      ),
+      query<any>(
+        `SELECT order_id, product_name, quantity, line_total FROM order_items`
+      ),
+      query<any>(
+        `SELECT code, name, currency_code, currency_symbol FROM countries`
+      ),
     ]);
-
-    if (ordersErr) throw new Error(ordersErr.message);
-    if (itemsErr) throw new Error(itemsErr.message);
 
     const countryMeta = new Map((countries ?? []).map((c) => [c.code, c]));
     const orderById = new Map((orders ?? []).map((o) => [o.id, o]));
 
-    // --- Commandes par statut (global, indépendant de la devise) ---
     const ordersByStatus: Record<string, number> = Object.fromEntries(
       ORDER_STATUSES.map((s) => [s, 0]),
     );
@@ -51,7 +41,6 @@ export const getAnalyticsAdminFn = createServerFn({ method: "POST" })
       ordersByStatus[o.status] = (ordersByStatus[o.status] ?? 0) + 1;
     }
 
-    // --- Regroupement par pays (chaque pays garde sa propre devise) ---
     type CountryBucket = {
       countryCode: string;
       countryName: string;
