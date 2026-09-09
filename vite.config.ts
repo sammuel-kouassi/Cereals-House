@@ -11,6 +11,9 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    serverFns: {
+      disableCsrfMiddlewareWarning: true,
+    },
   },
   // Autorise l'accès au dev server via un tunnel ngrok (tests locaux de
   // webhooks CinetPay, qui doivent être appelables depuis internet).

@@ -67,8 +67,10 @@ export const listCountriesFn = createServerFn({ method: "GET" }).handler(async (
       { code: "SN", name: "Sénégal", currency_code: "XOF", currency_symbol: "FCFA", base_shipping_fee: 2000, flag_emoji: "🇸🇳", is_active: true, sort_order: 2 },
       { code: "ML", name: "Mali", currency_code: "XOF", currency_symbol: "FCFA", base_shipping_fee: 2500, flag_emoji: "🇲🇱", is_active: true, sort_order: 3 },
       { code: "BF", name: "Burkina Faso", currency_code: "XOF", currency_symbol: "FCFA", base_shipping_fee: 2500, flag_emoji: "🇧🇫", is_active: true, sort_order: 4 },
-      { code: "FR", name: "France", currency_code: "EUR", currency_symbol: "€", base_shipping_fee: 12, flag_emoji: "🇫🇷", is_active: true, sort_order: 5 },
-      { code: "US", name: "États-Unis", currency_code: "USD", currency_symbol: "$", base_shipping_fee: 18, flag_emoji: "🇺🇸", is_active: true, sort_order: 6 },
+      { code: "GH", name: "Ghana", currency_code: "GHS", currency_symbol: "GH₵", base_shipping_fee: 3000, flag_emoji: "🇬🇭", is_active: true, sort_order: 5 },
+      { code: "NG", name: "Nigeria", currency_code: "NGN", currency_symbol: "₦", base_shipping_fee: 3500, flag_emoji: "🇳🇬", is_active: true, sort_order: 6 },
+      { code: "FR", name: "France", currency_code: "EUR", currency_symbol: "€", base_shipping_fee: 12, flag_emoji: "🇫🇷", is_active: true, sort_order: 7 },
+      { code: "US", name: "United States (USA)", currency_code: "USD", currency_symbol: "$", base_shipping_fee: 18, flag_emoji: "🇺🇸", is_active: true, sort_order: 8 },
     ];
   } catch (err) {
     console.warn("[listCountriesFn Error, using fallback]", err);

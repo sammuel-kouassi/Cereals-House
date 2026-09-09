@@ -6,7 +6,7 @@ import {
 } from "@/lib/payments/cinetpay.server";
 import { ApiError, ValidationError } from "cinetpay-js";
 import type { PaymentMethod } from "cinetpay-js";
-import { getAppUrl } from "@/lib/app-url.server";
+import { getAppUrl, getPublicAppUrl } from "@/lib/app-url.server";
 import { query } from "@/integrations/neon/db.server";
 
 export const PAYMENT_METHOD_MAP: Partial<Record<string, Partial<Record<string, PaymentMethod>>>> = {
@@ -53,17 +53,8 @@ export async function initiateCinetPayForOrder(params: {
   const chosenMethod = params.paymentMethodOverride ?? order.payment_method;
 
   let paymentMethod: PaymentMethod | undefined;
-  if (chosenMethod === "visa") {
-    paymentMethod = undefined;
-  } else if (chosenMethod) {
-    paymentMethod = PAYMENT_METHOD_MAP[country]?.[chosenMethod];
-    if (!paymentMethod) {
-      throw new Error(
-        "Ce moyen de paiement n'est pas disponible pour ce pays via l'intégration en ligne.",
-      );
-    }
-  } else {
-    throw new Error("Aucun moyen de paiement sélectionné pour cette commande.");
+  if (chosenMethod && chosenMethod !== "visa" && chosenMethod !== "cash_on_delivery") {
+    paymentMethod = PAYMENT_METHOD_MAP[country]?.[chosenMethod] ?? undefined;
   }
 
   const amount = Math.round(Number(order.total));
@@ -80,6 +71,7 @@ export async function initiateCinetPayForOrder(params: {
   const { firstName, lastName } = splitName(order.shipping_full_name);
   const phoneNumber = (params.phoneNumberOverride ?? order.shipping_phone).replace(/\s+/g, "");
   const appUrl = getAppUrl();
+  const returnBaseUrl = getPublicAppUrl();
 
   try {
     const client = getCinetPayClient();
@@ -93,8 +85,8 @@ export async function initiateCinetPayForOrder(params: {
         clientEmail: email,
         clientFirstName: firstName,
         clientLastName: lastName,
-        successUrl: `${appUrl}/api/cinetpay/return?status=success`,
-        failedUrl: `${appUrl}/api/cinetpay/return?status=failed`,
+        successUrl: `${returnBaseUrl}/api/cinetpay/return?status=success&merchant_transaction_id=${merchantTransactionId}`,
+        failedUrl: `${returnBaseUrl}/api/cinetpay/return?status=failed&merchant_transaction_id=${merchantTransactionId}`,
         notifyUrl: `${appUrl}/api/cinetpay/notify`,
         channel: "PUSH",
         paymentMethod,
@@ -135,6 +127,15 @@ export async function initiateCinetPayForOrder(params: {
       throw new Error(`Données de paiement invalides : ${err.message}`);
     }
     if (err instanceof ApiError) {
+      if (
+        err.apiCode === 2011 ||
+        err.description?.toLowerCase().includes("not withlisted") ||
+        err.description?.toLowerCase().includes("whitelist")
+      ) {
+        throw new Error(
+          "L'adresse IP de votre machine/serveur n'est pas autorisée par CinetPay (code 2011). Veuillez ajouter votre adresse IP publique dans l'espace marchand CinetPay.",
+        );
+      }
       throw new Error(err.description || err.apiStatus);
     }
     throw err;

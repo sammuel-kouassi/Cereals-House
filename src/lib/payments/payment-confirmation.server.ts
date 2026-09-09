@@ -26,11 +26,17 @@ export async function verifyAndConfirmPayment(
     return { status: "pending" };
   }
 
-  const client = getCinetPayClient();
-  const verification = await client.payment.getStatus(
-    order.cinetpay_transaction_id,
-    order.country_code as SupportedCinetPayCountry,
-  );
+  let verification;
+  try {
+    const client = getCinetPayClient();
+    verification = await client.payment.getStatus(
+      order.cinetpay_transaction_id,
+      order.country_code as SupportedCinetPayCountry,
+    );
+  } catch (err) {
+    console.error("[cinetpay] Échec de la vérification de statut :", err);
+    return { status: "pending" };
+  }
 
   if (verification.status === "SUCCESS") {
     const nextStatus = order.status === "pending_payment" ? "paid" : order.status;

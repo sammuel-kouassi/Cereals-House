@@ -15,10 +15,12 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as LangIndexRouteImport } from './routes/$lang.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as PayOrderIdRouteImport } from './routes/pay.$orderId'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
@@ -27,6 +29,16 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminInvoiceRouteImport } from './routes/admin.invoice'
 import { Route as AdminCountriesRouteImport } from './routes/admin.countries'
+import { Route as LangContactRouteImport } from './routes/$lang.contact'
+import { Route as LangCheckoutRouteImport } from './routes/$lang.checkout'
+import { Route as LangCartRouteImport } from './routes/$lang.cart'
+import { Route as LangAuthRouteImport } from './routes/$lang.auth'
+import { Route as LangAboutRouteImport } from './routes/$lang.about'
+import { Route as LangProductsIndexRouteImport } from './routes/$lang.products.index'
+import { Route as LangOrdersIndexRouteImport } from './routes/$lang.orders.index'
+import { Route as LangProductsSlugRouteImport } from './routes/$lang.products.$slug'
+import { Route as LangPayOrderIdRouteImport } from './routes/$lang.pay.$orderId'
+import { Route as LangOrdersIdRouteImport } from './routes/$lang.orders.$id'
 
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
@@ -58,6 +70,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LangRoute = LangRouteImport.update({
+  id: '/$lang',
+  path: '/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -77,6 +94,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const LangIndexRoute = LangIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LangRoute,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/products/$slug',
@@ -118,15 +140,71 @@ const AdminCountriesRoute = AdminCountriesRouteImport.update({
   path: '/countries',
   getParentRoute: () => AdminRoute,
 } as any)
+const LangContactRoute = LangContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCheckoutRoute = LangCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangCartRoute = LangCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAuthRoute = LangAuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangAboutRoute = LangAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProductsIndexRoute = LangProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangOrdersIndexRoute = LangOrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangProductsSlugRoute = LangProductsSlugRouteImport.update({
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangPayOrderIdRoute = LangPayOrderIdRouteImport.update({
+  id: '/pay/$orderId',
+  path: '/pay/$orderId',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangOrdersIdRoute = LangOrdersIdRouteImport.update({
+  id: '/orders/$id',
+  path: '/orders/$id',
+  getParentRoute: () => LangRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/auth': typeof LangAuthRoute
+  '/$lang/cart': typeof LangCartRoute
+  '/$lang/checkout': typeof LangCheckoutRoute
+  '/$lang/contact': typeof LangContactRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -135,9 +213,15 @@ export interface FileRoutesByFullPath {
   '/orders/$id': typeof OrdersIdRoute
   '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/$lang/orders/$id': typeof LangOrdersIdRoute
+  '/$lang/pay/$orderId': typeof LangPayOrderIdRoute
+  '/$lang/products/$slug': typeof LangProductsSlugRoute
+  '/$lang/orders/': typeof LangOrdersIndexRoute
+  '/$lang/products/': typeof LangProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,6 +230,11 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/auth': typeof LangAuthRoute
+  '/$lang/cart': typeof LangCartRoute
+  '/$lang/checkout': typeof LangCheckoutRoute
+  '/$lang/contact': typeof LangContactRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -154,19 +243,31 @@ export interface FileRoutesByTo {
   '/orders/$id': typeof OrdersIdRoute
   '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/$lang': typeof LangIndexRoute
   '/admin': typeof AdminIndexRoute
   '/orders': typeof OrdersIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/$lang/orders/$id': typeof LangOrdersIdRoute
+  '/$lang/pay/$orderId': typeof LangPayOrderIdRoute
+  '/$lang/products/$slug': typeof LangProductsSlugRoute
+  '/$lang/orders': typeof LangOrdersIndexRoute
+  '/$lang/products': typeof LangProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/about': typeof AboutRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/$lang/about': typeof LangAboutRoute
+  '/$lang/auth': typeof LangAuthRoute
+  '/$lang/cart': typeof LangCartRoute
+  '/$lang/checkout': typeof LangCheckoutRoute
+  '/$lang/contact': typeof LangContactRoute
   '/admin/countries': typeof AdminCountriesRoute
   '/admin/invoice': typeof AdminInvoiceRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -175,20 +276,32 @@ export interface FileRoutesById {
   '/orders/$id': typeof OrdersIdRoute
   '/pay/$orderId': typeof PayOrderIdRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/$lang/': typeof LangIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/orders/': typeof OrdersIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/$lang/orders/$id': typeof LangOrdersIdRoute
+  '/$lang/pay/$orderId': typeof LangPayOrderIdRoute
+  '/$lang/products/$slug': typeof LangProductsSlugRoute
+  '/$lang/orders/': typeof LangOrdersIndexRoute
+  '/$lang/products/': typeof LangProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$lang'
     | '/about'
     | '/admin'
     | '/auth'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/$lang/about'
+    | '/$lang/auth'
+    | '/$lang/cart'
+    | '/$lang/checkout'
+    | '/$lang/contact'
     | '/admin/countries'
     | '/admin/invoice'
     | '/admin/orders'
@@ -197,9 +310,15 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/pay/$orderId'
     | '/products/$slug'
+    | '/$lang/'
     | '/admin/'
     | '/orders/'
     | '/products/'
+    | '/$lang/orders/$id'
+    | '/$lang/pay/$orderId'
+    | '/$lang/products/$slug'
+    | '/$lang/orders/'
+    | '/$lang/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -208,6 +327,11 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/$lang/about'
+    | '/$lang/auth'
+    | '/$lang/cart'
+    | '/$lang/checkout'
+    | '/$lang/contact'
     | '/admin/countries'
     | '/admin/invoice'
     | '/admin/orders'
@@ -216,18 +340,30 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/pay/$orderId'
     | '/products/$slug'
+    | '/$lang'
     | '/admin'
     | '/orders'
     | '/products'
+    | '/$lang/orders/$id'
+    | '/$lang/pay/$orderId'
+    | '/$lang/products/$slug'
+    | '/$lang/orders'
+    | '/$lang/products'
   id:
     | '__root__'
     | '/'
+    | '/$lang'
     | '/about'
     | '/admin'
     | '/auth'
     | '/cart'
     | '/checkout'
     | '/contact'
+    | '/$lang/about'
+    | '/$lang/auth'
+    | '/$lang/cart'
+    | '/$lang/checkout'
+    | '/$lang/contact'
     | '/admin/countries'
     | '/admin/invoice'
     | '/admin/orders'
@@ -236,13 +372,20 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/pay/$orderId'
     | '/products/$slug'
+    | '/$lang/'
     | '/admin/'
     | '/orders/'
     | '/products/'
+    | '/$lang/orders/$id'
+    | '/$lang/pay/$orderId'
+    | '/$lang/products/$slug'
+    | '/$lang/orders/'
+    | '/$lang/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LangRoute: typeof LangRouteWithChildren
   AboutRoute: typeof AboutRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
@@ -300,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$lang': {
+      id: '/$lang'
+      path: '/$lang'
+      fullPath: '/$lang'
+      preLoaderRoute: typeof LangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -327,6 +477,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/$lang/': {
+      id: '/$lang/'
+      path: '/'
+      fullPath: '/$lang/'
+      preLoaderRoute: typeof LangIndexRouteImport
+      parentRoute: typeof LangRoute
     }
     '/products/$slug': {
       id: '/products/$slug'
@@ -384,8 +541,108 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCountriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/$lang/contact': {
+      id: '/$lang/contact'
+      path: '/contact'
+      fullPath: '/$lang/contact'
+      preLoaderRoute: typeof LangContactRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/checkout': {
+      id: '/$lang/checkout'
+      path: '/checkout'
+      fullPath: '/$lang/checkout'
+      preLoaderRoute: typeof LangCheckoutRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/cart': {
+      id: '/$lang/cart'
+      path: '/cart'
+      fullPath: '/$lang/cart'
+      preLoaderRoute: typeof LangCartRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/auth': {
+      id: '/$lang/auth'
+      path: '/auth'
+      fullPath: '/$lang/auth'
+      preLoaderRoute: typeof LangAuthRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/about': {
+      id: '/$lang/about'
+      path: '/about'
+      fullPath: '/$lang/about'
+      preLoaderRoute: typeof LangAboutRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/products/': {
+      id: '/$lang/products/'
+      path: '/products'
+      fullPath: '/$lang/products/'
+      preLoaderRoute: typeof LangProductsIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/orders/': {
+      id: '/$lang/orders/'
+      path: '/orders'
+      fullPath: '/$lang/orders/'
+      preLoaderRoute: typeof LangOrdersIndexRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/products/$slug': {
+      id: '/$lang/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/$lang/products/$slug'
+      preLoaderRoute: typeof LangProductsSlugRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/pay/$orderId': {
+      id: '/$lang/pay/$orderId'
+      path: '/pay/$orderId'
+      fullPath: '/$lang/pay/$orderId'
+      preLoaderRoute: typeof LangPayOrderIdRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/orders/$id': {
+      id: '/$lang/orders/$id'
+      path: '/orders/$id'
+      fullPath: '/$lang/orders/$id'
+      preLoaderRoute: typeof LangOrdersIdRouteImport
+      parentRoute: typeof LangRoute
+    }
   }
 }
+
+interface LangRouteChildren {
+  LangAboutRoute: typeof LangAboutRoute
+  LangAuthRoute: typeof LangAuthRoute
+  LangCartRoute: typeof LangCartRoute
+  LangCheckoutRoute: typeof LangCheckoutRoute
+  LangContactRoute: typeof LangContactRoute
+  LangIndexRoute: typeof LangIndexRoute
+  LangOrdersIdRoute: typeof LangOrdersIdRoute
+  LangPayOrderIdRoute: typeof LangPayOrderIdRoute
+  LangProductsSlugRoute: typeof LangProductsSlugRoute
+  LangOrdersIndexRoute: typeof LangOrdersIndexRoute
+  LangProductsIndexRoute: typeof LangProductsIndexRoute
+}
+
+const LangRouteChildren: LangRouteChildren = {
+  LangAboutRoute: LangAboutRoute,
+  LangAuthRoute: LangAuthRoute,
+  LangCartRoute: LangCartRoute,
+  LangCheckoutRoute: LangCheckoutRoute,
+  LangContactRoute: LangContactRoute,
+  LangIndexRoute: LangIndexRoute,
+  LangOrdersIdRoute: LangOrdersIdRoute,
+  LangPayOrderIdRoute: LangPayOrderIdRoute,
+  LangProductsSlugRoute: LangProductsSlugRoute,
+  LangOrdersIndexRoute: LangOrdersIndexRoute,
+  LangProductsIndexRoute: LangProductsIndexRoute,
+}
+
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
 
 interface AdminRouteChildren {
   AdminCountriesRoute: typeof AdminCountriesRoute
@@ -409,6 +666,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LangRoute: LangRouteWithChildren,
   AboutRoute: AboutRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,

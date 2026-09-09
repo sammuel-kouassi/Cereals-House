@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { listProductsFn, type ProductItem } from "@/lib/products/products.functions";
 import { useCountry } from "@/lib/country-context";
 import { formatPrice } from "@/lib/format";
+import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 interface SpotlightSearchProps {
   open: boolean;
@@ -13,6 +14,7 @@ interface SpotlightSearchProps {
 
 export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
   const { t } = useTranslation();
+  const { getLocalizedPath } = useLanguageNavigation();
   const router = useRouter();
   const { country } = useCountry();
   const [query, setQuery] = useState("");
@@ -156,8 +158,7 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
               return (
                 <Link
                   key={p.slug}
-                  to="/products/$slug"
-                  params={{ slug: p.slug }}
+                  to={getLocalizedPath(`/products/${p.slug}`)}
                   onClick={onClose}
                   className="group flex items-center justify-between gap-3 rounded-xl p-2.5 transition hover:bg-secondary/70 border border-transparent hover:border-border"
                 >
@@ -208,13 +209,13 @@ export function SpotlightSearch({ open, onClose }: SpotlightSearchProps) {
 
         {/* Pied de la recherche */}
         <div className="border-t border-border bg-secondary/30 px-4 py-2.5 flex items-center justify-between text-xs text-muted-foreground">
-          <span>{filtered.length} {filtered.length > 1 ? "produits trouvés" : "produit trouvé"}</span>
+          <span>{filtered.length} {filtered.length > 1 ? t("search.resultsCountPlural", "produits trouvés") : t("search.resultsCountSingular", "produit trouvé")}</span>
           <Link
-            to="/products"
+            to={getLocalizedPath("/products")}
             onClick={onClose}
             className="font-medium text-gold hover:underline flex items-center gap-1"
           >
-            Voir toute la boutique <ArrowRight className="h-3 w-3" />
+            {t("search.viewAllShop", "Voir toute la boutique")} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>

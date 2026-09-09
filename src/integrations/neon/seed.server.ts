@@ -16,6 +16,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 2500 },
       { country_code: "SN", price: 2800 },
+      { country_code: "GH", price: 55.0 },
       { country_code: "FR", price: 6.5 },
       { country_code: "US", price: 7.5 },
     ],
@@ -35,6 +36,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 3000 },
       { country_code: "SN", price: 3200 },
+      { country_code: "GH", price: 65.0 },
       { country_code: "FR", price: 8.0 },
       { country_code: "US", price: 9.5 },
     ],
@@ -54,6 +56,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 2000 },
       { country_code: "SN", price: 2200 },
+      { country_code: "GH", price: 40.0 },
       { country_code: "FR", price: 5.5 },
       { country_code: "US", price: 6.5 },
     ],
@@ -73,6 +76,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 6500 },
       { country_code: "SN", price: 7000 },
+      { country_code: "GH", price: 140.0 },
       { country_code: "FR", price: 16.0 },
       { country_code: "US", price: 19.0 },
     ],
@@ -92,6 +96,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 2200 },
       { country_code: "SN", price: 2400 },
+      { country_code: "GH", price: 45.0 },
       { country_code: "FR", price: 6.0 },
       { country_code: "US", price: 7.0 },
     ],
@@ -111,6 +116,7 @@ export const INITIAL_PRODUCTS = [
     prices: [
       { country_code: "CI", price: 48000 },
       { country_code: "SN", price: 52000 },
+      { country_code: "GH", price: 1050.0 },
       { country_code: "FR", price: 120.0 },
       { country_code: "US", price: 140.0 },
     ],

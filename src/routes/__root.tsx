@@ -23,6 +23,8 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import logo from "@/assets/logo.jpeg";
 
+import { getLocalizedPath } from "@/lib/i18n-routing";
+
 /** Fond partagé des écrans 404/Erreur : grain discret + halo doré, cohérent avec l'identité de la marque. */
 function StatusScreen({ children }: { children: ReactNode }) {
   return (
@@ -64,7 +66,7 @@ function NotFoundComponent() {
         {t("errors.notFoundDesc")}
       </p>
       <Link
-        to="/"
+        to={getLocalizedPath("/")}
         className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] motion-safe:animate-[fade-in_0.6s_ease-out_both]"
         style={{ animationDelay: "260ms" }}
       >
@@ -91,6 +93,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         {t("errors.pageTitle")}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("errors.pageDesc")}</p>
+      {error?.message && (
+        <p className="mx-auto mt-4 max-w-sm rounded-lg bg-destructive/10 p-3 font-mono text-xs text-destructive break-words">
+          {error.message}
+        </p>
+      )}
       <div className="mt-8 flex flex-wrap justify-center gap-2">
         <button
           onClick={() => {
@@ -102,7 +109,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           <RotateCw className="h-4 w-4" /> {t("errors.retry")}
         </button>
         <Link
-          to="/"
+          to={getLocalizedPath("/")}
           className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-300 hover:border-gold hover:text-gold"
         >
           <HomeIcon className="h-4 w-4" /> {t("errors.home")}

@@ -71,13 +71,31 @@ export const createOrderFn = createServerFn({ method: "POST" })
     }
 
     // 2. Insérer les articles de commande et décrémenter le stock
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     for (const item of data.items) {
+      let resolvedProductId: string | null = null;
+      if (item.productId) {
+        if (UUID_REGEX.test(item.productId)) {
+          resolvedProductId = item.productId;
+        } else {
+          // Si le productId est un slug (ex: "bouillie-maman-bebe"), on recherche son ID réel
+          const found = await queryOne<{ id: string }>(
+            `SELECT id FROM products WHERE slug = $1 LIMIT 1`,
+            [item.productId]
+          ).catch(() => null);
+          if (found?.id) {
+            resolvedProductId = found.id;
+          }
+        }
+      }
+
       await query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_image, unit_price, quantity, line_total)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
           order.id,
-          item.productId || null,
+          resolvedProductId,
           item.productName,
           item.productImage || null,
           item.unitPrice,
@@ -86,9 +104,9 @@ export const createOrderFn = createServerFn({ method: "POST" })
         ]
       );
 
-      if (item.productId && !item.productId.startsWith("fallback-")) {
+      if (resolvedProductId) {
         try {
-          await query(`SELECT decrement_product_stock($1, $2)`, [item.productId, item.quantity]);
+          await query(`SELECT decrement_product_stock($1, $2)`, [resolvedProductId, item.quantity]);
         } catch (e) {
           console.warn("[Stock decrement error]", e);
         }

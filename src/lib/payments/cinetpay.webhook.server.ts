@@ -1,6 +1,7 @@
 import { parseNotification, verifyNotification, ApiError } from "cinetpay-js";
 import { verifyAndConfirmPayment } from "@/lib/payments/payment-confirmation.server";
 import { queryOne } from "@/integrations/neon/db.server";
+import { getPublicAppUrl } from "@/lib/app-url.server";
 
 export async function handleCinetPayNotify(request: Request): Promise<Response> {
   if (request.method === "GET") {
@@ -74,5 +75,6 @@ export async function handleCinetPayReturn(request: Request): Promise<Response> 
     }
   }
 
-  return Response.redirect(new URL(redirectPath, url.origin).toString(), 303);
+  const baseAppUrl = getPublicAppUrl();
+  return Response.redirect(new URL(redirectPath, baseAppUrl).toString(), 303);
 }

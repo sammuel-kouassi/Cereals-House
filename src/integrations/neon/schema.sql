@@ -99,6 +99,17 @@ CREATE TABLE IF NOT EXISTS product_prices (
   UNIQUE(product_id, country_code)
 );
 
+-- 5b. Table Tarifs de livraison personnalisés par ville
+CREATE TABLE IF NOT EXISTS city_shipping_rates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  country_code TEXT NOT NULL REFERENCES countries(code) ON DELETE CASCADE,
+  city_name TEXT NOT NULL,
+  shipping_fee NUMERIC(12,2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT uq_city_shipping_rates_country_city UNIQUE (country_code, city_name)
+);
+
 -- 6. Table Commandes
 CREATE TABLE IF NOT EXISTS orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -194,6 +205,9 @@ CREATE TRIGGER trg_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EX
 
 DROP TRIGGER IF EXISTS trg_orders_updated_at ON orders;
 CREATE TRIGGER trg_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS trg_city_shipping_rates_updated_at ON city_shipping_rates;
+CREATE TRIGGER trg_city_shipping_rates_updated_at BEFORE UPDATE ON city_shipping_rates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =========================================================
 -- Données initiales (Seeds)
