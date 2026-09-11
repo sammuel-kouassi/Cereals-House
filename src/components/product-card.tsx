@@ -63,7 +63,7 @@ export function ProductCard({
       slug,
       name,
       unit,
-      imageUrl: imageUrl || imageFor(slug),
+      imageUrl: imageFor(slug, imageUrl),
       prices,
     });
 
@@ -77,102 +77,102 @@ export function ProductCard({
     return (
       <Link
         to={getLocalizedPath(`/products/${slug}`)}
-        className="group relative flex flex-col sm:flex-row overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-gold"
+        className="group relative flex flex-col sm:flex-row overflow-hidden rounded-xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-md"
       >
         {/* Liseré doré signature */}
         <span className="absolute inset-x-0 top-0 sm:inset-y-0 sm:left-0 sm:right-auto sm:w-1 sm:h-full z-10 h-0.5 origin-left sm:origin-top scale-x-0 sm:scale-x-100 sm:scale-y-0 bg-gradient-to-r sm:bg-gradient-to-b from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100 sm:group-hover:scale-y-100" />
 
         {/* Zone visuelle avec largeur contrôlée et proportions maîtrisées */}
-        <div className="relative w-full sm:w-56 md:w-64 lg:w-72 shrink-0 aspect-[16/10] sm:aspect-square overflow-hidden bg-secondary">
+        <div className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-square overflow-hidden bg-secondary/60">
           <img
-            src={imageUrl || imageFor(slug)}
+            src={imageFor(slug, imageUrl)}
             alt={name}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+            className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
           {/* Badge Catégorie sur mobile */}
           {category && (
-            <span className="absolute left-3 top-3 rounded-full bg-background/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur shadow-2xs sm:hidden">
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-2xs sm:hidden">
               {category}
             </span>
           )}
 
           {/* Alerte stock faible */}
           {lowStock && !isOutOfStock && (
-            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
-              <Flame className="h-3 w-3" /> {t("product.lowStock", "Plus que {{count}} en stock", { count: stock })}
+            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+              <Flame className="h-3 w-3" /> {t("product.lowStock", "Plus que {{count}}", { count: stock })}
             </span>
           )}
 
           {isOutOfStock && (
-            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
-              {t("product.outOfStock", "Rupture temporaire")}
+            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
+              {t("product.outOfStock", "Rupture")}
             </span>
           )}
         </div>
 
         {/* Contenu textuel et actions à droite */}
-        <div className="flex flex-1 flex-col justify-between p-5 sm:p-6 gap-4">
+        <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 gap-3">
           <div>
             {/* Header badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
               {category && (
-                <span className="hidden sm:inline-flex rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <span className="hidden sm:inline-flex rounded-full bg-secondary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
                   {category}
                 </span>
               )}
               {isKid && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/5 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
                   <Baby className="h-3 w-3" /> {t("audience.kid", "Bébé / Enfant")}
                 </span>
               )}
               {isAdult && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-secondary/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-secondary/60 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
                   <User className="h-3 w-3" /> {t("audience.adult", "Adulte")}
                 </span>
               )}
             </div>
 
-            <h3 className="font-display text-lg sm:text-xl font-bold text-primary transition-colors duration-200 group-hover:text-gold">
+            <h3 className="font-display text-base sm:text-lg font-bold text-primary transition-colors duration-200 group-hover:text-gold">
               {name}
             </h3>
 
             {shortDescription && (
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 sm:line-clamp-3">
+              <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
                 {shortDescription}
               </p>
             )}
           </div>
 
           {/* Footer avec prix et boutons */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border/60">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60">
             <div>
-              <div className="text-xl sm:text-2xl font-bold text-gold font-display">
+              <div className="text-lg sm:text-xl font-bold text-gold font-display">
                 {formatPrice(price, currencySymbol)}
               </div>
-              <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 {unit}
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleQuickAdd}
                 disabled={isOutOfStock}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all duration-200 cursor-pointer shadow-xs ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer shadow-xs ${
                   added
                     ? "bg-green-600 text-white"
                     : "bg-gold text-gold-foreground hover:bg-gold/90 hover:scale-102 active:scale-98"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {added ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-                <span>{added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}</span>
+                {added ? <Check className="h-3.5 w-3.5" /> : <ShoppingBag className="h-3.5 w-3.5" />}
+                <span>{added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter")}</span>
               </button>
 
-              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3.5 py-2 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                 {t("common.details", "Détails →")}
               </span>
             </div>
@@ -182,97 +182,96 @@ export function ProductCard({
     );
   }
 
-  // Disposition en grille par défaut
+  // Disposition en grille par défaut (optimale, compacte et élégante)
   return (
     <Link
       to={getLocalizedPath(`/products/${slug}`)}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-gold"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-md"
     >
       {/* Liseré doré signature */}
       <span className="absolute inset-x-0 top-0 z-10 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
 
-      {/* Zone visuelle */}
-      <div className="relative aspect-square overflow-hidden bg-secondary">
+      {/* Zone visuelle avec ratio 4/3 équilibré (plus de hauteur démesurée) */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary/60">
         <img
-          src={imageUrl || imageFor(slug)}
+          src={imageFor(slug, imageUrl)}
           alt={name}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
         {/* Badge Catégorie */}
         {category && (
-          <span className="absolute left-3 top-3 rounded-full bg-background/85 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur transition-transform duration-300 group-hover:-translate-y-0.5">
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary border border-border/40 shadow-2xs">
             {category}
           </span>
         )}
 
         {/* Badges Publics */}
         {(isKid || isAdult) && (
-          <div className="absolute right-3 top-3 flex flex-col gap-1.5">
+          <div className="absolute right-2.5 top-2.5 flex flex-col gap-1">
             {isKid && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-gold shadow-sm backdrop-blur">
-                <Baby className="h-3 w-3" /> {t("audience.kid", "Bébé / Enfant")}
+              <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
+                <Baby className="h-2.5 w-2.5" /> {t("audience.kid", "Bébé")}
               </span>
             )}
             {isAdult && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-background/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary shadow-sm backdrop-blur">
-                <User className="h-3 w-3" /> {t("audience.adult", "Adulte")}
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-background/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
+                <User className="h-2.5 w-2.5" /> {t("audience.adult", "Adulte")}
               </span>
             )}
           </div>
         )}
 
-        {/* Alerte stock faible */}
         {lowStock && !isOutOfStock && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
             <Flame className="h-3 w-3" /> {t("product.lowStock", "Plus que {{count}} en stock", { count: stock })}
           </span>
         )}
 
         {isOutOfStock && (
-          <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
-            {t("product.outOfStock", "Rupture temporaire")}
+          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
+            {t("product.outOfStock", "Rupture")}
           </span>
         )}
 
-        {/* Bouton d'ajout rapide au panier express au survol */}
+        {/* Bouton d'ajout rapide au panier express */}
         <button
           type="button"
           onClick={handleQuickAdd}
           disabled={isOutOfStock}
-          className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 shadow-md ${
+          className={`absolute bottom-2.5 right-2.5 flex h-8.5 w-8.5 items-center justify-center rounded-full transition-all duration-300 shadow-sm ${
             added
-              ? "bg-green-600 text-white scale-110 opacity-100"
-              : "bg-gold text-gold-foreground opacity-90 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 hover:bg-gold/90"
+              ? "bg-green-600 text-white scale-105 opacity-100"
+              : "bg-gold text-gold-foreground opacity-90 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 hover:bg-gold/90 shadow-gold/20"
           } cursor-pointer`}
           title={added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}
         >
-          {added ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
+          {added ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
         </button>
       </div>
 
-      {/* Contenu */}
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <h3 className="font-display text-base sm:text-lg font-semibold text-primary transition-colors duration-200 group-hover:text-gold line-clamp-1">
+      {/* Contenu compact et proportionné */}
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4 gap-1.5">
+        <h3 className="font-display text-sm sm:text-base font-bold text-primary transition-colors duration-200 group-hover:text-gold line-clamp-1">
           {name}
         </h3>
         {shortDescription && (
-          <p className="line-clamp-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed h-8">
             {shortDescription}
           </p>
         )}
-        <div className="mt-auto flex items-end justify-between pt-3 border-t border-border/50">
+        <div className="mt-auto flex items-end justify-between pt-2.5 border-t border-border/60">
           <div>
-            <div className="text-lg sm:text-xl font-bold text-gold font-display">
+            <div className="text-base sm:text-lg font-bold text-gold font-display leading-tight">
               {formatPrice(price, currencySymbol)}
             </div>
-            <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-muted-foreground">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
               {unit}
             </div>
           </div>
-          <span className="rounded-full bg-secondary px-3.5 py-1.5 text-xs font-semibold text-primary transition-all duration-200 group-hover:bg-gold group-hover:text-gold-foreground">
+          <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary transition-all duration-200 group-hover:bg-gold group-hover:text-gold-foreground">
             {t("common.details", "Détails →")}
           </span>
         </div>

@@ -22,7 +22,7 @@ export const checkPaymentStatusFn = createServerFn({ method: "POST" })
 
 const guestInputSchema = z.object({
   orderId: z.string(),
-  token: z.string().min(5),
+  token: z.string().optional().or(z.literal("")),
 });
 
 export const checkGuestPaymentStatusFn = createServerFn({ method: "POST" })

@@ -56,10 +56,6 @@ export function CountryProvider({ children }: { children: ReactNode }) {
     const initialCode = saved || "CI";
     setCode(initialCode);
 
-    // Synchronisation automatique de la langue au chargement initial
-    const initialLang = getLanguageForCountry(initialCode);
-    i18n.changeLanguage(initialLang);
-
     listCountriesFn()
       .then((data) => {
         setCountries(data ?? []);
@@ -76,26 +72,6 @@ export function CountryProvider({ children }: { children: ReactNode }) {
     setCode(c);
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, c);
-    }
-
-    // Bascule automatique vers l'anglais ou le français selon le pays sélectionné
-    const targetLang = getLanguageForCountry(c);
-    i18n.changeLanguage(targetLang);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("ch_lang", targetLang);
-      document.documentElement.lang = targetLang;
-
-      const pathname = window.location.pathname;
-      const search = window.location.search;
-      const hash = window.location.hash;
-      const currentSegment = pathname.split("/")[1];
-      if (currentSegment === "fr" || currentSegment === "en") {
-        if (currentSegment !== targetLang) {
-          const newPath = `/${targetLang}` + pathname.substring(3) + search + hash;
-          window.history.pushState(null, "", newPath);
-          window.dispatchEvent(new PopStateEvent("popstate"));
-        }
-      }
     }
   };
 

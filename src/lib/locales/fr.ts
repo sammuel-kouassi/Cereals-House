@@ -28,7 +28,7 @@ export const fr = {
     details: "Détails →",
   },
   header: {
-    tagline: "Terroirs d'Afrique & Meunerie",
+    tagline: "Terroirs d'Afrique",
     search: "Rechercher une céréale...",
     admin: "Espace Administration",
   },
@@ -75,8 +75,17 @@ export const fr = {
       badge: "✨ Fraîcheur Scellée & Expédition 24h",
       cta: "Commander en Ligne",
     },
+    slideMap: {
+      eyebrow: "Réseau de Vente & Expédition",
+      title: "Nos Terroirs & Pays de Distribution",
+      description:
+        "Céréales et farines distribuées et livrées en Côte d'Ivoire, Sénégal, Mali, Burkina Faso, Togo, Bénin et à l'international. Suivi en temps réel et expédition express.",
+      cta: "Commander dans mon pays",
+    },
   },
   footer: {
+    missionStatement:
+      "Des terroirs sahéliens à votre table. Nos coopératives partenaires et maîtres meuniers perpétuent la noblesse des céréales africaines pures, sans additifs ni conservateurs.",
     tagline: "Du champ à votre table",
     description:
       "Céréales africaines ancestrales et farines d'éveil pures. Sélectionnées à la main, moulues sur meule de pierre et scellées sous écrin hermétique.",

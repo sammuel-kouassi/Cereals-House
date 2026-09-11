@@ -18,8 +18,6 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   const { items, updateQuantity, removeFromCart, clearCart, totalItems } = useCart();
   const { country } = useCountry();
 
-  if (!open) return null;
-
   const currentCountryCode = country?.code ?? "CI";
   const currencySymbol = country?.currency_symbol ?? "FCFA";
 
@@ -30,22 +28,27 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
     return acc + unitPrice * it.quantity;
   }, 0);
 
-  // Seuil de livraison gratuite (ex: 25000 FCFA ou 50 EUR / 60 USD)
-  const freeShippingThreshold = currentCountryCode === "FR" ? 50 : currentCountryCode === "US" ? 60 : 25000;
-  const progressPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
-  const remainingForFree = Math.max(0, freeShippingThreshold - subtotal);
-
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div
+      className={`fixed inset-0 z-50 flex justify-end transition-all duration-300 ${
+        open ? "visible" : "invisible delay-300"
+      }`}
+    >
       {/* Backdrop sombre avec flou */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity motion-safe:animate-[fade-in_0.2s_ease-out]"
+        className={`absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300 ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Tiroir coulissant */}
-      <div className="relative flex h-full w-full max-w-md flex-col bg-card shadow-2xl border-l border-border transition-transform motion-safe:animate-[slide-in-right_0.3s_cubic-bezier(0.16,1,0.3,1)] z-10">
+      <div
+        className={`relative flex h-full w-full max-w-md flex-col bg-card shadow-2xl border-l border-border transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-10 ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         {/* Entête du tiroir */}
         <div className="flex items-center justify-between border-b border-border px-6 py-5">
           <div className="flex items-center gap-2.5">
@@ -69,33 +72,6 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
           >
             <X className="h-5 w-5" />
           </button>
-        </div>
-
-        {/* Barre de progression livraison offerte */}
-        <div className="border-b border-border bg-secondary/40 px-6 py-3.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5 font-medium text-primary">
-              <Sparkles className="h-3.5 w-3.5 text-gold" />
-              {progressPercent >= 100 ? (
-                <span className="text-green-600 dark:text-green-400 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> {t("cart.freeShippingUnlocked", "Livraison offerte atteinte !")}
-                </span>
-              ) : (
-                <span>
-                  {t("cart.addMoreForFree", "Plus que")}{" "}
-                  <strong className="text-gold">{formatPrice(remainingForFree, currencySymbol)}</strong>{" "}
-                  {t("cart.forFreeShipping", "pour la livraison offerte")}
-                </span>
-              )}
-            </span>
-            <span className="font-semibold text-muted-foreground">{progressPercent}%</span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-gold/80 to-gold transition-all duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
         </div>
 
         {/* Liste des articles */}

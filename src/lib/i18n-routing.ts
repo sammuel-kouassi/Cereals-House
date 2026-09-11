@@ -34,6 +34,10 @@ export function useLanguageNavigation() {
     i18n.changeLanguage(newLang);
     if (typeof window !== "undefined") {
       localStorage.setItem("ch_lang", newLang);
+      document.documentElement.lang = newLang;
+      const targetPath = getLocalizedPath(window.location.pathname + window.location.search + window.location.hash, newLang);
+      window.location.href = targetPath;
+      return;
     }
     const targetPath = getLocalizedPath(location.pathname + location.search + location.hash, newLang);
     router.navigate({ href: targetPath, replace: true });

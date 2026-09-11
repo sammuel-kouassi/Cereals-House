@@ -18,6 +18,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { Reveal } from "@/components/reveal";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
+import { CerealMotifBackground } from "@/components/ui/cereal-motif-background";
+import { submitQuoteRequestFn } from "@/lib/admin/quotes.functions";
+import { useMutation } from "@tanstack/react-query";
 
 const WHATSAPP_NUMBER = "2250584637219";
 
@@ -104,6 +107,17 @@ export function ContactPage() {
     message: "",
   });
 
+  const mutation = useMutation({
+    mutationFn: () => submitQuoteRequestFn({ data: form }),
+    onSuccess: () => {
+      toast.success(t("contact.formSuccess", "Demande envoyée ! Notre équipe vous contactera sous 24h."));
+      setForm({ ...form, name: "", company: "", phone: "", email: "", location: "", quantity: "", products: "", message: "" });
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Une erreur est survenue lors de l'envoi.");
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim() || !form.location.trim()) {
@@ -111,40 +125,13 @@ export function ContactPage() {
       return;
     }
 
-    const typeLabel =
-      form.type === "wholesale"
-        ? t("contact.formTypeWholesale", "Commande en gros (25kg - 500kg+)")
-        : form.type === "distributor"
-          ? t("contact.formTypeDistributor", "Distribution & Revente locale")
-          : t("contact.formTypeBoth", "Autre projet sur-mesure");
-
-    const lines = [
-      `*${t("contact.b2bTitle", "DEMANDE DE DEVIS B2B — CEREALS HOUSE")}*`,
-      "━━━━━━━━━━━━━━━━━━",
-      `📋 *${t("contact.formType", "Type")}* : ${typeLabel}`,
-      `👤 *${t("contact.formContactName", "Contact")}* : ${form.name}`,
-      form.company ? `🏢 *${t("contact.formCompany", "Entreprise")}* : ${form.company}` : null,
-      `📱 *${t("contact.formPhone", "Téléphone")}* : ${form.phone}`,
-      form.email ? `✉️ *${t("contact.formEmail", "Email")}* : ${form.email}` : null,
-      `📍 *${t("contact.formLocation", "Ville / Pays")}* : ${form.location}`,
-      form.quantity ? `⚖️ *${t("contact.formQuantity", "Volume estimé")}* : ${form.quantity}` : null,
-      form.products ? `🌾 *${t("contact.formProducts", "Produits souhaités")}* : ${form.products}` : null,
-      form.message ? `💬 *${t("contact.formMessage", "Message")}* :\n${form.message}` : null,
-      "━━━━━━━━━━━━━━━━━━",
-      `_Envoyé depuis le site officiel Cereals House_`,
-    ].filter(Boolean);
-
-    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-    toast.success("Redirection vers WhatsApp avec votre demande pré-remplie !");
+    mutation.mutate();
   };
 
   return (
     <div className="bg-background text-foreground min-h-screen">
       {/* 1. Hero Sombre & Prestigieux */}
-      <section className="relative overflow-hidden bg-[#120E0B] text-stone-100 py-16 sm:py-24 border-b border-border/80">
-        <div className="pointer-events-none absolute -top-32 right-1/4 h-96 w-96 rounded-full bg-gold/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-amber-600/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#2D1A0E] via-[#3F2513] to-[#22130A] text-stone-100 py-16 sm:py-24 border-b border-gold/40">
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <Reveal>
@@ -398,13 +385,14 @@ export function ContactPage() {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg transition hover:bg-[#1EBE5D] hover:-translate-y-0.5 cursor-pointer"
+                    disabled={mutation.isPending}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3.5 text-xs sm:text-sm font-bold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
                   >
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{t("contact.formSubmit", "Envoyer ma demande de devis via WhatsApp")}</span>
+                    <Send className="h-4 w-4" />
+                    <span>{mutation.isPending ? "Envoi en cours..." : t("contact.formSubmitNew", "Envoyer ma demande de devis")}</span>
                   </button>
                   <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                    {t("contact.formSubmitNote", "Votre demande sera automatiquement mise en forme et envoyée directement à notre service commercial.")}
+                    {t("contact.formSubmitNoteNew", "Notre équipe commerciale sera notifiée immédiatement et reviendra vers vous avec une proposition.")}
                   </p>
                 </div>
               </form>

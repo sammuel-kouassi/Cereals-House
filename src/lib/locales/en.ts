@@ -30,7 +30,7 @@ export const en: Dict = {
     details: "Details →",
   },
   header: {
-    tagline: "African Terroirs & Milling",
+    tagline: "African Terroirs",
     search: "Search cereals, flours...",
     admin: "Admin Portal",
   },
@@ -74,8 +74,17 @@ export const en: Dict = {
       badge: "✨ Sealed Freshness & 24h Dispatch",
       cta: "Order Online",
     },
+    slideMap: {
+      eyebrow: "Sales Network & Shipping",
+      title: "Our Terroirs & Distribution Countries",
+      description:
+        "Cereals and flours distributed and delivered to Ivory Coast, Senegal, Mali, Burkina Faso, Togo, Benin, and internationally. Real-time tracking and express shipping.",
+      cta: "Order in My Country",
+    },
   },
   footer: {
+    missionStatement:
+      "From Sahelian terroirs to your dining table. Our partner cooperatives and master millers uphold the nobility of pure African cereals, without chemical additives or preservatives.",
     tagline: "From field to your table",
     description:
       "Ancestral African grains and pure infant flours. Hand-selected, stone-milled and hermetically sealed for maximum freshness.",

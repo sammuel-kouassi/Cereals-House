@@ -160,11 +160,11 @@ export function CheckoutPage() {
         },
       });
 
-      if (!orderRes?.orderId) {
+      if (!orderRes?.id) {
         throw new Error("Identifiant de commande manquant après création");
       }
 
-      const orderId = orderRes.orderId;
+      const orderId = orderRes.id;
       orderPlacedRef.current = true;
       clearCart();
 

@@ -23,6 +23,7 @@ import { Reveal } from "@/components/reveal";
 import { useCountry } from "@/lib/country-context";
 import { HeroNarrativeBanner } from "@/components/hero-narrative-banner";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
+import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
 
 export function HomePage() {
   const { country } = useCountry();
@@ -97,10 +98,10 @@ export function HomePage() {
           </div>
         </Reveal>
 
-        {/* Grille Produits */}
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {displayedProducts.slice(0, 6).map((p, idx) => (
-            <Reveal key={p.id} delay={idx * 60}>
+        {/* Grille Produits Optimisée (4 colonnes sur desktop) */}
+        <div className="mt-8 grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {displayedProducts.slice(0, 8).map((p, idx) => (
+            <Reveal key={p.id} delay={idx * 50}>
               <ProductCard
                 slug={p.slug}
                 name={p.name}
@@ -231,41 +232,26 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* 5. Bannière B2B & Vente en Gros */}
+      {/* 5. Bannière B2B & Vente en Gros (Style Concentrique Or) */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-gold/40 bg-gradient-to-br from-[#1A140E] via-[#2A1E14] to-[#120E0B] p-8 sm:p-12 text-white shadow-2xl">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-gold/15 blur-3xl" />
-            <div className="relative z-10 max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-gold">
-                <Boxes className="h-3.5 w-3.5" />
-                {t("home.bulkEyebrow", "Espace Professionnels & Grossistes")}
-              </div>
-              <h3 className="mt-4 font-display text-2xl sm:text-4xl font-bold tracking-tight text-white">
-                {t("home.bulkTitle", "Commandes en Gros & Distribution")}
-              </h3>
-              <p className="mt-3 text-xs sm:text-sm text-stone-300 leading-relaxed">
-                {t("home.bulkDesc", "Vous êtes une crèche, un restaurant, un distributeur ou une ONG ? Profitez de nos tarifs dégressifs en sacs de 25kg et 50kg.")}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <Link
-                  to={getLocalizedPath("/contact")}
-                  className="inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3 text-xs sm:text-sm font-bold text-gold-foreground shadow-gold transition-all duration-300 hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer"
-                >
-                  <PhoneCall className="h-4 w-4" />
-                  <span>{t("home.bulkCta", "Demander un devis B2B")}</span>
-                </Link>
-                <a
-                  href="https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20un%20devis%20grossiste."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 text-xs sm:text-sm font-semibold text-white transition hover:bg-white/20"
-                >
-                  WhatsApp Direct
-                </a>
-              </div>
-            </div>
-          </div>
+          <GoldCtaBanner
+            eyebrow={t("home.bulkEyebrow", "Espace Professionnels & Grossistes")}
+            title={t("home.bulkTitle", "Commandes en Gros & Distribution")}
+            description={t(
+              "home.bulkDesc",
+              "Vous êtes une crèche, un restaurant, un distributeur ou une ONG ? Profitez de nos tarifs dégressifs en sacs de 25kg et 50kg avec un accompagnement sur-mesure.",
+            )}
+            primaryAction={{
+              label: t("home.bulkCta", "Demander un devis B2B"),
+              href: "/contact",
+            }}
+            secondaryAction={{
+              label: "WhatsApp Direct",
+              href: "https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20un%20devis%20grossiste.",
+              isExternal: true,
+            }}
+          />
         </Reveal>
       </section>
     </div>

@@ -1,9 +1,35 @@
 import { neon, neonConfig, Pool } from "@neondatabase/serverless";
 
+import fs from "fs";
+import path from "path";
+
 // Active le pooling HTTP pour les environnements serverless
 neonConfig.fetchConnectionCache = true;
 
-const DATABASE_URL = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "";
+// Fonction simple pour lire .env manuellement si process.env.DATABASE_URL est vide
+function getDbUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  if (process.env.NEON_DATABASE_URL) return process.env.NEON_DATABASE_URL;
+  try {
+    const envPath = path.resolve(process.cwd(), ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf-8");
+      const match = content.match(/^DATABASE_URL=(.*)$/m);
+      if (match) {
+        let val = match[1].trim();
+        if (val.startsWith('"') && val.endsWith('"')) {
+          val = val.slice(1, -1);
+        }
+        return val;
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return "";
+}
+
+const DATABASE_URL = getDbUrl();
 
 if (!DATABASE_URL && typeof window === "undefined") {
   console.warn(

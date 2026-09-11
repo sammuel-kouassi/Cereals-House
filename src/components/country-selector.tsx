@@ -18,7 +18,6 @@ export function CountrySelector() {
         onChange={(e) => {
           const newCode = e.target.value;
           setCountryCode(newCode);
-          syncLanguageWithCountry(newCode);
         }}
         className="bg-transparent outline-none [&>option]:bg-background [&>option]:text-foreground cursor-pointer"
         aria-label={t("common.country")}

@@ -120,7 +120,7 @@ export function OrderDetailPage({ id }: { id: string }) {
             Commande {order.order_number}
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Passée le {new Date(order.created_at).toLocaleDateString("fr-FR", { dateStyle: "long", timeStyle: "short" })}
+            Passée le {new Date(order.created_at).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })}
           </p>
         </div>
 

@@ -17,8 +17,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { Reveal } from "@/components/reveal";
 import storyImage from "@/assets/hero-cereals.jpg";
-import packagingImage from "@/assets/hero-packaging-noble.jpg";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
+import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
 
 export function AboutPage() {
   const { t } = useTranslation();
@@ -108,9 +108,7 @@ export function AboutPage() {
   return (
     <div className="bg-background text-foreground min-h-screen">
       {/* 1. Hero Sombre & Majestueux */}
-      <section className="relative overflow-hidden bg-[#120E0B] text-stone-100 py-16 sm:py-24 border-b border-border/80">
-        <div className="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-gold/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-amber-600/10 blur-3xl" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#2D1A0E] via-[#3F2513] to-[#22130A] text-stone-100 py-16 sm:py-24 border-b border-gold/40">
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <Reveal>
@@ -265,38 +263,25 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* 5. Call To Action Final */}
+      {/* 5. Call To Action Final (Style Concentrique Or) */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-gold/40 bg-gradient-to-r from-[#1A140E] via-[#241B12] to-[#120E0B] p-10 sm:p-16 text-center text-white shadow-2xl">
-            <div className="pointer-events-none absolute inset-0 bg-radial from-gold/10 via-transparent to-transparent" />
-            <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gold">
-                <Sparkles className="h-3.5 w-3.5" /> L'Afrique Gourmande & Saine
-              </div>
-              <h2 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-                {t("about.ctaTitle", "Prêt(e) à redécouvrir le goût authentique du terroir ?")}
-              </h2>
-              <p className="text-sm sm:text-base text-stone-300 leading-relaxed">
-                {t("about.ctaDesc", "Explorez notre sélection de céréales nobles et faites-vous livrer chez vous en toute sérénité.")}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-                <Link
-                  to={getLocalizedPath("/products")}
-                  className="inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 text-sm font-bold text-gold-foreground shadow-gold transition-all duration-300 hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer"
-                >
-                  <span>{t("about.ctaBtn", "Explorer la Boutique")}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  to={getLocalizedPath("/contact")}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-white/20"
-                >
-                  <span>{t("about.ctaContact", "Nous Contacter")}</span>
-                </Link>
-              </div>
-            </div>
-          </div>
+          <GoldCtaBanner
+            eyebrow="L'Afrique Gourmande & Saine"
+            title={t("about.ctaTitle", "Prêt(e) à redécouvrir le goût authentique du terroir ?")}
+            description={t(
+              "about.ctaDesc",
+              "Explorez notre sélection de céréales nobles et faites-vous livrer chez vous en toute sérénité sous 24h à 48h.",
+            )}
+            primaryAction={{
+              label: t("about.ctaBtn", "Explorer la Boutique"),
+              href: "/products",
+            }}
+            secondaryAction={{
+              label: t("about.ctaContact", "Nous Contacter"),
+              href: "/contact",
+            }}
+          />
         </Reveal>
       </section>
     </div>

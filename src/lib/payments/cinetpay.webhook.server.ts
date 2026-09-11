@@ -10,7 +10,14 @@ export async function handleCinetPayNotify(request: Request): Promise<Response> 
 
   let notification;
   try {
-    const body = await request.json();
+    const contentType = request.headers.get("content-type") || "";
+    let body: any;
+    if (contentType.includes("application/x-www-form-urlencoded")) {
+      const text = await request.text();
+      body = Object.fromEntries(new URLSearchParams(text));
+    } else {
+      body = await request.json();
+    }
     notification = parseNotification(body);
   } catch (e) {
     console.error("[cinetpay:notify] payload invalide", e);

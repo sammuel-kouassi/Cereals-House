@@ -17,7 +17,6 @@ import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { useIsAdmin } from "@/lib/admin/use-is-admin";
 import { CountrySelector } from "@/components/country-selector";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { CartDrawer } from "@/components/cart-drawer";
 import { SpotlightSearch } from "@/components/spotlight-search";
 import logo from "@/assets/logo.jpeg";
@@ -77,10 +76,10 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
           scrolled
-            ? "border-b border-border/80 bg-background/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.06)] py-0"
-            : "border-b border-border/40 bg-background/80 backdrop-blur-md py-1"
+            ? "border-b border-gold/35 bg-[#FAF6F0]/98 dark:bg-[#1A130C]/98 backdrop-blur-xl shadow-[0_8px_30px_rgba(180,140,40,0.12)] py-0"
+            : "border-b border-gold/20 bg-[#FAF6F0]/92 dark:bg-[#1A130C]/92 backdrop-blur-md py-1"
         }`}
       >
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
@@ -101,8 +100,8 @@ export function SiteHeader() {
               <div className="font-display text-lg sm:text-xl font-bold text-primary tracking-tight transition-colors duration-200 group-hover:text-gold">
                 Cereals House
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
-                <span>{t("header.tagline", "Terroirs d'Afrique & Meunerie")}</span>
+              <div className="hidden sm:flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground font-medium">
+                <span>{t("header.tagline", "Terroirs d'Afrique")}</span>
               </div>
             </div>
           </Link>
@@ -147,12 +146,9 @@ export function SiteHeader() {
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
 
-            {/* Sélecteurs Pays & Langue */}
-            <div className="hidden items-center gap-1 sm:flex">
+            {/* Sélecteur de Pays & Devise */}
+            <div className="hidden sm:flex items-center">
               <CountrySelector />
-              <div className="hidden 2xl:block">
-                <LanguageSwitcher />
-              </div>
             </div>
 
             {/* Menu Utilisateur Intégré avec Déconnexion et Commandes dans l'Avatar */}
@@ -292,9 +288,8 @@ export function SiteHeader() {
                 </Link>
               ))}
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+              <div className="mt-4 border-t border-border pt-4">
                 <CountrySelector />
-                <LanguageSwitcher />
               </div>
 
               {/* Section Compte Mobile */}
@@ -350,6 +345,9 @@ export function SiteHeader() {
           </div>
         )}
       </header>
+
+      {/* Spacer pour compenser la hauteur du header fixe (80px) et éviter tout chevauchement */}
+      <div className="h-20 w-full shrink-0" aria-hidden="true" />
 
       {/* Tiroir Panier interactif */}
       <CartDrawer open={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />

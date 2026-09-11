@@ -23,6 +23,7 @@ import { ProductSearchBar } from "@/components/product-search-bar";
 import { useCountry } from "@/lib/country-context";
 import { Flag } from "@/components/flag";
 import { Reveal } from "@/components/reveal";
+import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 type AudienceFilter = "all" | "enfant" | "adulte";
@@ -321,7 +322,7 @@ export function ProductsPage() {
             </button>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {filtered.map((p, idx) => (
               <Reveal key={p.id} delay={idx * 40}>
                 <ProductCard
@@ -361,21 +362,21 @@ export function ProductsPage() {
         )}
       </div>
 
-      {/* 5. Bannière Bas de Page Vente en Gros */}
-      <div className="rounded-3xl border border-gold/40 bg-gradient-to-r from-[#1A140E] to-[#2A1E14] p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-gold">Besoin de gros volumes ?</span>
-          <h3 className="mt-1 font-display text-xl sm:text-2xl font-bold">Vente en sacs de 25kg & 50kg pour professionnels</h3>
-          <p className="mt-1 text-xs sm:text-sm text-stone-300">Tarifs dégressifs pour crèches, restaurants, transformateurs et grossistes.</p>
-        </div>
-        <Link
-          to={getLocalizedPath("/contact")}
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gold px-6 py-3 text-xs sm:text-sm font-bold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer"
-        >
-          <span>Demander un devis B2B</span>
-          <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
+      {/* 5. Bannière Bas de Page Vente en Gros (Style Concentrique Or) */}
+      <GoldCtaBanner
+        eyebrow="Gros Volumes & Professionnels"
+        title="Vente en sacs de 25kg & 50kg pour professionnels"
+        description="Tarifs dégressifs pour crèches, restaurants, transformateurs, hôtels et grossistes avec expédition express."
+        primaryAction={{
+          label: "Demander un devis B2B",
+          href: "/contact",
+        }}
+        secondaryAction={{
+          label: "WhatsApp Direct",
+          href: "https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20un%20devis%20grossiste.",
+          isExternal: true,
+        }}
+      />
     </div>
   );
 }

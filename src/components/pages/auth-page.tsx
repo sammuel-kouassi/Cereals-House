@@ -18,12 +18,14 @@ import {
   Truck,
   CreditCard,
   HeartHandshake,
+  X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth-context";
 import logo from "@/assets/logo.jpeg";
 import panelImage from "@/assets/hero-packaging-noble.jpg";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
+import { CerealMotifBackground } from "@/components/ui/cereal-motif-background";
 
 function GoogleIcon() {
   return (
@@ -106,31 +108,41 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
     };
   }, [signInWithGoogle, redirectUrl, router, t, getLocalizedPath]);
 
-  async function handleGoogleSignIn() {
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+  const [customGoogleMode, setCustomGoogleMode] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
+  const [customGoogleName, setCustomGoogleName] = useState("");
+
+  async function handleSelectGoogleAccount(account: { email: string; fullName: string; avatarUrl?: string }) {
     setGoogleLoading(true);
-    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
-
     try {
-      if (googleClientId && (window as any).google?.accounts?.id) {
-        (window as any).google.accounts.id.prompt();
-      } else {
-        const defaultGoogleEmail = "client@cerealshouse.com";
-        const defaultGoogleName = "Client Cereals House";
-
-        await signInWithGoogle({
-          email: defaultGoogleEmail,
-          fullName: defaultGoogleName,
-          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(defaultGoogleEmail)}`,
-        });
-
-        toast.success(t("auth.signedInToast", "Connecté avec Google avec succès !"));
-        router.navigate({ href: redirectUrl || getLocalizedPath("/"), replace: true });
-      }
+      await signInWithGoogle({
+        email: account.email,
+        fullName: account.fullName,
+        avatarUrl: account.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(account.email)}`,
+      });
+      setShowGooglePicker(false);
+      toast.success(t("auth.signedInToast", `Connecté avec Google (${account.fullName || account.email}) !`));
+      router.navigate({ href: redirectUrl || getLocalizedPath("/"), replace: true });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("auth.errorGeneric", "Erreur lors de la connexion avec Google."));
+      toast.error(err instanceof Error ? err.message : t("auth.errorGeneric", "Erreur de connexion Google."));
     } finally {
       setGoogleLoading(false);
     }
+  }
+
+  function handleGoogleSignIn() {
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+    if (googleClientId && (window as any).google?.accounts?.id) {
+      try {
+        (window as any).google.accounts.id.prompt();
+        return;
+      } catch {
+        // repli vers l'interface sélecteur de compte
+      }
+    }
+    // Ouvre l'interface de choix de compte Google
+    setShowGooglePicker(true);
   }
 
   async function handleEmail(e: React.FormEvent) {
@@ -173,7 +185,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               />
               <div>
                 <h2 className="font-display text-2xl font-bold text-primary">Cereals House</h2>
-                <p className="text-xs text-muted-foreground">Terroirs d'Afrique & Meunerie</p>
+                <p className="text-xs text-muted-foreground">Terroirs d'Afrique</p>
               </div>
             </div>
           </div>
@@ -360,13 +372,13 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
       </div>
 
       {/* Colonne Droite : Illustration & Témoignage */}
-      <div className="relative hidden lg:flex flex-1 flex-col justify-between overflow-hidden bg-[#120E0B] p-12 text-white border-l border-border/80">
+      <div className="relative hidden lg:flex flex-1 flex-col justify-between overflow-hidden bg-gradient-to-br from-[#2D1A0E] via-[#3F2513] to-[#22130A] p-12 text-white border-l border-gold/35">
         <img
           src={panelImage}
           alt="Cereals House Excellence"
-          className="absolute inset-0 h-full w-full object-cover opacity-35 filter brightness-75"
+          className="absolute inset-0 h-full w-full object-cover opacity-25 filter brightness-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#120E0B] via-[#120E0B]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#22130A] via-[#3F2513]/60 to-transparent" />
 
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-gold">
@@ -408,6 +420,176 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
           <span>100% Céréales Naturelles</span>
         </div>
       </div>
+
+      {/* ============================================================ */}
+      {/* MODAL DE SÉLECTION DU COMPTE GOOGLE (DEMANDE UTILISATEUR)    */}
+      {/* ============================================================ */}
+      {showGooglePicker && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-md rounded-3xl border border-border bg-card p-6 sm:p-8 text-card-foreground shadow-2xl space-y-6">
+            {/* Bouton Fermer */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowGooglePicker(false);
+                setCustomGoogleMode(false);
+              }}
+              className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition cursor-pointer"
+              aria-label="Fermer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* En-tête Google */}
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-secondary/80 border border-border shadow-xs">
+                <GoogleIcon />
+              </div>
+              <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">
+                Choisir un compte
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                pour poursuivre vers <span className="font-bold text-gold">Cereals House</span>
+              </p>
+            </div>
+
+            {/* Liste des comptes Google */}
+            {!customGoogleMode ? (
+              <div className="space-y-2.5">
+                {/* Compte 1 : Samuel Kouassi */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSelectGoogleAccount({
+                      email: "sammuel.kouassi2026@gmail.com",
+                      fullName: "Samuel Kouassi",
+                      avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Samuel%20Kouassi",
+                    })
+                  }
+                  disabled={googleLoading}
+                  className="w-full flex items-center gap-3.5 rounded-2xl border border-border/80 bg-secondary/40 p-3.5 text-left transition hover:bg-secondary hover:border-gold/50 cursor-pointer group"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-600 text-white font-bold text-sm shadow-xs">
+                    S
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-foreground truncate group-hover:text-gold transition">
+                      Samuel Kouassi
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      sammuel.kouassi2026@gmail.com
+                    </div>
+                  </div>
+                </button>
+
+                {/* Compte 2 : Client Cereals House */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSelectGoogleAccount({
+                      email: "client@cerealshouse.com",
+                      fullName: "Client Cereals House",
+                      avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Client%20Cereals",
+                    })
+                  }
+                  disabled={googleLoading}
+                  className="w-full flex items-center gap-3.5 rounded-2xl border border-border/80 bg-secondary/40 p-3.5 text-left transition hover:bg-secondary hover:border-gold/50 cursor-pointer group"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-600 text-white font-bold text-sm shadow-xs">
+                    C
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-foreground truncate group-hover:text-gold transition">
+                      Client Cereals House
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      client@cerealshouse.com
+                    </div>
+                  </div>
+                </button>
+
+                {/* Option : Utiliser un autre compte */}
+                <button
+                  type="button"
+                  onClick={() => setCustomGoogleMode(true)}
+                  className="w-full flex items-center gap-3.5 rounded-2xl border border-dashed border-border/80 p-3.5 text-left transition hover:bg-secondary/60 hover:border-gold/60 cursor-pointer text-muted-foreground hover:text-foreground"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary text-foreground text-base border border-border">
+                    +
+                  </div>
+                  <div className="text-xs sm:text-sm font-medium">
+                    Utiliser un autre compte Google
+                  </div>
+                </button>
+              </div>
+            ) : (
+              /* Mode saisie d'un autre compte Google */
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!customGoogleEmail.trim()) return;
+                  handleSelectGoogleAccount({
+                    email: customGoogleEmail.trim(),
+                    fullName: customGoogleName.trim() || customGoogleEmail.split("@")[0],
+                  });
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                    Adresse e-mail Google
+                  </label>
+                  <input
+                    type="email"
+                    value={customGoogleEmail}
+                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                    placeholder="exemple@gmail.com"
+                    required
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-gold focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                    Nom complet (facultatif)
+                  </label>
+                  <input
+                    type="text"
+                    value={customGoogleName}
+                    onChange={(e) => setCustomGoogleName(e.target.value)}
+                    placeholder="Votre nom"
+                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-gold focus:outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomGoogleMode(false)}
+                    className="flex-1 rounded-xl border border-border py-2.5 text-xs font-semibold hover:bg-secondary transition cursor-pointer"
+                  >
+                    Retour
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={googleLoading}
+                    className="flex-1 rounded-xl bg-gold py-2.5 text-xs font-bold text-gold-foreground shadow-gold hover:bg-gold/90 transition cursor-pointer"
+                  >
+                    {googleLoading ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Continuer"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Note de confidentialité Google */}
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed pt-2 border-t border-border">
+              Pour continuer, Google partagera votre nom, adresse e-mail et photo de profil avec Cereals House.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

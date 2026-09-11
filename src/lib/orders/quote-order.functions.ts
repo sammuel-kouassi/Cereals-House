@@ -86,7 +86,7 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
 
 const getQuoteInputSchema = z.object({
   orderId: z.string(),
-  token: z.string().min(5),
+  token: z.string().optional().or(z.literal("")),
 });
 
 export const getPublicQuoteOrderFn = createServerFn({ method: "POST" })
@@ -138,7 +138,7 @@ export const getPublicQuoteOrderFn = createServerFn({ method: "POST" })
 
 const initiateGuestInputSchema = z.object({
   orderId: z.string(),
-  token: z.string().min(5),
+  token: z.string().optional().or(z.literal("")),
   email: z.string().email(),
   paymentMethod: z.string(),
   phoneNumber: z.string().optional(),

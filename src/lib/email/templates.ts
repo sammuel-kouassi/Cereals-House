@@ -215,3 +215,61 @@ export function buildAbandonedCartEmail(params: {
     </div>`,
   };
 }
+
+// Alerte administrateur pour une nouvelle demande de devis B2B
+export function buildQuoteRequestAdminEmail(params: {
+  contactName: string;
+  companyName?: string;
+  phone: string;
+  email?: string;
+  location: string;
+  type: string;
+  volumeEstimated?: string;
+  productsRequested?: string;
+  message?: string;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  const typeLabel =
+    params.type === "wholesale"
+      ? "Commande en gros"
+      : params.type === "distributor"
+        ? "Distribution"
+        : "Autre projet";
+
+  return {
+    subject: `📋 Nouvelle demande de devis B2B — ${params.contactName}`,
+    html: `
+    <div style="font-family:Georgia,'Times New Roman',serif;padding:24px;background:${CREAM};">
+      <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;border:1px solid #eee;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <span style="color:${GOLD};font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;">Cereals House B2B</span>
+        </div>
+        <h1 style="color:${BROWN};font-size:20px;margin:0 0 16px;text-align:center;">Nouvelle Demande de Devis</h1>
+        
+        <table style="width:100%;color:#333;font-size:14px;line-height:1.6;border-collapse:collapse;">
+          <tr><td style="padding:4px 0;width:40%;color:#777;">Type</td><td style="padding:4px 0;font-weight:bold;">${typeLabel}</td></tr>
+          <tr><td style="padding:4px 0;color:#777;">Contact</td><td style="padding:4px 0;font-weight:bold;">${params.contactName}</td></tr>
+          ${params.companyName ? `<tr><td style="padding:4px 0;color:#777;">Entreprise</td><td style="padding:4px 0;font-weight:bold;">${params.companyName}</td></tr>` : ""}
+          <tr><td style="padding:4px 0;color:#777;">Téléphone</td><td style="padding:4px 0;font-weight:bold;">${params.phone}</td></tr>
+          ${params.email ? `<tr><td style="padding:4px 0;color:#777;">Email</td><td style="padding:4px 0;font-weight:bold;">${params.email}</td></tr>` : ""}
+          <tr><td style="padding:4px 0;color:#777;">Localisation</td><td style="padding:4px 0;font-weight:bold;">${params.location}</td></tr>
+          ${params.volumeEstimated ? `<tr><td style="padding:4px 0;color:#777;">Volume estimé</td><td style="padding:4px 0;font-weight:bold;">${params.volumeEstimated}</td></tr>` : ""}
+          ${params.productsRequested ? `<tr><td style="padding:4px 0;color:#777;">Produits</td><td style="padding:4px 0;font-weight:bold;">${params.productsRequested}</td></tr>` : ""}
+        </table>
+        
+        ${params.message ? `
+        <div style="margin-top:16px;background:${CREAM};padding:12px;border-radius:8px;font-size:13px;color:#444;">
+          <strong>Message :</strong><br/>
+          ${params.message.replace(/\n/g, "<br/>")}
+        </div>` : ""}
+
+        <div style="text-align:center;margin-top:24px;">
+          <a href="${params.adminUrl}" style="display:inline-block;background:${GOLD};color:${BROWN};text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:999px;font-size:14px;">
+            Créer la facture personnalisée
+          </a>
+        </div>
+      </div>
+    </div>`,
+  };
+}
+

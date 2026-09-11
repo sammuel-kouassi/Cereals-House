@@ -6,6 +6,7 @@ import sorgho from "@/assets/product-sorgho.jpg";
 import ble from "@/assets/product-ble.jpg";
 import arachide from "@/assets/product-arachide.jpg";
 import niebe from "@/assets/product-niebe.jpg";
+import bouillie from "@/assets/product-bouillie-maman-bebe.jpg";
 
 export const productImages: Record<string, string> = {
   "riz-parfume": riz,
@@ -16,8 +17,15 @@ export const productImages: Record<string, string> = {
   "ble-tendre": ble,
   "arachide-decortiquee": arachide,
   "niebe": niebe,
+  "bouillie-maman-bebe": bouillie,
+  "delice-maman-bebe": bouillie,
+  "farine-infantile-enrichie": bouillie,
 };
 
-export function imageFor(slug: string) {
-  return productImages[slug] ?? riz;
+export function imageFor(slug: string, currentImageUrl?: string | null) {
+  // Remplacer l'ancienne photo de livres par la bouillie gastronomique
+  if (currentImageUrl?.includes("1517673132405") || slug.includes("maman") || slug.includes("bouillie")) {
+    return bouillie;
+  }
+  return currentImageUrl || productImages[slug] || riz;
 }
