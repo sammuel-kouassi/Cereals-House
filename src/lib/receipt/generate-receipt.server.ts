@@ -19,6 +19,7 @@ function formatAmount(n: number): string {
 type ReceiptItem = { name: string; quantity: number; lineTotal: number };
 
 export async function generateReceiptPdf(params: {
+  title?: string;
   orderNumber: string;
   createdAt: string;
   customerName: string;
@@ -60,7 +61,7 @@ export async function generateReceiptPdf(params: {
   page.drawLine({ start: { x: 48, y }, end: { x: 547, y }, thickness: 1.5, color: GOLD });
   y -= 28;
 
-  page.drawText("Reçu de commande", { x: 48, y, size: 18, font: fontBold, color: BROWN });
+  page.drawText(params.title || "Reçu de commande", { x: 48, y, size: 18, font: fontBold, color: BROWN });
   y -= 22;
   page.drawText(`Commande ${params.orderNumber}`, {
     x: 48,

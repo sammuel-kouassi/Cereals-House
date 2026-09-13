@@ -49,7 +49,7 @@ const upsertProductInputSchema = z.object({
   description: z.string().trim().max(5000).optional().nullable(),
   short_description: z.string().trim().max(300).optional().nullable(),
   category: z.string().trim().max(80).optional().nullable(),
-  image_url: z.string().trim().max(2000).optional().nullable(),
+  image_url: z.string().trim().max(10_000_000).optional().nullable(),
   unit: z.string().trim().min(1).max(30).default("kg"),
   stock: z.number().int().min(0),
   is_active: z.boolean(),
@@ -106,14 +106,33 @@ export const upsertProductAdminFn = createServerFn({ method: "POST" })
     return { id: created?.id };
   });
 
-const deleteProductInputSchema = z.object({ id: z.string() });
+const deleteProductInputSchema = z.object({
+  id: z.string().optional(),
+  ids: z.array(z.string()).optional(),
+});
 
 export const deleteProductAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => deleteProductInputSchema.parse(data))
   .handler(async ({ data }) => {
-    await query(`UPDATE products SET is_active = false, updated_at = now() WHERE id = $1`, [data.id]);
-    return { success: true };
+    try {
+      if (data.ids && data.ids.length > 0) {
+        await query(`DELETE FROM product_prices WHERE product_id = ANY($1::uuid[])`, [data.ids]);
+        await query(`DELETE FROM product_reviews WHERE product_id = ANY($1::uuid[])`, [data.ids]);
+        await query(`DELETE FROM products WHERE id = ANY($1::uuid[])`, [data.ids]);
+        return { success: true, count: data.ids.length };
+      }
+      if (data.id) {
+        await query(`DELETE FROM product_prices WHERE product_id = $1`, [data.id]);
+        await query(`DELETE FROM product_reviews WHERE product_id = $1`, [data.id]);
+        await query(`DELETE FROM products WHERE id = $1`, [data.id]);
+        return { success: true, count: 1 };
+      }
+      return { success: false, error: "Aucun identifiant fourni" };
+    } catch (err: any) {
+      console.error("[deleteProductAdminFn Error]", err);
+      throw new Error(err?.message || "Erreur lors de la suppression en base de données");
+    }
   });
 
 const upsertPriceInputSchema = z.object({

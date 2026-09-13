@@ -29,7 +29,6 @@ export function HomePage() {
   const { country } = useCountry();
   const { t } = useTranslation();
   const { getLocalizedPath } = useLanguageNavigation();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const { data: allProducts = [], isLoading } = useQuery({
     queryKey: ["products-list"],
@@ -37,71 +36,70 @@ export function HomePage() {
   });
 
   const featured = allProducts.filter((p) => p.is_featured);
-  const categories = ["all", ...Array.from(new Set(allProducts.map((p) => p.category).filter(Boolean) as string[]))];
-
-  const displayedProducts = selectedCategory === "all"
-    ? featured
-    : allProducts.filter((p) => p.category === selectedCategory);
+  const displayedProducts = featured.length > 0 ? featured : allProducts;
 
   const steps = [
-    { n: "01", t: t("home.step1Title", "Choisissez vos céréales"), d: t("home.step1Desc", "Explorez notre catalogue de farines et céréales authentiques sélectionnées avec soin.") },
-    { n: "02", t: t("home.step2Title", "Indiquez votre adresse"), d: t("home.step2Desc", "Renseignez votre ville et numéro pour une livraison directe à domicile ou en point relais.") },
-    { n: "03", t: t("home.step3Title", "Paiement Mobile Money / Carte"), d: t("home.step3Desc", "Payez en toute sécurité via Wave, Orange Money, MTN, Moov ou carte bancaire.") },
-    { n: "04", t: t("home.step4Title", "Livraison rapide chez vous"), d: t("home.step4Desc", "Suivez votre colis en temps réel et recevez vos céréales sous 24h à 48h.") },
+    { n: "1", t: t("home.step1Title", "Faites votre choix"), d: t("home.step1Desc", "Farines d'éveil, mil propre, fonio ou sorgho : choisissez les céréales adaptées aux repas de votre foyer.") },
+    { n: "2", t: t("home.step2Title", "Indiquez votre adresse"), d: t("home.step2Desc", "Renseignez votre quartier et numéro pour une livraison directe à domicile ou en point relais.") },
+    { n: "3", t: t("home.step3Title", "Réglez en toute confiance"), d: t("home.step3Desc", "Paiement instantané et sécurisé par Wave, Orange Money, MTN, Moov ou carte bancaire.") },
+    { n: "4", t: t("home.step4Title", "Cuisinez sans attendre"), d: t("home.step4Desc", "Recevez votre colis hermétique sous 24h à 48h, prêt à être versé directement dans votre marmite.") },
+  ];
+
+  const testimonials = [
+    {
+      author: "Aminata T.",
+      location: "Cocody, Abidjan",
+      quote: "Depuis que j'utilise la farine enrichie pour mon fils de 10 mois, ses bouillies sont tellement douces et lisses. Plus besoin de rajouter du sucre, il termine tout son bol le matin.",
+      dish: "Bouillie d'éveil au moringa",
+    },
+    {
+      author: "Cheikh N.",
+      location: "Almadies, Dakar",
+      quote: "Le fonio est d'une propreté impeccable, pas un seul grain de sable sous la dent. Dix minutes à la vapeur avec une bonne sauce, c'est un pur bonheur après le travail.",
+      dish: "Fonio précuit & sauce maison",
+    },
+    {
+      author: "Awa K.",
+      location: "Ouagadougou",
+      quote: "Pour notre service traiteur du week-end, la qualité du mil pour le dêguê et le thiakry fait l'unanimité. Une mouture constante et une saveur authentique de chez nous.",
+      dish: "Mil pour Dêguê & Thiakry",
+    },
   ];
 
   return (
     <div className="space-y-16 sm:space-y-24">
-      {/* 1. Nouveau Hero Banner Récit Narratif & Tabs Interactifs */}
+      {/* 1. Nouveau Hero Banner Récit Narratif */}
       <HeroNarrativeBanner />
 
       {/* 2. Collection Vedette avec Filtres par Catégorie */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/80">
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold mb-2">
-                <Sparkles className="h-3.5 w-3.5" />
-                {t("home.featuredEyebrow", "Nos Pépites du Terroir")}
+          <div className="space-y-4 pb-6 border-b border-border/80">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-primary tracking-tight">
+                  {t("home.featuredTitle", "Les farines & céréales de nos familles")}
+                </h2>
+                <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
+                  {t("home.featuredDesc", "Garanties sans sable, triées avec soin et prêtes pour vos recettes du quotidien.")}
+                </p>
               </div>
-              <h2 className="font-display text-2xl sm:text-4xl font-bold text-primary tracking-tight">
-                {t("home.featuredTitle", "Céréales & Farines Recommandées")}
-              </h2>
-              <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
-                {t("home.featuredDesc", "Sélectionnées et conditionnées avec soin pour une alimentation saine et nutritive.")}
-              </p>
-            </div>
 
-            {/* Onglets Catégories */}
-            {categories.length > 1 && (
-              <div className="flex flex-wrap gap-1.5 p-1 rounded-2xl bg-secondary/50 border border-border">
-                {categories.map((cat) => {
-                  const label = cat === "all" ? t("products.all", "Toutes les catégories") : cat;
-                  const active = selectedCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                        active
-                          ? "bg-card text-gold shadow-xs font-bold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+              <Link
+                to={getLocalizedPath("/products")}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-gold hover:text-gold/80 transition-colors shrink-0"
+              >
+                <span>{t("home.seeAll", "Voir toute la boutique")}</span>
+                <span className="text-sm">→</span>
+              </Link>
+            </div>
           </div>
         </Reveal>
 
-        {/* Grille Produits Optimisée (4 colonnes sur desktop) */}
-        <div className="mt-8 grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {/* Grille Produits (4 colonnes sur desktop) */}
+        <div className="mt-8 grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 items-stretch">
           {displayedProducts.slice(0, 8).map((p, idx) => (
-            <Reveal key={p.id} delay={idx * 50}>
+            <Reveal key={p.id} delay={idx * 50} className="h-full flex flex-col">
               <ProductCard
                 slug={p.slug}
                 name={p.name}
@@ -129,16 +127,16 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* 3. Section Bento Grid : Pourquoi Choisir Cereals House */}
+      {/* 3. Section Terroir & Qualité : Ce qui change tout dans votre marmite */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" /> L'Artisanat de Précision
-            </span>
-            <h2 className="mt-2 font-display text-2xl sm:text-4xl font-bold text-primary">
-              Pourquoi notre meunerie est incomparable
+            <h2 className="font-display text-2xl sm:text-4xl font-bold text-primary">
+              Ce qui fait la différence dans votre cuisine
             </h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+              Le respect de la tradition agricole sans les contraintes de préparation.
+            </p>
           </div>
         </Reveal>
 
@@ -151,13 +149,13 @@ export function HomePage() {
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/15 text-gold border border-gold/25 mb-5 transition-transform duration-300 group-hover:scale-110">
                   <Wheat className="h-6 w-6" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-primary">Grains 100% Terroirs Ouest-Africains</h3>
+                <h3 className="font-display text-lg font-bold text-primary">Zéro sable, zéro cailloux</h3>
                 <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Mil perlé, fonio royal, sorgho et riz cultivés sans OGM par nos coopératives partenaires du Sahel et de la vallée du Fouta.
+                  Fini les heures passées à tamiser et rincer le mil au fond d'une bassine. Nos céréales sont lavées, vannées et triées avec une exigence absolue avant mise en sachet.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-border/60 text-xs font-semibold text-gold">
-                🌾 Traçabilité certifiée du champ au sachet
+                Prêt à cuire directement dans votre marmite
               </div>
             </div>
           </Reveal>
@@ -170,13 +168,13 @@ export function HomePage() {
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/15 text-gold border border-gold/25 mb-5 transition-transform duration-300 group-hover:scale-110">
                   <Award className="h-6 w-6" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-primary">Mouture Douce & Précuisson Vapeur</h3>
+                <h3 className="font-display text-lg font-bold text-primary">Mouture douce sur meule de pierre</h3>
                 <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Notre procédé préserve l'intégralité des vitamines, fibres et minéraux naturels pour une digestibilité maximale dès 6 mois.
+                  Un broyage lent qui respecte le grain sans échauffement. Les fibres, le fer, le zinc et les vitamines naturelles sont préservés pour une digestibilité parfaite dès 6 mois.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-border/60 text-xs font-semibold text-gold">
-                🥣 Sans sucres raffinés ni conservateurs
+                100% naturel, sans additifs ni sucres raffinés
               </div>
             </div>
           </Reveal>
@@ -189,30 +187,30 @@ export function HomePage() {
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/15 text-gold border border-gold/25 mb-5 transition-transform duration-300 group-hover:scale-110">
                   <Truck className="h-6 w-6" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-primary">Expédition Express & Fraîcheur Scellée</h3>
+                <h3 className="font-display text-lg font-bold text-primary">Emballage étanche & livraison soignée</h3>
                 <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Bocaux et sachets hermétiques barrières conservant tous les arômes. Livraison en 24h à 48h avec suivi en direct.
+                  Nos bocaux et sachets barrières protègent les céréales de la chaleur et de l'humidité tropicale. Vos commandes arrivent fraîches chez vous sous 24h à 48h.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-border/60 text-xs font-semibold text-gold">
-                📦 Expédition dans 8 pays & diaspora
+                Livraison suivie par SMS et WhatsApp
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* 4. Processus de Commande en 4 Étapes */}
+      {/* 4. Processus de Commande : Simple et Humain */}
       <section className="border-y border-border/80 bg-secondary/30 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5" /> {t("home.stepsEyebrow", "Simplicité & Rapidité")}
-              </span>
-              <h2 className="mt-2 font-display text-2xl sm:text-4xl font-bold text-primary">
-                {t("home.stepsTitle", "Comment commander vos céréales")}
+              <h2 className="font-display text-2xl sm:text-4xl font-bold text-primary">
+                Commander vos céréales en toute sérénité
               </h2>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                Quatre étapes simples pour recevoir vos produits frais à la maison.
+              </p>
             </div>
           </Reveal>
 
@@ -221,8 +219,10 @@ export function HomePage() {
               <Reveal key={s.n} delay={idx * 70}>
                 <div className="relative flex flex-col justify-between rounded-3xl border border-border bg-card p-6 h-full transition hover:border-gold/40">
                   <div>
-                    <span className="font-display text-3xl font-extrabold text-gold/40">{s.n}</span>
-                    <h3 className="mt-3 font-display text-base font-bold text-primary">{s.t}</h3>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 font-display text-base font-bold text-gold border border-gold/30">
+                      {s.n}
+                    </span>
+                    <h3 className="mt-4 font-display text-base font-bold text-primary">{s.t}</h3>
                     <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">{s.d}</p>
                   </div>
                 </div>
@@ -232,22 +232,64 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* 5. Bannière B2B & Vente en Gros (Style Concentrique Or) */}
+      {/* 5. Vrais Avis de Nos Familles & Cuisiniers */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <Reveal>
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="font-display text-2xl sm:text-4xl font-bold text-primary">
+              Les retours de nos familles & cuisiniers
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+              Des mamans, des restaurateurs et des amateurs de cuisine traditionnelle qui nous font confiance chaque semaine.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {testimonials.map((item, idx) => (
+            <Reveal key={item.author} delay={idx * 80}>
+              <div className="flex flex-col justify-between rounded-3xl border border-border bg-card p-6 h-full shadow-xs hover:border-gold/30 transition">
+                <div>
+                  <div className="flex items-center gap-1 text-gold mb-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-gold" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-foreground/90 leading-relaxed italic">
+                    "{item.quote}"
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/60 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-primary">{item.author}</div>
+                    <div className="text-[11px] text-muted-foreground">{item.location}</div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-gold bg-gold/10 px-2.5 py-1 rounded-full">
+                    {item.dish}
+                  </span>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* 6. Bannière B2B & Vente en Gros */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <GoldCtaBanner
-            eyebrow={t("home.bulkEyebrow", "Espace Professionnels & Grossistes")}
-            title={t("home.bulkTitle", "Commandes en Gros & Distribution")}
+            eyebrow={t("home.bulkEyebrow", "Pour crèches, restaurants & distributeurs")}
+            title={t("home.bulkTitle", "Commandes en gros & sacs de 25kg / 50kg")}
             description={t(
               "home.bulkDesc",
-              "Vous êtes une crèche, un restaurant, un distributeur ou une ONG ? Profitez de nos tarifs dégressifs en sacs de 25kg et 50kg avec un accompagnement sur-mesure.",
+              "Vous êtes une crèche, un restaurant ou un revendeur ? Profitez de nos tarifs dégressifs avec un accompagnement direct par WhatsApp ou téléphone.",
             )}
             primaryAction={{
-              label: t("home.bulkCta", "Demander un devis B2B"),
+              label: t("home.bulkCta", "Demander un devis grossiste"),
               href: "/contact",
             }}
             secondaryAction={{
-              label: "WhatsApp Direct",
+              label: "Échanger sur WhatsApp",
               href: "https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20un%20devis%20grossiste.",
               isExternal: true,
             }}

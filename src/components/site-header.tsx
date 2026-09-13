@@ -89,12 +89,8 @@ export function SiteHeader() {
               <img
                 src={logo}
                 alt="Cereals House"
-                className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-full object-cover ring-2 ring-gold/40 shadow-sm transition-all duration-500 ease-out group-hover:rotate-6 group-hover:scale-105 group-hover:ring-gold/70"
+                className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-full object-cover ring-2 ring-gold/40 shadow-sm transition-all duration-500 ease-out group-hover:scale-105 group-hover:ring-gold/70"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold opacity-75" />
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-gold border-2 border-background" />
-              </span>
             </div>
             <div className="whitespace-nowrap leading-tight">
               <div className="font-display text-lg sm:text-xl font-bold text-primary tracking-tight transition-colors duration-200 group-hover:text-gold">
@@ -112,6 +108,7 @@ export function SiteHeader() {
               <Link
                 key={n.to}
                 to={getLocalizedPath(n.to)}
+                activeOptions={{ exact: n.to === "/" }}
                 className="group relative whitespace-nowrap px-1 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80 transition-colors duration-200 hover:text-gold [&.active]:text-gold xl:text-sm xl:normal-case xl:font-medium xl:tracking-normal cursor-pointer"
                 activeProps={{ className: "active" }}
               >
@@ -280,8 +277,10 @@ export function SiteHeader() {
                 <Link
                   key={n.to}
                   to={getLocalizedPath(n.to)}
+                  activeOptions={{ exact: n.to === "/" }}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 hover:bg-secondary hover:text-gold flex items-center justify-between"
+                  className="rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 hover:bg-secondary hover:text-gold flex items-center justify-between [&.active]:text-gold [&.active]:bg-gold/10"
+                  activeProps={{ className: "active" }}
                 >
                   <span>{n.label}</span>
                   <span className="text-xs text-gold">→</span>

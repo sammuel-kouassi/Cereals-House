@@ -4,7 +4,7 @@ import { HomePage } from "@/components/pages/home-page";
 export const Route = createFileRoute("/$lang/")({
   head: () => ({
     meta: [
-      { title: "Cereals House — Céréales africaines premium livrées chez vous" },
+      { title: "Cereals House | Céréales africaines premium livrées chez vous" },
       {
         name: "description",
         content:

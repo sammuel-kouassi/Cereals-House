@@ -110,7 +110,7 @@ export const en: Dict = {
     payments: "Payments: Orange Money · Wave · MTN · Moov · Visa",
   },
   home: {
-    metaTitle: "Cereals House — Premium African cereals delivered to you",
+    metaTitle: "Cereals House | Premium African cereals delivered to you",
     metaDesc:
       "Cereals House: fragrant rice, millet, fonio, corn and more. Order online, pay with Mobile Money/Visa, fast delivery across West Africa, France and USA.",
     badge: "Artisanal harvest",
@@ -155,7 +155,7 @@ export const en: Dict = {
     bulkCta: "Request a quote",
   },
   about: {
-    metaTitle: "About — Cereals House",
+    metaTitle: "About Us | Cereals House",
     metaDesc:
       "Discover Cereals House: our mission, our producer partners and our commitment to exceptional African cereals.",
     eyebrow: "Our Story & Terroirs",
@@ -167,7 +167,7 @@ export const en: Dict = {
     storyEyebrow: "Our Vocation",
     storyTitle: "A passion rooted in the abundance of our soils",
     storyP1:
-      "Cereals House was born from a deep conviction: African grains — golden pearl millet, royal fonio, red sorghum, and enriched flours — possess exceptional nutritional and taste virtues that the modern world has overlooked for too long.",
+      "Cereals House was born from a deep conviction: African grains (golden pearl millet, royal fonio, red sorghum, and enriched flours) possess exceptional nutritional and taste virtues that the modern world has overlooked for too long.",
     storyP2:
       "Working hand-in-hand with women-led farming cooperatives and master millers, we guarantee respectful processing without chemical additives, gently steam-cooked to preserve every natural benefit.",
     v1t: "Noble & Sustainable Terroirs",
@@ -202,7 +202,7 @@ export const en: Dict = {
     ctaContact: "Contact Us",
   },
   contact: {
-    metaTitle: "Contact & Quotes — Cereals House",
+    metaTitle: "Contact & Quotes | Cereals House",
     metaDesc: "Reach Cereals House via WhatsApp, phone or request a wholesale B2B quote.",
     eyebrow: "Listening & Proximity",
     heroTitle: "Get in",
@@ -271,7 +271,7 @@ export const en: Dict = {
     formSubmitNote: "Your inquiry will be automatically formatted and sent directly to our sales team.",
   },
   products: {
-    metaTitle: "Shop & Cereals — Cereals House",
+    metaTitle: "Shop & Cereals | Cereals House",
     metaDesc:
       "Discover all our premium African cereals: fragrant rice, millet, royal fonio, enriched infant flours, sorghum, and more.",
     eyebrow: "Official Store",
@@ -320,10 +320,10 @@ export const en: Dict = {
     fastDeliverySub: "Live tracking",
     securePayment: "Mobile Payment",
     securePaymentSub: "Wave, Orange, MTN, Card",
-    inStockShippingToday: "In stock ({{count}} available) — Ships today",
+    inStockShippingToday: "In stock ({{count}} available): ships within 24h",
     featuredBadge: "Best Seller",
     reviewsVerified: "{{count}} verified reviews",
-    reviewsExcellent: "5.0 / 5 — Excellent rating",
+    reviewsExcellent: "4.9 / 5 (Recommended by customers)",
     detailsTab: "Description & Story",
     nutritionTab: "Nutritional Profile",
     benefitsTab: "Health Benefits",
@@ -341,7 +341,7 @@ export const en: Dict = {
     noReviews: "Be the first customer to leave a review for this exceptional cereal.",
   },
   cart: {
-    metaTitle: "Cart — Cereals House",
+    metaTitle: "Your Cart | Cereals House",
     empty: "Your cart is empty",
     emptyDesc: "Browse our authentic cereal collection and find your favorite.",
     seeShop: "Explore the shop",
@@ -369,7 +369,7 @@ export const en: Dict = {
     whatsappIntro: "Hello, I would like to order:",
   },
   checkout: {
-    metaTitle: "Checkout & Order Validation — Cereals House",
+    metaTitle: "Checkout & Order Validation | Cereals House",
     stepEyebrow: "Final Step",
     title: "Complete Your Order",
     secureHeader: "100% Guaranteed & Encrypted Checkout",
@@ -416,7 +416,7 @@ export const en: Dict = {
     },
   },
   auth: {
-    metaTitle: "Customer Account & Login — Cereals House",
+    metaTitle: "Customer Account & Login | Cereals House",
     signInTitle: "Welcome Back",
     signUpTitle: "Create Your Customer Account",
     signInSubtitle: "Sign in to manage your addresses and track all your orders.",
@@ -443,13 +443,13 @@ export const en: Dict = {
     panelEyebrow: "House of Cereals House",
     panelTitle: "African Terroir Excellence Delivered to Your Door",
     panelQuote: "« Pure, fragrant cereals of unwavering quality. The whole family loves them! »",
-    panelQuoteAuthor: "— Aïcha D., loyal customer in Abidjan",
+    panelQuoteAuthor: "Aïcha D., loyal customer in Abidjan",
     panelPoint1: "Live real-time delivery tracking",
     panelPoint2: "Saved addresses and preferences",
     panelPoint3: "Exclusive member promotions and recipes",
   },
   orders: {
-    metaTitle: "My Orders — Cereals House",
+    metaTitle: "My Orders | Cereals House",
     signInTitle: "Sign in to view your orders",
     signInDesc: "To view your order history and live delivery tracking, please sign in.",
     title: "My Orders",

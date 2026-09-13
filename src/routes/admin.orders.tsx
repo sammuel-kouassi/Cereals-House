@@ -2,7 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Loader2, Package, Download, Printer } from "lucide-react";
+import {
+  Loader2,
+  Package,
+  Download,
+  Printer,
+  XCircle,
+  AlertTriangle,
+  RotateCcw,
+  CheckCircle2,
+} from "lucide-react";
 import {
   listOrdersAdminFn,
   updateOrderStatusAdminFn,
@@ -50,6 +59,14 @@ const STATUS_BADGE: Record<string, string> = {
   refunded: "bg-muted text-muted-foreground",
 };
 
+const ADMIN_CANCEL_REASONS = [
+  "Rupture de stock ou approvisionnement indisponible",
+  "Demande d'annulation du client (appel / WhatsApp)",
+  "Client injoignable ou coordonnées invalides",
+  "Commande passée en double / erreur de saisie",
+  "Autre motif (préciser ci-dessous)",
+];
+
 const PAGE_SIZE = 25;
 
 function AdminOrdersPage() {
@@ -60,6 +77,12 @@ function AdminOrdersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [printingId, setPrintingId] = useState<string | null>(null);
+
+  // État de la modale d'annulation administrateur
+  const [orderToCancel, setOrderToCancel] = useState<any | null>(null);
+  const [adminCancelReasonPreset, setAdminCancelReasonPreset] = useState(ADMIN_CANCEL_REASONS[0]);
+  const [adminCancelReasonCustom, setAdminCancelReasonCustom] = useState("");
+  const [adminCancelling, setAdminCancelling] = useState(false);
 
   async function handlePackingSlip(orderId: string) {
     setPrintingId(orderId);
@@ -107,15 +130,13 @@ function AdminOrdersPage() {
         "shipping_address",
         "shipping_city",
       ];
-      // Échappement CSV minimal : double les guillemets internes et entoure
-      // toute valeur contenant une virgule, un guillemet ou un retour ligne.
       const escape = (v: unknown) => {
         const s = String(v ?? "");
         return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
       };
       const header = columns.join(",");
       const rows = orders.map((o) => columns.map((c) => escape(o[c])).join(","));
-      const csv = "\uFEFF" + [header, ...rows].join("\n"); // BOM pour Excel
+      const csv = "\uFEFF" + [header, ...rows].join("\n");
 
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -144,9 +165,7 @@ function AdminOrdersPage() {
       }),
   });
 
-  // Vérification ACTIVE des commandes en attente affichées dans la liste —
-  // sans ça, le statut ne se met à jour qu'en rechargeant après être passé
-  // par la fiche détail d'une commande, ou en attendant le webhook.
+  // Vérification ACTIVE des commandes en attente
   useEffect(() => {
     const pendingOrders = (data?.orders ?? []).filter(
       (o) => o.payment_status === "pending" && o.status === "pending_payment",
@@ -175,13 +194,28 @@ function AdminOrdersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [(data?.orders ?? []).map((o) => `${o.id}:${o.payment_status}`).join(","), queryClient]);
 
-  async function handleStatusChange(orderId: string, status: string) {
+  async function handleStatusChange(orderId: string, status: string, customNote?: string) {
+    // Si l'admin choisit "cancelled", ouvrir la modale pour renseigner le motif
+    if (status === "cancelled") {
+      const target = data?.orders.find((o) => o.id === orderId);
+      if (target) {
+        setOrderToCancel(target);
+        setAdminCancelReasonPreset(ADMIN_CANCEL_REASONS[0]);
+        setAdminCancelReasonCustom("");
+        return;
+      }
+    }
+
     setUpdatingId(orderId);
     try {
       await updateOrderStatusAdminFn({
-        data: { orderId, status: status as (typeof ORDER_STATUSES)[number] },
+        data: {
+          orderId,
+          status: status as (typeof ORDER_STATUSES)[number],
+          note: customNote,
+        },
       });
-      toast.success("Statut mis à jour");
+      toast.success("Statut mis à jour avec succès");
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erreur lors de la mise à jour");
@@ -190,11 +224,40 @@ function AdminOrdersPage() {
     }
   }
 
+  async function handleConfirmAdminCancel() {
+    if (!orderToCancel) return;
+    setAdminCancelling(true);
+    try {
+      const fullReason =
+        adminCancelReasonPreset === "Autre motif (préciser ci-dessous)"
+          ? adminCancelReasonCustom.trim() || "Autre motif administratif"
+          : adminCancelReasonCustom.trim()
+            ? `${adminCancelReasonPreset} (${adminCancelReasonCustom.trim()})`
+            : adminCancelReasonPreset;
+
+      await updateOrderStatusAdminFn({
+        data: {
+          orderId: orderToCancel.id,
+          status: "cancelled",
+          note: fullReason,
+        },
+      });
+
+      toast.success(`La commande ${orderToCancel.order_number} a été annulée et les stocks ont été réintégrés.`);
+      setOrderToCancel(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec de l'annulation administrative");
+    } finally {
+      setAdminCancelling(false);
+    }
+  }
+
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <input
           value={search}
@@ -224,7 +287,7 @@ function AdminOrdersPage() {
           type="button"
           onClick={handleExportCsv}
           disabled={exporting}
-          className="ml-auto inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/20 disabled:opacity-60"
+          className="ml-auto inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-2 text-sm font-semibold text-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/20 disabled:opacity-60 cursor-pointer"
         >
           {exporting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -244,7 +307,7 @@ function AdminOrdersPage() {
         </div>
       ) : (
         <div className="mt-6 overflow-x-auto rounded-2xl border border-border bg-card">
-          <table className="w-full min-w-[800px] text-sm">
+          <table className="w-full min-w-[850px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3 font-semibold">N° commande</th>
@@ -253,67 +316,117 @@ function AdminOrdersPage() {
                 <th className="px-4 py-3 font-semibold">Total</th>
                 <th className="px-4 py-3 font-semibold">Paiement</th>
                 <th className="px-4 py-3 font-semibold">Statut</th>
-                <th className="px-4 py-3 font-semibold" />
+                <th className="px-4 py-3 font-semibold text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {data.orders.map((o) => (
-                <tr key={o.id} className="border-b border-border/60 last:border-0">
-                  <td className="px-4 py-3 font-medium text-primary">{o.order_number}</td>
-                  <td className="px-4 py-3">{o.shipping_full_name}</td>
-                  <td className="px-4 py-3">{o.country_code}</td>
-                  <td className="px-4 py-3 font-semibold text-gold">
-                    {formatPrice(Number(o.total), o.currency_code, o.currency_code)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        o.payment_status === "paid"
-                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                          : o.payment_status === "failed"
-                            ? "bg-destructive/15 text-destructive"
-                            : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {o.payment_status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={o.status}
-                        disabled={updatingId === o.id}
-                        onChange={(e) => handleStatusChange(o.id, e.target.value)}
-                        className={`rounded-full border-0 px-3 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-gold/30 ${STATUS_BADGE[o.status] ?? "bg-muted"}`}
+              {data.orders.map((o) => {
+                const isOrderCancelled = o.status === "cancelled";
+                const isOrderPaid = o.payment_status === "paid";
+                return (
+                  <tr key={o.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-primary">{o.order_number}</div>
+                      {isOrderCancelled && o.cancellation_reason && (
+                        <span className="text-[11px] text-destructive block max-w-xs truncate" title={o.cancellation_reason}>
+                          Motif : {o.cancellation_reason}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="block font-medium">{o.shipping_full_name}</span>
+                      <span className="text-xs text-muted-foreground">{o.shipping_phone}</span>
+                    </td>
+                    <td className="px-4 py-3">{o.country_code}</td>
+                    <td className="px-4 py-3 font-semibold text-gold">
+                      {formatPrice(Number(o.total), o.currency_code, o.currency_code)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          o.payment_status === "paid"
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : o.payment_status === "failed"
+                              ? "bg-destructive/15 text-destructive"
+                              : o.payment_status === "refunded"
+                                ? "bg-purple-500/15 text-purple-700 dark:text-purple-300"
+                                : "bg-muted text-muted-foreground"
+                        }`}
                       >
-                        {ORDER_STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {STATUS_LABELS[s]}
-                          </option>
-                        ))}
-                      </select>
-                      {updatingId === o.id && (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin text-gold" />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => handlePackingSlip(o.id)}
-                      disabled={printingId === o.id}
-                      className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-secondary hover:text-gold"
-                      title="Bon de préparation"
-                    >
-                      {printingId === o.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Printer className="h-4 w-4" />
-                      )}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                        {o.payment_status === "paid"
+                          ? "Payée"
+                          : o.payment_status === "refunded"
+                            ? "Remboursée"
+                            : o.payment_status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={o.status}
+                          disabled={updatingId === o.id}
+                          onChange={(e) => handleStatusChange(o.id, e.target.value)}
+                          className={`rounded-full border-0 px-3 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-gold/30 cursor-pointer ${STATUS_BADGE[o.status] ?? "bg-muted"}`}
+                        >
+                          {ORDER_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                              {STATUS_LABELS[s]}
+                            </option>
+                          ))}
+                        </select>
+                        {updatingId === o.id && (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-gold" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* Action rapide : marquer remboursée si annulée & payée */}
+                        {isOrderCancelled && isOrderPaid && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(o.id, "refunded", "Remboursement en ligne validé")}
+                            disabled={updatingId === o.id}
+                            className="inline-flex items-center gap-1 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-[11px] font-semibold text-purple-700 dark:text-purple-300 hover:bg-purple-500 hover:text-white transition"
+                            title="Marquer comme Remboursée"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            <span>Remboursée</span>
+                          </button>
+                        )}
+
+                        {/* Action rapide : annuler directement */}
+                        {!isOrderCancelled && o.status !== "delivered" && o.status !== "refunded" && (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(o.id, "cancelled")}
+                            disabled={updatingId === o.id}
+                            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition"
+                            title="Annuler cette commande"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        )}
+
+                        {/* Bon de préparation */}
+                        <button
+                          type="button"
+                          onClick={() => handlePackingSlip(o.id)}
+                          disabled={printingId === o.id}
+                          className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-secondary hover:text-gold"
+                          title="Bon de préparation"
+                        >
+                          {printingId === o.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Printer className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -325,7 +438,7 @@ function AdminOrdersPage() {
             type="button"
             disabled={page === 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="rounded-full border border-border px-4 py-1.5 text-sm disabled:opacity-40"
+            className="rounded-full border border-border px-4 py-1.5 text-sm disabled:opacity-40 cursor-pointer"
           >
             Précédent
           </button>
@@ -336,10 +449,109 @@ function AdminOrdersPage() {
             type="button"
             disabled={page + 1 >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-full border border-border px-4 py-1.5 text-sm disabled:opacity-40"
+            className="rounded-full border border-border px-4 py-1.5 text-sm disabled:opacity-40 cursor-pointer"
           >
             Suivant
           </button>
+        </div>
+      )}
+
+      {/* Modale d'annulation Administrateur */}
+      {orderToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-lg rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-xl space-y-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-destructive/15 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-bold text-primary">
+                    Annulation administrateur : {orderToCancel.order_number}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Client : <strong>{orderToCancel.shipping_full_name}</strong> · Montant : <strong>{formatPrice(Number(orderToCancel.total), orderToCancel.currency_code)}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOrderToCancel(null)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Impact sur le stock et le paiement */}
+            <div className="rounded-2xl border border-border/80 bg-secondary/40 p-4 text-xs space-y-2">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-semibold">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>Les articles seront automatiquement réintégrés dans les stocks.</span>
+              </div>
+              {orderToCancel.payment_status === "paid" && (
+                <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300 font-medium">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Attention :</strong> Cette commande est déjà réglée en ligne ({orderToCancel.payment_method}). Pensez à procéder au remboursement sur Paystack / Mobile Money.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Sélection du motif admin */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-primary">
+                Motif officiel de l'annulation *
+              </label>
+              <select
+                value={adminCancelReasonPreset}
+                onChange={(e) => setAdminCancelReasonPreset(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:border-gold focus:outline-none"
+              >
+                {ADMIN_CANCEL_REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+
+              <textarea
+                rows={2}
+                value={adminCancelReasonCustom}
+                onChange={(e) => setAdminCancelReasonCustom(e.target.value)}
+                placeholder="Note interne ou détails complémentaires…"
+                className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+              />
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={adminCancelling}
+                onClick={() => setOrderToCancel(null)}
+                className="rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-secondary transition disabled:opacity-50"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                disabled={adminCancelling}
+                onClick={handleConfirmAdminCancel}
+                className="flex items-center gap-2 rounded-xl bg-destructive px-5 py-2.5 text-xs font-bold text-destructive-foreground hover:bg-destructive/90 transition shadow-xs disabled:opacity-50 cursor-pointer"
+              >
+                {adminCancelling ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Traitement…</span>
+                  </>
+                ) : (
+                  <span>Confirmer l'annulation</span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

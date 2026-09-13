@@ -410,7 +410,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               {t("auth.panelQuote", "« Des céréales pures, parfumées et d'une qualité constante. Toute la famille adore ! »")}
             </p>
             <span className="block mt-2 text-[11px] font-bold text-gold">
-              {t("auth.panelQuoteAuthor", "— Aïcha D., cliente fidèle à Abidjan")}
+              {t("auth.panelQuoteAuthor", "Aïcha D., cliente fidèle à Abidjan")}
             </span>
           </div>
         </div>

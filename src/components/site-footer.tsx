@@ -8,7 +8,6 @@ import omImg from "@/assets/om.png";
 import mtnImg from "@/assets/mtn.jpg";
 import moovImg from "@/assets/moov.png";
 import visaImg from "@/assets/visa.png";
-
 export function SiteFooter() {
   const { t } = useTranslation();
   const { getLocalizedPath, currentLang, switchLanguage } = useLanguageNavigation();
@@ -22,244 +21,177 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="relative mt-20 sm:mt-28 bg-[#0D0B0A] text-stone-200 overflow-hidden border-t border-gold/25">
-      {/* Motifs de céréales dorés exclusifs au footer */}
-      <CerealMotifBackground variant="footer" showLargeSheaf={true} />
+    <footer className="relative mt-12 sm:mt-16 bg-[#0D0B0A] text-stone-300 overflow-hidden border-t border-gold/20">
+      {/* Motifs de céréales dorés discrets */}
+      <CerealMotifBackground variant="footer" showLargeSheaf={false} className="opacity-35" />
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-16 sm:pt-20">
-        {/* ============================================================ */}
-        {/* 1. SECTION SUPÉRIEURE : COORDONNÉES & 3 COLONNES DE LIENS     */}
-        {/* ============================================================ */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16">
-          {/* Colonne Gauche : Réseaux sociaux & Coordonnées (5 colonnes) */}
-          <div className="md:col-span-5 space-y-6">
-            {/* 3 Icônes sociales cerclées (Instagram, X, YouTube) */}
-            <div className="flex items-center gap-3">
-              {/* Instagram */}
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noreferrer"
-                className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white/80 transition-all duration-200 hover:border-white hover:bg-white hover:text-black cursor-pointer shadow-xs"
-                aria-label="Instagram"
-              >
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-              </a>
-
-              {/* X / Twitter */}
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noreferrer"
-                className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white/80 transition-all duration-200 hover:border-white hover:bg-white hover:text-black cursor-pointer shadow-xs"
-                aria-label="X Twitter"
-              >
-                <span className="font-sans font-bold text-xs">𝕏</span>
-              </a>
-
-              {/* YouTube */}
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noreferrer"
-                className="group flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-white/80 transition-all duration-200 hover:border-white hover:bg-white hover:text-black cursor-pointer shadow-xs"
-                aria-label="YouTube"
-              >
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </a>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        {/* Grille principale compacte */}
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5 pb-8 border-b border-stone-800/80">
+          {/* Marque & Coordonnées (2 colonnes sur desktop) */}
+          <div className="lg:col-span-2 space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <span className="font-display text-xl font-bold tracking-tight text-white">
+                Cereals <span className="text-gold">House</span>
+              </span>
             </div>
 
-            {/* Coordonnées & Adresse formatées comme sur la référence */}
-            <div className="space-y-4 text-xs sm:text-sm text-stone-300 font-light leading-relaxed">
-              <p>
-                9 Boulevard de France, Cocody Riviera
-                <br />
-                Abidjan, Côte d'Ivoire & Afrique de l'Ouest
-              </p>
-              <p>
+            <p className="text-xs text-stone-400 font-light leading-relaxed max-w-sm">
+              {t(
+                "footer.tagline",
+                "Céréales et farines d'exception d'Afrique de l'Ouest. 100% naturelles, sans additifs et garanties sans impuretés.",
+              )}
+            </p>
+
+            <div className="space-y-1 text-xs text-stone-400 font-light">
+              <p>9 Boulevard de France, Cocody Riviera • Abidjan, Côte d'Ivoire</p>
+              <div className="flex flex-wrap items-center gap-3 pt-0.5">
                 <a
-                  href="mailto:contact@cerealshouse.com"
-                  className="transition-colors hover:text-gold"
+                  href="mailto:contact@cereals-house.com"
+                  className="hover:text-gold transition-colors"
                 >
-                  contact@cerealshouse.com
+                  contact@cereals-house.com
                 </a>
-              </p>
-              <p>
+                <span>•</span>
                 <a
                   href="tel:+2250584637219"
-                  className="transition-colors hover:text-gold"
+                  className="hover:text-gold transition-colors font-medium text-stone-300"
                 >
                   (+225) 05 84 63 72 19
                 </a>
-              </p>
+              </div>
+            </div>
+
+            {/* Réseaux sociaux compacts */}
+            <div className="flex items-center gap-2.5 pt-1">
+              <a
+                href="https://www.facebook.com/share/1HjoGWMccN/?mibextid=wwXIfr"
+                target="_blank"
+                rel="noreferrer"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/80 transition hover:border-gold hover:bg-gold hover:text-black cursor-pointer shadow-xs"
+                aria-label="Facebook"
+              >
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </a>
+              <a
+                href="https://www.tiktok.com/@shopingcommerce?_r=1&_t=ZS-99eLiR2dTN6"
+                target="_blank"
+                rel="noreferrer"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/80 transition hover:border-gold hover:bg-gold hover:text-black cursor-pointer shadow-xs"
+                aria-label="TikTok"
+              >
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
+                </svg>
+              </a>
             </div>
           </div>
 
-          {/* Colonnes Droite : 3 Colonnes de Navigation (MENU, SHOP, CART) */}
-          <div className="md:col-span-7 grid grid-cols-3 gap-6 sm:gap-8">
-            {/* Colonne 1 : MENU */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest text-white uppercase mb-4 sm:mb-5">
-                MENU
-              </h4>
-              <ul className="space-y-3 text-xs sm:text-sm text-stone-400 font-light">
-                <li>
-                  <Link
-                    to={getLocalizedPath("/")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Accueil
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/about")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/about")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Meunerie
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/contact")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          {/* Colonne 1 : Découvrir */}
+          <div className="space-y-2.5">
+            <h4 className="text-xs font-semibold tracking-wider text-white uppercase">
+              Découvrir
+            </h4>
+            <ul className="space-y-2 text-xs text-stone-400 font-light">
+              <li>
+                <Link to={getLocalizedPath("/")} className="hover:text-gold transition">
+                  Accueil
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/about")} className="hover:text-gold transition">
+                  Notre histoire
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/contact")} className="hover:text-gold transition">
+                  Nous contacter
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            {/* Colonne 2 : SHOP */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest text-white uppercase mb-4 sm:mb-5">
-                SHOP
-              </h4>
-              <ul className="space-y-3 text-xs sm:text-sm text-stone-400 font-light">
-                <li>
-                  <Link
-                    to={getLocalizedPath("/products")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Mil Perlé
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/products")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Farines Bio
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/products")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Fonio Royal
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/products")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Bouillies
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          {/* Colonne 2 : Boutique */}
+          <div className="space-y-2.5">
+            <h4 className="text-xs font-semibold tracking-wider text-white uppercase">
+              Boutique
+            </h4>
+            <ul className="space-y-2 text-xs text-stone-400 font-light">
+              <li>
+                <Link to={getLocalizedPath("/products")} className="hover:text-gold transition">
+                  Toutes les céréales
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/products")} className="hover:text-gold transition">
+                  Farines d'éveil bébé
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/products")} className="hover:text-gold transition">
+                  Fonio & mil perlé
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-            {/* Colonne 3 : CART */}
-            <div>
-              <h4 className="text-xs font-bold tracking-widest text-white uppercase mb-4 sm:mb-5">
-                CART
-              </h4>
-              <ul className="space-y-3 text-xs sm:text-sm text-stone-400 font-light">
-                <li>
-                  <Link
-                    to={getLocalizedPath("/cart")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Panier
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/orders")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Commandes
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/contact")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Vente en Gros
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={getLocalizedPath("/auth")}
-                    className="transition hover:text-gold hover:underline"
-                  >
-                    Mon Compte
-                  </Link>
-                </li>
-              </ul>
-            </div>
+          {/* Colonne 3 : Commandes & Service */}
+          <div className="space-y-2.5">
+            <h4 className="text-xs font-semibold tracking-wider text-white uppercase">
+              Commandes & B2B
+            </h4>
+            <ul className="space-y-2 text-xs text-stone-400 font-light">
+              <li>
+                <Link to={getLocalizedPath("/cart")} className="hover:text-gold transition">
+                  Mon panier
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/orders")} className="hover:text-gold transition">
+                  Suivi de colis
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/contact")} className="hover:text-gold transition">
+                  Devis grossiste
+                </Link>
+              </li>
+              <li>
+                <Link to={getLocalizedPath("/auth")} className="hover:text-gold transition">
+                  Espace client
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* 2. LIGNE MÉDIANE SÉPARATRICE AVEC BOUTON TRANSPARENT "BOUTIQUE" */}
-        {/* ============================================================ */}
-        <div className="relative mt-12 sm:mt-16 flex items-center">
-          <div className="w-full border-t border-stone-700/70" />
-          <Link
-            to={getLocalizedPath("/products")}
-            className="shrink-0 -ml-3 sm:-ml-4 z-10 rounded-full border border-white/80 bg-white/15 backdrop-blur-md px-7 sm:px-8 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:bg-white/30 hover:border-white hover:scale-105 active:scale-95 cursor-pointer"
-          >
-            {t("nav.shop", "Boutique")}
-          </Link>
-        </div>
+        {/* Barre inférieure compacte sur une seule ligne */}
+        <div className="mt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-400">
+          <div className="flex flex-wrap items-center gap-3.5 text-stone-500 text-[11px]">
+            <span>© {new Date().getFullYear()} Cereals House. Tous droits réservés.</span>
+            <span>•</span>
+            <Link to={getLocalizedPath("/about")} className="hover:text-stone-300 transition">
+              CGV
+            </Link>
+            <span>•</span>
+            <Link to={getLocalizedPath("/about")} className="hover:text-stone-300 transition">
+              Confidentialité
+            </Link>
+          </div>
 
-        {/* ============================================================ */}
-        {/* 3. SECTION SOUS LA LIGNE : PHRASE DE MARQUE, LANGUE & CGV    */}
-        {/* ============================================================ */}
-        <div className="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-xs text-stone-400">
-          <p className="max-w-md text-stone-400 font-light leading-relaxed">
-            {t(
-              "footer.missionStatement",
-              "Des terroirs sahéliens à votre table. Nos coopératives partenaires et maîtres meuniers perpétuent la noblesse des céréales africaines pures, sans additifs ni conservateurs.",
-            )}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-[11px] sm:text-xs font-medium tracking-wider uppercase text-stone-400">
-            {/* Sélecteur de Langue Exclusif au Footer (Français / Anglais) */}
-            <div className="flex items-center gap-1 rounded-full border border-white/20 bg-white/5 p-1 text-xs">
+          {/* Sélecteur de Langue discret + Logos de paiement */}
+          <div className="flex flex-wrap items-center gap-5">
+            {/* Langue */}
+            <div className="flex items-center rounded-full border border-white/15 bg-white/5 p-0.5 text-[11px]">
               <button
                 type="button"
                 onClick={() => switchLanguage("fr")}
-                className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-full transition cursor-pointer ${
                   currentLang === "fr"
                     ? "bg-gold text-black font-bold shadow-xs"
-                    : "text-stone-300 hover:text-white"
+                    : "text-stone-400 hover:text-white"
                 }`}
                 title="Passer en Français"
               >
@@ -268,10 +200,10 @@ export function SiteFooter() {
               <button
                 type="button"
                 onClick={() => switchLanguage("en")}
-                className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                className={`px-2.5 py-0.5 rounded-full transition cursor-pointer ${
                   currentLang === "en"
                     ? "bg-gold text-black font-bold shadow-xs"
-                    : "text-stone-300 hover:text-white"
+                    : "text-stone-400 hover:text-white"
                 }`}
                 title="Switch to English"
               >
@@ -279,45 +211,17 @@ export function SiteFooter() {
               </button>
             </div>
 
-            <Link
-              to={getLocalizedPath("/about")}
-              className="transition hover:text-white"
-            >
-              TERMS & CONDITIONS
-            </Link>
-            <Link
-              to={getLocalizedPath("/about")}
-              className="transition hover:text-white"
-            >
-              PRIVACY POLICY
-            </Link>
-          </div>
-        </div>
-
-        {/* Moyens de paiement sécurisés discrets */}
-        <div className="mt-8 pt-4 border-t border-stone-800/60 flex flex-wrap items-center justify-between gap-4">
-          <span className="text-[11px] text-stone-500 font-light">
-            Paiements instantanés & sécurisés : Wave, Orange Money, MTN, Moov, Carte bancaire
-          </span>
-          <div className="flex items-center gap-2 opacity-75">
-            {paymentLogos.map((p) => (
-              <img
-                key={p.name}
-                src={p.src}
-                alt={p.name}
-                className="h-4 max-w-[36px] object-contain rounded-xs grayscale hover:grayscale-0 transition"
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* ============================================================ */}
-        {/* 4. TYPOGRAPHIE GÉANTE FILIGRANE AU BAS DU FOOTER             */}
-        {/*    (Exactement comme "ente. - mome" sur la référence)        */}
-        {/* ============================================================ */}
-        <div className="overflow-hidden pointer-events-none select-none -mb-4 sm:-mb-8 mt-6 pt-4">
-          <div className="font-display font-extrabold text-[15vw] leading-[0.82] text-stone-700/35 tracking-tighter whitespace-nowrap">
-            cereals.- house
+            {/* Paiements discrets */}
+            <div className="flex items-center gap-2 opacity-70">
+              {paymentLogos.map((p) => (
+                <img
+                  key={p.name}
+                  src={p.src}
+                  alt={p.name}
+                  className="h-3.5 max-w-[32px] object-contain rounded-xs grayscale hover:grayscale-0 transition"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -14,6 +14,8 @@ dns.setDefaultResultOrder("ipv4first");
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleCinetPayNotify, handleCinetPayReturn } from "./lib/payments/cinetpay.webhook.server";
+import { handlePaystackWebhook } from "./lib/payments/paystack.webhook.server";
+import { handleInvoicePdfDownload } from "./lib/receipt/download-invoice.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -52,15 +54,22 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      // Callbacks CinetPay : requêtes serveur-à-serveur (webhook) et
-      // navigateur-à-serveur (retour de paiement), traitées avant le routeur
-      // TanStack car ce ne sont pas des "server functions" RPC classiques.
+      // Callbacks CinetPay & Paystack, et téléchargement PDF direct
       const { pathname } = new URL(request.url);
+      if (pathname === "/api/paystack/webhook") {
+        return await handlePaystackWebhook(request);
+      }
       if (pathname === "/api/cinetpay/notify") {
         return await handleCinetPayNotify(request);
       }
       if (pathname === "/api/cinetpay/return") {
         return await handleCinetPayReturn(request);
+      }
+
+      // Téléchargement / prévisualisation de la facture PDF
+      const invoiceMatch = pathname.match(/^\/api\/invoices\/([a-zA-Z0-9_-]+)(\.pdf)?$/);
+      if (invoiceMatch && request.method === "GET") {
+        return await handleInvoicePdfDownload(invoiceMatch[1]);
       }
 
       const handler = await getServerEntry();

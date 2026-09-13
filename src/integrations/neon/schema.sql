@@ -19,7 +19,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-  CREATE TYPE payment_method AS ENUM ('orange_money', 'wave', 'mtn_money', 'moov_money', 'visa', 'cash_on_delivery');
+  CREATE TYPE payment_method AS ENUM ('orange_money', 'wave', 'mtn_money', 'moov_money', 'visa', 'cash_on_delivery', 'paystack');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
@@ -129,6 +129,9 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_address TEXT NOT NULL,
   shipping_city TEXT NOT NULL,
   shipping_notes TEXT,
+  cancellation_reason TEXT,
+  cancelled_at TIMESTAMPTZ,
+  cancelled_by TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -182,6 +185,25 @@ BEGIN
   IF updated_stock < 0 THEN
     updated_stock := 0;
   END IF;
+
+  UPDATE products SET stock = updated_stock, updated_at = now() WHERE id = _product_id;
+  RETURN updated_stock;
+END;
+$$;
+
+-- 10b. Fonction pour réincrémenter le stock (annulation de commande)
+CREATE OR REPLACE FUNCTION increment_product_stock(_product_id UUID, _quantity INT)
+RETURNS INT LANGUAGE plpgsql AS $$
+DECLARE
+  current_stock INT;
+  updated_stock INT;
+BEGIN
+  SELECT stock INTO current_stock FROM products WHERE id = _product_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Produit introuvable';
+  END IF;
+  
+  updated_stock := current_stock + _quantity;
 
   UPDATE products SET stock = updated_stock, updated_at = now() WHERE id = _product_id;
   RETURN updated_stock;

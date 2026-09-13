@@ -6,7 +6,7 @@ const searchSchema = z.object({ token: z.string().catch("") });
 
 export const Route = createFileRoute("/$lang/pay/$orderId")({
   validateSearch: searchSchema,
-  head: () => ({ meta: [{ title: "Paiement — Cereals House" }] }),
+  head: () => ({ meta: [{ title: "Paiement Sécurisé | Cereals House" }] }),
   component: RouteComponent,
 });
 

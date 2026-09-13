@@ -10,7 +10,7 @@ export const checkPaymentStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const order = await queryOne<any>(
       `SELECT id, order_number, status, payment_status, country_code, total,
-              currency_code, payment_method, cinetpay_transaction_id
+              currency_code, payment_method, payment_reference, cinetpay_transaction_id
        FROM orders WHERE id = $1 LIMIT 1`,
       [data.orderId]
     );
@@ -30,7 +30,7 @@ export const checkGuestPaymentStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const order = await queryOne<any>(
       `SELECT id, order_number, status, payment_status, country_code, total,
-              currency_code, payment_method, cinetpay_transaction_id
+              currency_code, payment_method, payment_reference, cinetpay_transaction_id
        FROM orders WHERE id = $1 LIMIT 1`,
       [data.orderId]
     );

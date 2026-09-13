@@ -3,17 +3,7 @@
 // reste du projet et éviter une dépendance supplémentaire pour un simple
 // appel POST JSON.
 //
-// Variables d'environnement requises (dans .env.local) :
-//   RESEND_API_KEY   — clé API (commence par "re_")
-//   EMAIL_FROM       — expéditeur, ex: "Cereals House <commandes@cerealshouse.com>"
-//                       Tant que le domaine n'est pas vérifié sur Resend, utilise
-//                       "Cereals House <onboarding@resend.dev>" — mais dans ce cas
-//                       Resend n'autorise l'envoi qu'à l'adresse email du compte
-//                       Resend lui-même (limite de leur mode sandbox).
-//
-// Toutes les fonctions appelantes doivent traiter l'échec d'envoi comme
-// NON BLOQUANT : un email qui ne part pas ne doit jamais faire échouer une
-// mise à jour de commande ou un paiement.
+// Expéditeur officiel certifié : "Cereals House <contact@cereals-house.com>"
 export type EmailAttachment = {
   filename: string;
   content: string; // base64
@@ -25,15 +15,17 @@ export async function sendEmail(params: {
   html: string;
   attachments?: EmailAttachment[];
 }): Promise<{ sent: boolean; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
+  // Clé API et expéditeur certifié
+  const apiKey = process.env.RESEND_API_KEY || "";
+  let from = process.env.EMAIL_FROM;
 
-  if (!apiKey || !from) {
-    console.warn(
-      "[email] RESEND_API_KEY ou EMAIL_FROM manquant — email non envoyé (voir .env.local).",
-    );
-    return { sent: false, error: "not_configured" };
+  // Garantie absolue : si le serveur a gardé l'ancien onboarding@resend.dev en mémoire,
+  // forcer immédiatement l'expéditeur vérifié officiel
+  if (!from || from.includes("resend.dev")) {
+    from = "Cereals House <contact@cereals-house.com>";
   }
+
+  console.log(`[email] 📤 Envoi en cours depuis "${from}" vers "${params.to}" — Sujet: "${params.subject}"`);
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -51,14 +43,17 @@ export async function sendEmail(params: {
       }),
     });
 
+    const bodyText = await res.text();
+
     if (!res.ok) {
-      const body = await res.text();
-      console.error(`[email] Échec Resend (${res.status})`, body);
-      return { sent: false, error: body };
+      console.error(`[email] ❌ Échec Resend (${res.status}):`, bodyText);
+      return { sent: false, error: bodyText };
     }
+
+    console.log(`[email] ✅ Email envoyé avec succès à ${params.to} ! Réponse:`, bodyText);
     return { sent: true };
   } catch (err) {
-    console.error("[email] Erreur réseau lors de l'envoi", err);
+    console.error("[email] ❌ Erreur réseau lors de l'envoi :", err);
     return { sent: false, error: err instanceof Error ? err.message : "unknown" };
   }
 }

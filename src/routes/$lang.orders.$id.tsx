@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OrderDetailPage } from "@/components/pages/order-detail-page";
 
 export const Route = createFileRoute("/$lang/orders/$id")({
-  head: () => ({ meta: [{ title: "Détails de Commande — Cereals House" }] }),
+  head: () => ({ meta: [{ title: "Détails de Commande | Cereals House" }] }),
   component: RouteComponent,
 });
 

@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Administration — Cereals House" }] }),
+  head: () => ({ meta: [{ title: "Administration | Cereals House" }] }),
   component: AdminLayout,
 });
 

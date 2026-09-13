@@ -140,7 +140,7 @@ export function ProductCard({
             </h3>
 
             {shortDescription && (
-              <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+              <p className="mt-1 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {shortDescription}
               </p>
             )}
@@ -186,7 +186,7 @@ export function ProductCard({
   return (
     <Link
       to={getLocalizedPath(`/products/${slug}`)}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-md"
+      className="group relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-md"
     >
       {/* Liseré doré signature */}
       <span className="absolute inset-x-0 top-0 z-10 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
@@ -253,12 +253,12 @@ export function ProductCard({
       </div>
 
       {/* Contenu compact et proportionné */}
-      <div className="flex flex-1 flex-col p-3.5 sm:p-4 gap-1.5">
-        <h3 className="font-display text-sm sm:text-base font-bold text-primary transition-colors duration-200 group-hover:text-gold line-clamp-1">
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4 gap-2">
+        <h3 className="font-display text-sm sm:text-base font-bold text-primary transition-colors duration-200 group-hover:text-gold line-clamp-2 min-h-[2.5rem] sm:min-h-[2.8rem] flex items-start">
           {name}
         </h3>
         {shortDescription && (
-          <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed h-8">
+          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 min-h-[3rem] sm:min-h-[3.4rem]">
             {shortDescription}
           </p>
         )}

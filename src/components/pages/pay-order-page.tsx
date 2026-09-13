@@ -1,20 +1,17 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, ShieldCheck, Lock } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck, Lock, MessageCircle, FileText, ExternalLink } from "lucide-react";
 import {
   getPublicQuoteOrderFn,
   initiateGuestQuotePaymentFn,
 } from "@/lib/orders/quote-order.functions";
 import { checkGuestPaymentStatusFn } from "@/lib/payments/check-status.functions";
-import { PAYMENT_METHODS, methodAvailableIn } from "@/lib/payments/payment-methods";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
 
 export function PayOrderPage({ orderId, token }: { orderId: string; token: string }) {
   const queryClient = useQueryClient();
-  const [paymentMethod, setPaymentMethod] = useState<string>("");
-  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,31 +48,19 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
     };
   }, [order?.paymentStatus, orderId, token, queryClient]);
 
-  async function handlePay(e: React.FormEvent) {
-    e.preventDefault();
-    if (!paymentMethod) {
-      toast.error("Choisis un moyen de paiement.");
-      return;
-    }
-    if (!phone.trim()) {
-      toast.error("Indique un numéro de téléphone.");
-      return;
-    }
-
+  async function handlePay() {
     setSubmitting(true);
     try {
       const { paymentUrl } = await initiateGuestQuotePaymentFn({
         data: {
           orderId,
           token,
-          paymentMethod,
-          phoneNumber: phone.trim(),
           email: email.trim() || undefined,
         },
       });
       window.location.href = paymentUrl;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Échec de l'initiation du paiement");
+      toast.error(err instanceof Error ? err.message : "Échec de l'accès à Paystack");
       setSubmitting(false);
     }
   }
@@ -112,8 +97,6 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
       </div>
     );
   }
-
-  const availableMethods = PAYMENT_METHODS.filter((m) => methodAvailableIn(m, order.countryCode));
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
@@ -156,101 +139,87 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
       </div>
 
       {!order.canPayOnline ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-border bg-secondary/40 p-5 text-sm text-muted-foreground">
-          Le paiement en ligne n'est pas encore disponible pour {order.countryName}. Contacte-nous
-          pour convenir d'un autre mode de règlement.
+        <div className="mt-6 rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-500/5 p-5 text-sm text-foreground space-y-3">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Le règlement en ligne direct est actuellement réservé à la Côte d'Ivoire. Pour régler votre facture vers <strong>{order.countryName}</strong>, notre service client est à votre disposition sur WhatsApp pour vous orienter vers le moyen le plus rapide (Wave International, Orange Money, virement bancaire ou transfert direct).
+          </p>
+          <a
+            href={`https://wa.me/2250584637219?text=${encodeURIComponent(
+              `Bonjour Cereals House, je souhaite régler ma facture ${order.orderNumber} d'un montant de ${formatPrice(
+                order.total,
+                order.currencyCode,
+                order.currencySymbol
+              )} pour une livraison vers ${order.countryName}.`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-700 transition"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Contacter le service client (+225 05 84 63 72 19)
+          </a>
         </div>
       ) : (
-        <form onSubmit={handlePay} className="mt-6 rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-gold" />
-            <h2 className="font-display text-lg font-bold text-primary">Payer en ligne</h2>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {availableMethods.map((m) => {
-              const selected = paymentMethod === m.id;
-              return (
-                <label
-                  key={m.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all duration-200 ${
-                    selected
-                      ? `border-transparent ring-2 ${m.ring}`
-                      : "border-border hover:border-gold/40"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="pm"
-                    className="sr-only"
-                    checked={selected}
-                    onChange={() => setPaymentMethod(m.id)}
-                  />
-                  <div className="grid h-10 w-14 shrink-0 place-items-center overflow-hidden rounded-lg border border-border/60 bg-white">
-                    {m.logo ? (
-                      <img
-                        src={m.logo}
-                        alt={m.id}
-                        className="h-full max-h-8 w-full max-w-12 object-contain"
-                      />
-                    ) : (
-                      <span
-                        className={`grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold text-white ${m.bg}`}
-                      >
-                        {m.badge.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium">{m.badge}</span>
-                </label>
-              );
-            })}
-          </div>
-
-          {paymentMethod && (
-            <div className="mt-4 space-y-3">
-              <label className="block">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Numéro de téléphone
-                </span>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+225 …"
-                  inputMode="tel"
-                  className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                />
-              </label>
-              <label className="block">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Email (pour la confirmation)
-                </span>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
-                />
-              </label>
-              {paymentMethod === "visa" && (
-                <p className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Vous entrerez vos informations de carte directement sur la page sécurisée de
-                  CinetPay.
-                </p>
-              )}
+        <div className="mt-6 space-y-4">
+          <div className="rounded-2xl border border-gold/30 bg-card/70 backdrop-blur-md p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-gold" />
+                <h2 className="font-display text-base sm:text-lg font-bold text-primary">Paiement Sécurisé Paystack</h2>
+              </div>
+              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                100% Sécurisé
+              </span>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={submitting || !paymentMethod}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 disabled:opacity-50"
-          >
-            {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Payer {formatPrice(order.total, order.currencyCode, order.currencySymbol)}
-          </button>
-        </form>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Vous allez être redirigé vers la plate-forme officielle Paystack. Choisissez votre moyen préféré : <strong>Wave, Orange Money, MTN, Moov</strong> ou <strong>Carte bancaire</strong>.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-1.5 py-1">
+              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mr-1">Canaux :</span>
+              {["Wave", "Orange Money", "MTN", "Moov", "Carte Bancaire", "Apple Pay"].map((c) => (
+                <span key={c} className="rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-foreground">
+                  {c}
+                </span>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handlePay}
+              disabled={submitting}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-lg hover:bg-gold/90 active:scale-[0.99] transition-all disabled:opacity-50"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Accès en cours à Paystack...</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4" />
+                  <span>Payer sur Paystack ({formatPrice(order.total, order.currencyCode, order.currencySymbol)})</span>
+                  <ExternalLink className="h-4 w-4 ml-1" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Lien Téléchargement Facture PDF */}
+          <div className="text-center pt-1">
+            <a
+              href={`/api/invoices/${order.id}.pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-gold transition-colors py-2 px-4 rounded-full border border-border/70 bg-card/40 hover:bg-card hover:border-gold/40"
+            >
+              <FileText className="h-3.5 w-3.5 text-gold" />
+              <span>Télécharger votre facture en version PDF</span>
+              <ExternalLink className="h-3 w-3 opacity-60" />
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -57,11 +57,11 @@ export function ContactPage() {
       external: false,
     },
     {
-      href: "mailto:apiahrose8@gmail.com",
+      href: "mailto:contact@cereals-house.com",
       icon: Mail,
       title: t("contact.channels.emailTitle", "Email Professionnel"),
       hours: t("contact.channels.emailHours", "Partenariats & Devis B2B"),
-      value: "apiahrose8@gmail.com",
+      value: "contact@cereals-house.com",
       badge: t("contact.channels.emailBadge", "Réponse sous 24h"),
       external: false,
     },
@@ -136,23 +136,22 @@ export function ContactPage() {
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gold backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-gold animate-pulse" />
-              <span>{t("contact.eyebrow", "Écoute & Proximité")}</span>
+              <span>{t("contact.eyebrow", "À votre écoute")}</span>
             </div>
           </Reveal>
 
           <Reveal delay={100}>
             <h1 className="mt-4 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
-              {t("contact.heroTitle", "Entrons en")}{" "}
+              Nous sommes là pour{" "}
               <span className="bg-gradient-to-r from-[#FDF0CD] via-[#E5BF5A] to-[#BF9024] bg-clip-text text-transparent">
-                {t("contact.heroTitleGold", "Contact")}
+                vous aider
               </span>
             </h1>
           </Reveal>
 
           <Reveal delay={180}>
             <p className="mt-5 text-base sm:text-lg text-stone-300 font-light leading-relaxed max-w-2xl mx-auto">
-              {t("contact.heroDesc", "Une question sur nos céréales, envie de devenir distributeur ou besoin d'un devis sur-mesure ? Notre équipe vous répond 7j/7.")}
+              Une question sur la préparation de nos farines, un conseil pour votre tout-petit ou un besoin en gros pour votre restaurant ? Notre équipe vous répond avec le sourire.
             </p>
           </Reveal>
         </div>

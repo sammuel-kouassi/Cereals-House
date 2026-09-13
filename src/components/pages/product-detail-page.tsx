@@ -212,7 +212,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 ))}
               </div>
               <span className="text-xs text-muted-foreground">
-                ({reviews.length > 0 ? t("product.reviewsVerified", { count: reviews.length }) : t("product.reviewsExcellent", "5.0 / 5 — Note excellente")})
+                ({reviews.length > 0 ? t("product.reviewsVerified", { count: reviews.length }) : t("product.reviewsExcellent", "4.9 / 5 (Recommandé par nos clients)")})
               </span>
             </div>
 
@@ -236,7 +236,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <div className="mt-6 flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs font-semibold text-primary">
-                {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} disponibles) — Expédié aujourd'hui` })}
+                {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} disponibles) : expédié sous 24h` })}
               </span>
             </div>
 
@@ -279,111 +279,285 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 </span>
               </button>
             </div>
-          </div>
 
-          {/* Onglets Détaillés Fiche Produit */}
-          <div className="pt-6 border-t border-border/80">
-            <div className="flex flex-wrap gap-2 border-b border-border pb-3">
-              {[
-                { id: "description", label: t("product.detailsTab", "Description & Histoire") },
-                { id: "nutrition", label: t("product.nutritionTab", "Composition & Valeurs") },
-                { id: "benefits", label: t("product.benefitsTab", "Bienfaits & Santé") },
-                { id: "recipes", label: t("product.recipesTab", "Idées Recettes & Préparation") },
-                { id: "reviews", label: `${t("product.reviewsTab", "Avis Clients")} (${reviews.length})` },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                    activeTab === tab.id
-                      ? "bg-primary text-primary-foreground shadow-xs font-bold"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="pt-4 text-xs sm:text-sm text-muted-foreground leading-relaxed min-h-[140px]">
-              {activeTab === "description" && (
-                <p>{product.description || product.short_description || "Céréale ancestrale récoltée et conditionnée selon les plus hauts standards de pureté."}</p>
-              )}
-              {activeTab === "nutrition" && (
-                <p>{product.composition || "100% céréales locales pures sans conservateurs chimiques, riche en fibres solubles, glucides lents et micronutriments essentiels."}</p>
-              )}
-              {activeTab === "benefits" && (
-                <p>{product.benefits || "Idéal pour l'équilibre glycémique, la vitalité quotidienne et la digestion douce chez les enfants comme chez les adultes."}</p>
-              )}
-              {activeTab === "recipes" && (
-                <p>{product.preparation || "Cuisson rapide à la vapeur (5 min) ou en bouillie veloutée avec du lait frais, un filet de miel pur et quelques épices douces."}</p>
-              )}
-              {activeTab === "reviews" && (
-                <div className="space-y-4">
-                  {reviews.length === 0 ? (
-                    <p className="italic text-muted-foreground/80">{t("product.noReviews", "Soyez le premier client à laisser un avis sur cette céréale d'exception.")}</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {reviews.map((r, i) => (
-                        <div key={i} className="rounded-xl border border-border/60 bg-secondary/30 p-3">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="font-bold text-primary">{r.author_name}</span>
-                            <div className="flex text-gold">
-                              {Array.from({ length: r.rating }).map((_, j) => (
-                                <Star key={j} className="h-3 w-3 fill-gold" />
-                              ))}
-                            </div>
-                          </div>
-                          {r.comment && <p className="text-xs text-foreground/80">{r.comment}</p>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Formulaire simple d'avis */}
-                  <form onSubmit={handleReviewSubmit} className="pt-3 border-t border-border/60 space-y-2.5">
-                    <span className="text-xs font-bold text-primary">{t("product.reviewFormTitle", "Partager votre expérience")}</span>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <input
-                        type="text"
-                        placeholder={t("product.reviewAuthorPlaceholder", "Votre nom ou prénom")}
-                        value={reviewAuthor}
-                        onChange={(e) => setReviewAuthor(e.target.value)}
-                        className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60"
-                      />
-                      <select
-                        value={reviewRating}
-                        onChange={(e) => setReviewRating(Number(e.target.value))}
-                        className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground"
-                      >
-                        <option value={5}>★★★★★ (5/5) — Exceptionnel</option>
-                        <option value={4}>★★★★☆ (4/5) — Très bon</option>
-                        <option value={3}>★★★☆☆ (3/5) — Correct</option>
-                      </select>
-                    </div>
-                    <textarea
-                      rows={2}
-                      placeholder={t("product.reviewPlaceholder", "Partagez votre retour...")}
-                      value={reviewComment}
-                      onChange={(e) => setReviewComment(e.target.value)}
-                      className="w-full rounded-xl border border-border bg-background p-2.5 text-xs text-foreground placeholder:text-muted-foreground/60"
-                    />
-                    <button
-                      type="submit"
-                      disabled={reviewMutation.isPending}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition cursor-pointer"
-                    >
-                      <Send className="h-3 w-3" />
-                      <span>{t("product.reviewSubmit", "Publier mon avis")}</span>
-                    </button>
-                  </form>
-                </div>
-              )}
+            {/* Réassurance sous le bouton d'achat */}
+            <div className="mt-8 pt-6 border-t border-border/60 space-y-2.5 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-gold shrink-0" />
+                <span>Sélection rigoureuse auprès de coopératives et petits producteurs locaux</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-gold shrink-0" />
+                <span>Emballage hermétique de haute qualité préservant saveur et fraîcheur</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Check className="h-4 w-4 text-gold shrink-0" />
+                <span>Service client et assistance commande joignables 7j/7 sur WhatsApp</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Caractéristiques & Onglets Détaillés - Pleine largeur sous les blocs garanties */}
+      <section className="pt-8 border-t border-border/70">
+        <div className="mb-6">
+          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+            {t("product.detailsSectionEyebrow", "Fiche Complète & Savoir-Faire")}
+          </span>
+          <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-primary">
+            {t("product.detailsSectionTitle", "Caractéristiques & Conseils d'Utilisation")}
+          </h2>
+        </div>
+
+        {/* Boutons de navigation segmentés style pilule (comme l'image de référence) */}
+        <div className="flex items-center pb-2">
+          <div className="inline-flex flex-wrap items-center p-1.5 rounded-full bg-secondary/50 border border-border/80 gap-1 shadow-inner">
+            {[
+              { id: "description", label: t("product.detailsTab", "Description & Histoire") },
+              { id: "nutrition", label: t("product.nutritionTab", "Composition & Valeurs") },
+              { id: "benefits", label: t("product.benefitsTab", "Bienfaits & Santé") },
+              { id: "recipes", label: t("product.recipesTab", "Idées Recettes & Préparation") },
+              { id: "reviews", label: `${t("product.reviewsTab", "Avis Clients")} (${reviews.length})` },
+            ].map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                    active
+                      ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/40"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Contenu des onglets ultra-soigné et spacieux */}
+        <div className="mt-6 rounded-3xl border border-border/70 bg-card/40 backdrop-blur-md p-6 sm:p-8 shadow-xs min-h-[160px]">
+          {/* TAB 1 : Description & Histoire */}
+          {activeTab === "description" && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+                <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
+                  {product.description || product.short_description || "Céréale saine récoltée par nos coopératives partenaires, triée sans sable ni cailloux."}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
+                    <Leaf className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-primary">Terroir Africain</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Culture raisonnée issue de producteurs partenaires d'Afrique de l'Ouest.</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-primary">Zéro Sable ni Cailloux</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Triple nettoyage mécanique et vannage artisanal garanti sans impuretés.</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-primary">100% Pur & Naturel</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Sans additif de synthèse, sans colorant et sans arôme artificiel.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2 : Composition & Valeurs */}
+          {activeTab === "nutrition" && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold">Ingrédients & Formule</span>
+                </div>
+                <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
+                  {product.composition || "100% céréales locales pures sans conservateurs chimiques, riche en fibres solubles, glucides lents et minéraux essentiels."}
+                </p>
+              </div>
+
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Glucides lents</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Énergie diffuse</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">Satiété durable</span>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Fibres végétales</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Douceur</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">Digestion sereine</span>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Micronutriments</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Fer & Zinc</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">Minéraux essentiels</span>
+                </div>
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Qualité</span>
+                  <span className="text-base sm:text-lg font-bold text-gold mt-1 block">100% Naturel</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">Sans conservateurs</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3 : Bienfaits & Santé */}
+          {activeTab === "benefits" && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+                <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
+                  {product.benefits || "Idéal pour l'énergie quotidienne, la vitalité du foyer et la digestion douce chez les enfants comme chez les adultes."}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 flex items-start gap-3.5">
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-green-500/15 text-green-700">
+                    <Check className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-primary">Croissance & Vitalité Harmonique</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">Apport nutritionnel adapté pour soutenir les journées intenses et le développement sain.</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 flex items-start gap-3.5">
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-green-500/15 text-green-700">
+                    <Check className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-primary">Confort Intestinal & Légèreté</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">Mouture extra-fine et farines douces convenant aux estomacs sensibles des tout-petits et adultes.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4 : Idées Recettes & Préparation */}
+          {activeTab === "recipes" && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+                <div className="flex items-center gap-2 mb-2">
+                  <ChefHat className="h-4 w-4 text-gold" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold">Conseil de Préparation</span>
+                </div>
+                <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
+                  {product.preparation || "Cuisson rapide à la vapeur (5 min) ou en bouillie onctueuse avec un peu de lait frais, une touche de miel et une pincée de muscade."}
+                </p>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                  <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">01</span>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 1</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">Délayer à froid</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Mélanger la dose souhaitée avec un peu d'eau ou de lait tiède jusqu'à consistance lisse.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                  <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">02</span>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 2</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">Cuisson à feu doux</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Verser dans de l'eau frémissante et remuer continuellement pendant 5 à 8 minutes.</p>
+                </div>
+
+                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                  <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">03</span>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 3</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">Sublimer & Déguster</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Agrémenter selon vos envies : une cuillère de miel pur, cannelle ou lait végétal frais.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5 : Avis Clients */}
+          {activeTab === "reviews" && (
+            <div className="space-y-6">
+              {reviews.length === 0 ? (
+                <div className="rounded-2xl border border-border/80 bg-card/60 p-8 text-center">
+                  <p className="italic text-sm text-muted-foreground/80">{t("product.noReviews", "Soyez le premier client à donner votre avis sur cette céréale.")}</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {reviews.map((r, i) => (
+                    <div key={i} className="rounded-2xl border border-border/60 bg-secondary/30 p-4">
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="font-bold text-primary">{r.author_name}</span>
+                        <div className="flex text-gold">
+                          {Array.from({ length: r.rating }).map((_, j) => (
+                            <Star key={j} className="h-3 w-3 fill-gold" />
+                          ))}
+                        </div>
+                      </div>
+                      {r.comment && <p className="text-xs text-foreground/80 leading-relaxed">{r.comment}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Formulaire simple d'avis */}
+              <form onSubmit={handleReviewSubmit} className="pt-4 border-t border-border/60 space-y-3">
+                <span className="text-sm font-bold text-primary block">{t("product.reviewFormTitle", "Partager votre expérience")}</span>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    type="text"
+                    placeholder={t("product.reviewAuthorPlaceholder", "Votre prénom ou ville")}
+                    value={reviewAuthor}
+                    onChange={(e) => setReviewAuthor(e.target.value)}
+                    className="rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground/60"
+                  />
+                  <select
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                    className="rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground"
+                  >
+                    <option value={5}>★★★★★ (5/5) : Délicieux</option>
+                    <option value={4}>★★★★☆ (4/5) : Très bon</option>
+                    <option value={3}>★★★☆☆ (3/5) : Bon</option>
+                  </select>
+                </div>
+                <textarea
+                  rows={3}
+                  placeholder={t("product.reviewPlaceholder", "Partagez votre retour...")}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground/60"
+                />
+                <button
+                  type="submit"
+                  disabled={reviewMutation.isPending}
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition cursor-pointer"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>{t("product.reviewSubmit", "Publier mon avis")}</span>
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Céréales recommandées */}
       {relatedProducts.length > 0 && (

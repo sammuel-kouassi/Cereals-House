@@ -90,11 +90,14 @@ function AdminQuotesPage() {
   const queryClient = useQueryClient();
   const [selectedQuote, setSelectedQuote] = useState<QuoteRequest | null>(null);
   const [successInvoice, setSuccessInvoice] = useState<{
+    orderId: string;
     orderNumber: string;
     paymentUrl: string;
+    pdfUrl: string;
     clientName: string;
     phone: string;
     total: number;
+    emailSent?: boolean;
   } | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -146,11 +149,14 @@ function AdminQuotesPage() {
 
       // Conserver les détails pour la modale de confirmation & partage
       setSuccessInvoice({
+        orderId: data.orderId,
         orderNumber: data.orderNumber || "CMD-PRO",
         paymentUrl: data.paymentUrl,
+        pdfUrl: data.pdfUrl || `/api/invoices/${data.orderId}.pdf`,
         clientName,
         phone,
         total,
+        emailSent: data.emailSent,
       });
 
       setSelectedQuote(null);
@@ -252,7 +258,7 @@ function AdminQuotesPage() {
             Demandes de devis & Facturation B2B
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gérez les demandes de devis professionnels et générez directement des liens de paiement CinetPay personnalisés.
+            Gérez les demandes de devis professionnels et générez directement des liens de paiement Paystack personnalisés.
           </p>
         </div>
       </div>
@@ -953,7 +959,7 @@ function AdminQuotesPage() {
                   ) : (
                     <>
                       <Receipt className="w-4 h-4" />
-                      Générer la commande & le lien CinetPay
+                      Générer la commande & le lien de paiement
                     </>
                   )}
                 </button>
@@ -981,7 +987,7 @@ function AdminQuotesPage() {
               </DialogDescription>
             </div>
 
-            <div className="p-3.5 bg-muted/40 rounded-xl border border-border text-left space-y-2 text-xs">
+            <div className="p-3.5 bg-muted/40 rounded-xl border border-border text-left space-y-2.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Client :</span>
                 <span className="font-semibold">{successInvoice?.clientName}</span>
@@ -990,21 +996,59 @@ function AdminQuotesPage() {
                 <span className="text-muted-foreground">Montant total :</span>
                 <span className="font-bold text-gold">{formatCFA(successInvoice?.total || 0)}</span>
               </div>
+
+              {successInvoice?.emailSent && (
+                <div className="flex items-center gap-1.5 py-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  <span>Facture PDF envoyée automatiquement par email</span>
+                </div>
+              )}
+
+              {/* Téléchargement direct PDF */}
               <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-muted-foreground">Lien de paiement :</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (successInvoice?.paymentUrl) {
-                      navigator.clipboard.writeText(successInvoice.paymentUrl);
-                      toast.success("Lien copié dans le presse-papier !");
-                    }
-                  }}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold hover:underline"
+                <span className="text-muted-foreground inline-flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-gold" />
+                  Facture PDF :
+                </span>
+                <a
+                  href={successInvoice?.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-gold hover:underline"
                 >
-                  <Copy className="w-3 h-3" />
-                  Copier
-                </button>
+                  <ExternalLink className="w-3 h-3" />
+                  Voir / Télécharger le PDF
+                </a>
+              </div>
+
+              {/* Lien direct Paystack */}
+              <div className="flex justify-between items-center pt-2 border-t border-border">
+                <span className="text-muted-foreground">Lien Paystack direct :</span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={successInvoice?.paymentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                    title="Accéder directement à Paystack"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Ouvrir
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (successInvoice?.paymentUrl) {
+                        navigator.clipboard.writeText(successInvoice.paymentUrl);
+                        toast.success("Lien Paystack copié dans le presse-papier !");
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold hover:underline"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copier
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1013,7 +1057,15 @@ function AdminQuotesPage() {
                 href={
                   successInvoice
                     ? `https://wa.me/${successInvoice.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-                        `Bonjour ${successInvoice.clientName}, Cereals House vous remercie pour votre confiance. Voici votre facture personnalisée (${successInvoice.orderNumber}) d'un montant de ${formatCFA(successInvoice.total)}. Vous pouvez régler directement par Mobile Money ou Carte via ce lien sécurisé : ${successInvoice.paymentUrl}`
+                        `Bonjour ${successInvoice.clientName}, Cereals House vous remercie pour votre confiance !\n\nVoici votre facture officielle ${successInvoice.orderNumber} d'un montant de ${formatCFA(successInvoice.total)}.\n\n📄 Votre facture en PDF à télécharger :\n${
+                          successInvoice.pdfUrl.startsWith("http")
+                            ? successInvoice.pdfUrl
+                            : `${window.location.origin}${successInvoice.pdfUrl}`
+                        }\n\n💳 Régler directement sur Paystack (Mobile Money / Carte) :\n${successInvoice.paymentUrl}\n\n${
+                          successInvoice.emailSent
+                            ? "Un email avec la facture PDF en pièce jointe vous a également été envoyé automatiquement.\n\n"
+                            : ""
+                        }Pour toute question, nous restons à votre entière disposition !`
                       )}`
                     : "#"
                 }
@@ -1022,7 +1074,7 @@ function AdminQuotesPage() {
                 className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                Envoyer par WhatsApp au client
+                Envoyer par WhatsApp (Lien Paystack + PDF)
               </a>
 
               <button

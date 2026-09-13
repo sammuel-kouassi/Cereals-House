@@ -1,4 +1,4 @@
-import { isCinetPaySupportedCountry } from "@/lib/payments/supported-countries";
+import { isOnlinePaymentSupported } from "@/lib/payments/supported-countries";
 import orangeLogo from "@/assets/om.png";
 import waveLogo from "@/assets/waveci.jpg";
 import mtnLogo from "@/assets/mtn.jpg";
@@ -26,85 +26,70 @@ export type PaymentMethodDef = {
   logo?: string;
 };
 
-// Les pays disponibles par opérateur reflètent exactement ce que CinetPay
-// prend en charge (PAYMENT_METHODS_BY_COUNTRY du SDK cinetpay-js) : chaque
-// opérateur n'existe pas partout (ex : pas de Wave au Mali, pas d'Orange
-// Money au Togo/Bénin). Le Ghana n'apparaît volontairement dans AUCUNE liste
-// : CinetPay ne le prend en charge sur aucun opérateur pour l'instant.
+// Méthodes de paiement disponibles via Paystack
+// En Côte d'Ivoire (CI) : Mobile Money (Wave, Orange, MTN, Moov) + Carte bancaire
+// Dans les autres pays (Sénégal, Mali, Burkina, France, etc.) : Carte bancaire internationale (Visa, Mastercard, Apple Pay)
 export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "orange_money",
     name: "Orange Money",
-    tagline: "Paiement sécurisé via Orange Money",
-    countries: ["CI", "BF", "ML"],
+    tagline: "Paiement sécurisé via Orange Money Côte d'Ivoire",
+    countries: ["CI"],
     bg: "bg-[#FF7900]",
     fg: "text-white",
     ring: "ring-[#FF7900]",
-    badge: "orange",
+    badge: "Orange Money",
     logo: orangeLogo,
   },
   {
     id: "wave",
     name: "Wave",
-    tagline: "Paiement instantané sans frais",
-    countries: ["CI", "BF"],
+    tagline: "Paiement instantané sans frais via Wave Côte d'Ivoire",
+    countries: ["CI"],
     bg: "bg-[#1DC8F2]",
     fg: "text-white",
     ring: "ring-[#1DC8F2]",
-    badge: "wave~",
+    badge: "Wave",
     logo: waveLogo,
   },
   {
     id: "mtn_money",
     name: "MTN Mobile Money",
-    tagline: "Paiement rapide via MoMo",
-    countries: ["CI", "BJ"],
+    tagline: "Paiement rapide via MTN MoMo Côte d'Ivoire",
+    countries: ["CI"],
     bg: "bg-[#FFCC00]",
     fg: "text-black",
     ring: "ring-[#FFCC00]",
-    badge: "MTN",
+    badge: "MTN MoMo",
     logo: mtnLogo,
   },
   {
     id: "moov_money",
     name: "Moov Money",
-    tagline: "Réglez directement avec Flooz / Moov",
-    countries: ["CI", "BF", "ML", "TG", "BJ"],
+    tagline: "Réglez directement avec Moov Money Côte d'Ivoire",
+    countries: ["CI"],
     bg: "bg-[#005BAA]",
     fg: "text-white",
     ring: "ring-[#005BAA]",
-    badge: "moov",
+    badge: "Moov Money",
     logo: moovLogo,
   },
   {
-    id: "tmoney",
-    name: "TMoney",
-    tagline: "Paiement via Togocom TMoney",
-    countries: ["TG"],
-    bg: "bg-[#F5A623]",
-    fg: "text-white",
-    ring: "ring-[#F5A623]",
-    badge: "TMoney",
-  },
-  {
     id: "visa",
-    name: "Carte bancaire (Visa / Mastercard)",
-    tagline: "Paiement sécurisé par carte",
-    countries: ["CI", "BF", "ML", "TG", "BJ"],
+    name: "Carte bancaire (Visa, Mastercard, Apple Pay)",
+    tagline: "Paiement sécurisé international par carte bancaire",
+    countries: ["CI"],
     bg: "bg-gradient-to-br from-slate-800 to-slate-900",
     fg: "text-white",
     ring: "ring-slate-800",
-    badge: "VISA",
+    badge: "Carte Bancaire",
     logo: visaLogo,
   },
 ];
 
-// Un opérateur n'est proposable que s'il existe dans le pays du client ET que
-// l'intégration CinetPay est réellement active pour ce pays (voir
-// CINETPAY_SUPPORTED_COUNTRIES).
 export function methodAvailableIn(m: PaymentMethodDef, countryCode: string): boolean {
   return (
     (m.countries as readonly string[]).includes(countryCode) &&
-    isCinetPaySupportedCountry(countryCode)
+    isOnlinePaymentSupported(countryCode)
   );
 }

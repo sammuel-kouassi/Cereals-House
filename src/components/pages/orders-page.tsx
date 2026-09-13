@@ -152,6 +152,11 @@ export function OrdersPage() {
                   <div className="text-xs text-muted-foreground">
                     Passée le {new Date(order.created_at).toLocaleDateString("fr-FR", { dateStyle: "long" })}
                   </div>
+                  {order.status === "cancelled" && order.cancellation_reason && (
+                    <div className="text-[11px] text-destructive">
+                      Motif : {order.cancellation_reason}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between sm:justify-end gap-6 border-t border-border/50 pt-3 sm:border-0 sm:pt-0">

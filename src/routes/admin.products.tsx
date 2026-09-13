@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Package, Plus, Pencil, Trash2, X, Upload, ImageOff } from "lucide-react";
+import { Loader2, Package, Plus, Pencil, Trash2, X, Upload, ImageOff, AlertTriangle } from "lucide-react";
 import {
   listProductsAdminFn,
   upsertProductAdminFn,
@@ -29,6 +29,13 @@ function AdminProductsPage() {
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [stockDrafts, setStockDrafts] = useState<Record<string, number>>({});
   const [savingStockId, setSavingStockId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    type: "single" | "bulk";
+    product?: ProductRow;
+  } | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
@@ -72,14 +79,57 @@ function AdminProductsPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Désactiver ce produit ? Il ne sera plus visible en boutique.")) return;
+  async function confirmSingleDelete(product: ProductRow) {
+    setIsDeleting(true);
+    // Optimistic UI update
+    queryClient.setQueryData(["admin-products"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        products: old.products.filter((p: any) => p.id !== product.id),
+      };
+    });
+
     try {
-      await deleteProductAdminFn({ data: { id } });
-      toast.success("Produit désactivé");
-      invalidate();
+      await deleteProductAdminFn({ data: { id: product.id } });
+      toast.success(`Produit « ${product.name} » supprimé avec succès`);
+      setSelectedIds((prev) => prev.filter((item) => item !== product.id));
+      setDeleteConfirm(null);
+      await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      await queryClient.refetchQueries({ queryKey: ["admin-products"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erreur");
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la suppression");
+      await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function confirmBulkDelete() {
+    if (selectedIds.length === 0) return;
+    setIsDeleting(true);
+    const count = selectedIds.length;
+    // Optimistic UI update
+    queryClient.setQueryData(["admin-products"], (old: any) => {
+      if (!old) return old;
+      return {
+        ...old,
+        products: old.products.filter((p: any) => !selectedIds.includes(p.id)),
+      };
+    });
+
+    try {
+      await deleteProductAdminFn({ data: { ids: selectedIds } });
+      toast.success(`${count} produit(s) supprimé(s) avec succès`);
+      setSelectedIds([]);
+      setDeleteConfirm(null);
+      await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      await queryClient.refetchQueries({ queryKey: ["admin-products"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la suppression groupée");
+      await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -90,8 +140,21 @@ function AdminProductsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{data.products.length} produit(s)</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">{data.products.length} produit(s)</p>
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setDeleteConfirm({ isOpen: true, type: "bulk" })}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 text-destructive border border-destructive/30 px-3.5 py-1.5 text-xs font-semibold hover:bg-destructive hover:text-white transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span>Supprimer la sélection ({selectedIds.length})</span>
+            </button>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setEditingId("new")}
@@ -117,6 +180,21 @@ function AdminProductsPage() {
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+              <th className="w-12 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={data.products.length > 0 && selectedIds.length === data.products.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedIds(data.products.map((p) => p.id));
+                    } else {
+                      setSelectedIds([]);
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-border text-gold focus:ring-gold cursor-pointer accent-amber-500"
+                  title="Tout sélectionner"
+                />
+              </th>
               <th className="px-4 py-3 font-semibold">Produit</th>
               <th className="px-4 py-3 font-semibold">Catégorie</th>
               <th className="px-4 py-3 font-semibold">Stock</th>
@@ -129,7 +207,7 @@ function AdminProductsPage() {
           <tbody>
             {data.products.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
                   <Package className="mx-auto mb-2 h-8 w-8" /> Aucun produit pour le moment.
                 </td>
               </tr>
@@ -137,13 +215,28 @@ function AdminProductsPage() {
             {data.products.map((p) => {
               const draft = stockDrafts[p.id] ?? p.stock;
               const dirty = draft !== p.stock;
+              const isChecked = selectedIds.includes(p.id);
               return (
-                <tr key={p.id} className="border-b border-border/60 last:border-0">
+                <tr key={p.id} className={`border-b border-border/60 last:border-0 transition-colors ${isChecked ? "bg-amber-500/5" : ""}`}>
+                  <td className="w-12 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds((prev) => [...prev, p.id]);
+                        } else {
+                          setSelectedIds((prev) => prev.filter((id) => id !== p.id));
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-border text-gold focus:ring-gold cursor-pointer accent-amber-500"
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="font-medium text-primary">{p.name}</div>
                     <div className="text-xs text-muted-foreground">{p.slug}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{p.category ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{p.category ?? "-"}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <input
@@ -205,9 +298,9 @@ function AdminProductsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => setDeleteConfirm({ isOpen: true, type: "single", product: p })}
                         className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive"
-                        title="Désactiver"
+                        title="Supprimer définitivement"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -219,6 +312,66 @@ function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Modal de confirmation de suppression design & élégant */}
+      {deleteConfirm?.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl space-y-4">
+            <div className="flex items-start gap-3.5">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-destructive/15 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-display text-base sm:text-lg font-bold text-primary">
+                  {deleteConfirm.type === "bulk"
+                    ? `Supprimer ${selectedIds.length} produit(s) ?`
+                    : `Supprimer « ${deleteConfirm.product?.name} » ?`}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {deleteConfirm.type === "bulk"
+                    ? `Cette action supprimera définitivement les ${selectedIds.length} produits sélectionnés ainsi que tous leurs tarifs associés. Cette action est irréversible.`
+                    : "Cette action retirera définitivement ce produit du catalogue ainsi que ses prix enregistrés. Cette action est irréversible."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border/60">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+                className="rounded-xl border border-border px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition disabled:opacity-50 cursor-pointer"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (deleteConfirm.type === "bulk") {
+                    confirmBulkDelete();
+                  } else if (deleteConfirm.product) {
+                    confirmSingleDelete(deleteConfirm.product);
+                  }
+                }}
+                disabled={isDeleting}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-destructive px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-destructive/90 transition disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Suppression...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Supprimer définitivement</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -276,6 +429,42 @@ function ProductForm({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  async function compressImageFile(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error("Impossible de traiter cette image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Échec de la lecture du fichier"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -285,27 +474,19 @@ function ProductForm({
       toast.error("Merci de choisir un fichier image.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image trop lourde (5 Mo maximum).");
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image trop lourde (15 Mo maximum).");
       return;
     }
 
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setForm((prev) => ({ ...prev, image_url: result }));
-        toast.success("Image chargée avec succès");
-        setUploading(false);
-      };
-      reader.onerror = () => {
-        toast.error("Échec de la lecture du fichier image");
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      const compressed = await compressImageFile(file);
+      setForm((prev) => ({ ...prev, image_url: compressed }));
+      toast.success("Image optimisée et chargée avec succès");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Échec de l'envoi de l'image");
+      toast.error(err instanceof Error ? err.message : "Échec du chargement de l'image");
+    } finally {
       setUploading(false);
     }
   }
@@ -545,7 +726,7 @@ function ProductForm({
                 step="0.01"
                 value={prices[c.code] ?? ""}
                 onChange={(e) => setPrices((prev) => ({ ...prev, [c.code]: e.target.value }))}
-                placeholder="—"
+                placeholder="-"
                 className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
               />
             </div>

@@ -103,36 +103,31 @@ export function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
-      {/* 1. Header Sombre & Majestueux de la Boutique */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-[#120E0B] via-[#1E1712] to-[#120E0B] p-8 sm:p-12 text-white shadow-xl">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/15 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-amber-600/10 blur-3xl" />
+      {/* 1. Header Épuré & Transparent de la Boutique */}
+      <div className="relative overflow-hidden rounded-3xl border border-gold/35 border-animated-fine bg-card/40 backdrop-blur-md p-8 sm:p-12 text-foreground shadow-sm">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-amber-600/5 blur-3xl" />
 
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-gold">
-            <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-            <span>{t("products.eyebrow", "Boutique Officielle")}</span>
-          </div>
-
-          <h1 className="mt-4 font-display text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-            {t("products.title", "Nos Céréales & Farines d'Exception")}
+          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-primary leading-tight">
+            {t("products.title", "Nos farines & céréales fraîches")}
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-stone-300 max-w-2xl leading-relaxed">
-            {t("products.subtitle", "Grains nobles triés à la main, mouture sur meule de pierre et farines d'éveil pures pour toute la famille.")}
+          <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
+            {t("products.subtitle", "Garanties sans sable ni cailloux, moulues sur meule de pierre et prêtes à être cuisinées pour toute la famille.")}
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs text-stone-300">
-            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 rounded-full border border-border/80 bg-transparent px-3.5 py-1 text-foreground/80 font-medium shadow-2xs">
               <Leaf className="h-3.5 w-3.5 text-gold" />
               <span>100% Naturel & Sans additifs</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+            <div className="flex items-center gap-1.5 rounded-full border border-border/80 bg-transparent px-3.5 py-1 text-foreground/80 font-medium shadow-2xs">
               <ShieldCheck className="h-3.5 w-3.5 text-gold" />
               <span>Fraîcheur scellée sous vide</span>
             </div>
             {country && (
-              <div className="flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/15 px-3 py-1 text-gold font-semibold">
+              <div className="flex items-center gap-1.5 rounded-full border border-gold/35 bg-transparent px-3.5 py-1 text-gold font-semibold shadow-2xs">
                 <Flag code={country.code} className="h-3.5 w-5 rounded-[2px]" />
                 <span>Livraison vers {country.name}</span>
               </div>
@@ -151,41 +146,10 @@ export function ProductsPage() {
         />
       </div>
 
-      {/* 3. Zone de Filtrage & Sélection de Catégories */}
+      {/* 3. Zone de Filtrage & Contrôles */}
       <div className="space-y-6 pt-2">
         <div className="flex flex-col gap-4">
-          {/* Pilules de Catégories Défilantes */}
-          <div className="flex flex-wrap items-center gap-2">
-            {categories.map((c) => {
-              const isActive = category === c;
-              const count = c === ALL ? products.length : products.filter((p) => p.category === c).length;
-              const label = c === ALL ? t("products.all", "Toutes les catégories") : c;
-
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCategory(c)}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? "bg-gold text-gold-foreground shadow-gold font-bold scale-105"
-                      : "border border-border bg-card text-foreground/80 hover:border-gold/40 hover:bg-secondary/40"
-                  }`}
-                >
-                  <span>{label}</span>
-                  <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                      isActive ? "bg-black/20 text-gold-foreground" : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Barre de contrôle secondaire : Public + Tri + Bascule Vue */}
+          {/* Barre de contrôle : Public + Tri + Bascule Vue */}
           <div className="flex w-full flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card/60 p-3.5 backdrop-blur shadow-xs">
             {/* Filtre Public Cible */}
             <div className="flex flex-wrap items-center gap-1.5">

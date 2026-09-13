@@ -24,7 +24,7 @@ export function CartPage() {
         (it) =>
           `• ${it.name} × ${it.quantity}${
             country
-              ? ` — ${formatPrice(it.unitPrice * it.quantity, country.currency_code, country.currency_symbol)}`
+              ? ` : ${formatPrice(it.unitPrice * it.quantity, country.currency_code, country.currency_symbol)}`
               : ""
           }`,
       ),

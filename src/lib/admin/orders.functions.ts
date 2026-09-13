@@ -9,6 +9,7 @@ import { buildOrderStatusEmail } from "@/lib/email/templates";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 import { generatePackingSlipPdf } from "@/lib/receipt/generate-packing-slip.server";
 import { verifyAndConfirmPayment } from "@/lib/payments/payment-confirmation.server";
+import { notifyCustomerOfStatusChange } from "@/lib/orders/order-notifications.server";
 
 const ORDER_STATUSES = [
   "pending_payment",
@@ -120,15 +121,70 @@ export const updateOrderStatusAdminFn = createServerFn({ method: "POST" })
   .middleware([requireAdmin])
   .validator((data: unknown) => updateStatusInputSchema.parse(data))
   .handler(async ({ data, context }) => {
-    await query(
-      `UPDATE orders SET status = $1, updated_at = now() WHERE id = $2`,
-      [data.status, data.orderId]
+    const currentOrder = await queryOne<any>(
+      `SELECT id, status, payment_status FROM orders WHERE id = $1 LIMIT 1`,
+      [data.orderId]
     );
+
+    if (!currentOrder) {
+      throw new Error("Commande introuvable.");
+    }
+
+    // Gestion spécifique de l'annulation par l'admin
+    if (data.status === "cancelled" && currentOrder.status !== "cancelled") {
+      // 1. Réintégration automatique du stock
+      const items = await query<any>(
+        `SELECT product_id, quantity FROM order_items WHERE order_id = $1 AND product_id IS NOT NULL`,
+        [data.orderId]
+      );
+      for (const item of (items ?? [])) {
+        try {
+          await query(`SELECT increment_product_stock($1, $2)`, [item.product_id, item.quantity]);
+        } catch (e) {
+          await query(
+            `UPDATE products SET stock = stock + $1, updated_at = now() WHERE id = $2`,
+            [item.quantity, item.product_id]
+          ).catch(() => null);
+        }
+      }
+
+      await query(
+        `UPDATE orders 
+         SET status = 'cancelled', 
+             cancellation_reason = $1, 
+             cancelled_at = now(), 
+             cancelled_by = 'admin', 
+             updated_at = now() 
+         WHERE id = $2`,
+        [data.note?.trim() || "Annulée par l'administrateur", data.orderId]
+      );
+    } else if (data.status === "refunded") {
+      await query(
+        `UPDATE orders 
+         SET status = 'refunded', 
+             payment_status = 'refunded', 
+             updated_at = now() 
+         WHERE id = $1`,
+        [data.orderId]
+      );
+    } else {
+      await query(
+        `UPDATE orders SET status = $1, updated_at = now() WHERE id = $2`,
+        [data.status, data.orderId]
+      );
+    }
+
+    const historyNote =
+      data.status === "cancelled"
+        ? `Annulée par l'administrateur${data.note ? ` : ${data.note}` : ""}`
+        : data.status === "refunded"
+          ? `Remboursement validé par l'administrateur${data.note ? ` : ${data.note}` : ""}`
+          : data.note ?? null;
 
     await query(
       `INSERT INTO order_status_history (order_id, status, note, created_by)
        VALUES ($1, $2, $3, $4)`,
-      [data.orderId, data.status, data.note ?? null, context?.user?.id || null]
+      [data.orderId, data.status, historyNote, context?.user?.id || null]
     );
 
     try {
@@ -139,77 +195,6 @@ export const updateOrderStatusAdminFn = createServerFn({ method: "POST" })
 
     return { success: true };
   });
-
-async function notifyCustomerOfStatusChange(orderId: string, status: string) {
-  const order = await queryOne<any>(
-    `SELECT id, order_number, user_id, status, created_at, country_code, currency_code,
-            subtotal, shipping_fee, total, payment_method, shipping_full_name,
-            shipping_address, shipping_city
-     FROM orders WHERE id = $1 LIMIT 1`,
-    [orderId]
-  );
-  if (!order) return;
-
-  let email: string | undefined;
-  if (order.user_id) {
-    const u = await queryOne<{ email: string }>(`SELECT email FROM users WHERE id = $1 LIMIT 1`, [order.user_id]);
-    email = u?.email;
-  }
-  if (!email) return;
-
-  const appUrl = getPublicAppUrl();
-  const trackingUrl = `${appUrl}/orders/${order.id}`;
-  const emailContent = buildOrderStatusEmail({
-    orderNumber: order.order_number,
-    status,
-    trackingUrl,
-  });
-  if (!emailContent) return;
-
-  let attachments: { filename: string; content: string }[] | undefined;
-
-  if (status === "delivered") {
-    try {
-      const country = await queryOne<any>(`SELECT name, currency_symbol FROM countries WHERE code = $1 LIMIT 1`, [order.country_code]);
-      const items = await query<any>(`SELECT product_name, quantity, line_total FROM order_items WHERE order_id = $1`, [order.id]);
-
-      const pdfBytes = await generateReceiptPdf({
-        orderNumber: order.order_number,
-        createdAt: order.created_at,
-        customerName: order.shipping_full_name,
-        shippingAddress: order.shipping_address,
-        shippingCity: order.shipping_city,
-        countryName: country?.name ?? order.country_code,
-        currencySymbol: country?.currency_symbol ?? order.currency_code,
-        items: (items ?? []).map((it) => ({
-          name: it.product_name,
-          quantity: it.quantity,
-          lineTotal: Number(it.line_total),
-        })),
-        subtotal: Number(order.subtotal),
-        shippingFee: Number(order.shipping_fee),
-        total: Number(order.total),
-        paymentMethodLabel: order.payment_method ?? "Paiement à la livraison",
-      });
-
-      attachments = [
-        {
-          filename: `recu-${order.order_number}.pdf`,
-          content: Buffer.from(pdfBytes).toString("base64"),
-        },
-      ];
-    } catch (err) {
-      console.error("[orders] échec de la génération du reçu PDF", err);
-    }
-  }
-
-  await sendEmail({
-    to: email,
-    subject: emailContent.subject,
-    html: emailContent.html,
-    attachments,
-  });
-}
 
 const packingSlipInputSchema = z.object({ orderId: z.string() });
 
@@ -256,7 +241,7 @@ export const checkOrderPaymentStatusAdminFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const order = await queryOne<any>(
       `SELECT id, order_number, status, payment_status, country_code, total,
-              currency_code, payment_method, cinetpay_transaction_id
+              currency_code, payment_method, payment_reference, cinetpay_transaction_id
        FROM orders WHERE id = $1 LIMIT 1`,
       [data.orderId]
     );

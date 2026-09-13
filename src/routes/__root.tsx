@@ -124,31 +124,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cereals House — Céréales africaines premium" },
+      { title: "Cereals House : Céréales & farines d'Afrique de l'Ouest" },
       {
         name: "description",
         content:
-          "Achetez en ligne du riz parfumé, mil, fonio, maïs, sorgho et plus. Livraison en Afrique de l'Ouest, France et USA. Paiement Mobile Money & Visa.",
+          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora. Paiement sécurisé par Mobile Money et carte.",
       },
       { name: "author", content: "Cereals House" },
-      { property: "og:title", content: "Cereals House — Céréales africaines premium" },
+      { property: "og:title", content: "Cereals House : Céréales & farines d'Afrique de l'Ouest" },
       {
         property: "og:description",
         content:
-          "Cereals House Express is an e-commerce platform for purchasing a variety of cereals online.",
+          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Cereals House — Céréales africaines premium" },
-      {
-        name: "description",
-        content:
-          "Cereals House Express is an e-commerce platform for purchasing a variety of cereals online.",
-      },
+      { name: "twitter:title", content: "Cereals House : Céréales & farines d'Afrique de l'Ouest" },
       {
         name: "twitter:description",
         content:
-          "Cereals House Express is an e-commerce platform for purchasing a variety of cereals online.",
+          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora.",
       },
     ],
     links: [{ rel: "stylesheet", href: appCss }],

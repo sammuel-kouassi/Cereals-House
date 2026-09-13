@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Copy, MessageCircle, FileText } from "lucide-react";
+import { Loader2, Plus, Trash2, Copy, MessageCircle, FileText, ExternalLink, Mail } from "lucide-react";
 import { createQuoteOrderAdminFn } from "@/lib/orders/quote-order.functions";
 import { listCountriesAdminFn } from "@/lib/admin/countries.functions";
 import { PageLoader } from "@/components/page-loader";
@@ -31,7 +31,12 @@ function AdminInvoicePage() {
   });
   const [items, setItems] = useState<LineItem[]>([{ name: "", quantity: 1, unitPrice: 0 }]);
   const [saving, setSaving] = useState(false);
-  const [result, setResult] = useState<{ orderNumber: string; paymentLink: string } | null>(null);
+  const [result, setResult] = useState<{
+    orderNumber: string;
+    paymentLink: string;
+    pdfUrl: string;
+    emailSent?: boolean;
+  } | null>(null);
 
   const subtotal = items.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
   const total = subtotal + form.shippingFee;
@@ -73,7 +78,12 @@ function AdminInvoicePage() {
           shippingFee: form.shippingFee,
         },
       });
-      setResult({ orderNumber: res.orderNumber, paymentLink: res.paymentLink });
+      setResult({
+        orderNumber: res.orderNumber,
+        paymentLink: res.paymentLink,
+        pdfUrl: res.pdfUrl,
+        emailSent: res.emailSent,
+      });
       toast.success("Facture créée");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Échec de la création de la facture");
@@ -100,48 +110,95 @@ function AdminInvoicePage() {
   if (isLoading || !countriesData) return <PageLoader />;
 
   if (result) {
+    const fullPdfUrl = result.pdfUrl.startsWith("http")
+      ? result.pdfUrl
+      : `${window.location.origin}${result.pdfUrl}`;
+
     const whatsappText = encodeURIComponent(
-      `Bonjour ${form.customerName}, voici le lien pour régler votre commande ${result.orderNumber} : ${result.paymentLink}`,
+      `Bonjour ${form.customerName}, Cereals House vous remercie pour votre commande !\n\nVoici votre facture officielle ${result.orderNumber} d'un montant de ${total.toLocaleString("fr-FR")} FCFA.\n\n📄 Votre facture en PDF à télécharger :\n${fullPdfUrl}\n\n💳 Régler directement sur Paystack (Mobile Money / Carte) :\n${result.paymentLink}\n\n${
+        result.emailSent
+          ? "Un email récapitulatif avec votre facture PDF jointe vous a également été envoyé automatiquement.\n\n"
+          : ""
+      }Pour toute question, nous restons à votre disposition !`,
     );
+
+    const cleanPhone = form.phone.replace(/[^0-9]/g, "");
+    const waUrl = cleanPhone ? `https://wa.me/${cleanPhone}?text=${whatsappText}` : `https://wa.me/?text=${whatsappText}`;
+
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-gold/30 bg-secondary/20 p-8 text-center">
+      <div className="mx-auto max-w-lg rounded-2xl border border-gold/30 bg-secondary/20 p-8 text-center space-y-4">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15 text-emerald-600">
           <FileText className="h-7 w-7" />
         </div>
-        <h2 className="mt-4 font-display text-xl font-bold text-primary">
+        <h2 className="font-display text-xl font-bold text-primary">
           Facture {result.orderNumber} créée
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Envoie ce lien au client pour qu'il règle sa commande en ligne, en toute sécurité.
+        <p className="text-sm text-muted-foreground">
+          La commande a été enregistrée. Le client peut payer directement sur Paystack et télécharger son reçu PDF.
         </p>
-        <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-          <span className="flex-1 truncate text-xs text-muted-foreground">
-            {result.paymentLink}
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              navigator.clipboard.writeText(result.paymentLink);
-              toast.success("Lien copié");
-            }}
-            className="shrink-0 rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-gold"
-          >
-            <Copy className="h-4 w-4" />
-          </button>
+
+        {result.emailSent && (
+          <div className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full bg-emerald-500/10 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+            <Mail className="w-3.5 h-3.5" />
+            <span>Facture PDF envoyée automatiquement par email au client</span>
+          </div>
+        )}
+
+        {/* Détails et liens */}
+        <div className="rounded-xl border border-border bg-background p-4 text-left text-xs space-y-2.5">
+          <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">Facture PDF :</span>
+            <a
+              href={result.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 font-bold text-gold hover:underline"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Voir / Télécharger le PDF
+            </a>
+          </div>
+
+          <div className="flex justify-between items-center pt-2 border-t border-border">
+            <span className="text-muted-foreground">Lien Paystack direct :</span>
+            <div className="flex items-center gap-2">
+              <a
+                href={result.paymentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Ouvrir
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(result.paymentLink);
+                  toast.success("Lien Paystack copié !");
+                }}
+                className="inline-flex items-center gap-1 font-semibold text-gold hover:underline"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                Copier
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row pt-2">
           <a
-            href={`https://wa.me/?text=${whatsappText}`}
+            href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:brightness-95"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-xs font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:brightness-95"
           >
-            <MessageCircle className="h-4 w-4" /> Envoyer par WhatsApp
+            <MessageCircle className="h-4 w-4" /> Envoyer par WhatsApp (Lien + PDF)
           </a>
           <button
             type="button"
             onClick={handleNewInvoice}
-            className="flex-1 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-foreground/80 transition-all duration-300 hover:bg-secondary"
+            className="flex-1 rounded-xl border border-border px-5 py-3 text-xs font-semibold text-foreground/80 transition-all duration-300 hover:bg-secondary"
           >
             Créer une autre facture
           </button>
