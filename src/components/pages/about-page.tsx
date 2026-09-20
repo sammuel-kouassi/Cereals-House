@@ -18,6 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Reveal } from "@/components/reveal";
 import storyImage from "@/assets/hero_cereales_mixtes_pack.jpg";
+import founderImage from "@/assets/lucette-dossou-ceo.jpg";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
 import { CerealMotifBackground } from "@/components/ui/cereal-motif-background";
@@ -177,36 +178,38 @@ export function AboutPage() {
       {/* ============================================================ */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:py-24 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-12">
-          {/* Colonne Image Remplacée avec effet vitrine de prestige */}
+          {/* Colonne Image Fondatrice avec effet vitrine de prestige */}
           <div className="lg:col-span-6">
             <Reveal direction="left" delay={50}>
               <div className="group relative overflow-hidden rounded-3xl border border-gold/35 bg-card shadow-2xl transition-all duration-500 hover:border-gold/60">
-                <img
-                  src={storyImage}
-                  alt="Céréales Mixtes Prise de Poids Rapide - Sachets et bol de farine meule Cereals House"
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+                <div className="aspect-[4/5] sm:aspect-[3/4] lg:aspect-[4/5] w-full overflow-hidden bg-stone-900">
+                  <img
+                    src={founderImage}
+                    alt="DOSSOU Lucette - Fondatrice et CEO de Cereals House"
+                    className="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                </div>
 
                 {/* Voile dégradé doux pour le badge inférieur */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
 
                 {/* Badge flottant en haut à droite */}
-                <div className="absolute top-4 right-4 rounded-full border border-gold/40 bg-black/70 px-3.5 py-1 text-xs font-semibold text-gold backdrop-blur-md shadow-md">
-                  Formule Prise de Poids & Vitalité
+                <div className="absolute top-4 right-4 rounded-full border border-gold/40 bg-black/75 px-3.5 py-1 text-xs font-semibold text-gold backdrop-blur-md shadow-md">
+                  Fondatrice & CEO
                 </div>
 
                 {/* Encart descriptif inférieur translucide */}
-                <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/15 bg-black/65 p-4 backdrop-blur-md shadow-lg">
+                <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/15 bg-black/70 p-4 backdrop-blur-md shadow-lg">
                   <div className="space-y-0.5">
                     <div className="text-sm text-white font-bold tracking-tight">
-                      Céréales Mixtes & Farines d'Éveil
+                      DOSSOU Lucette
                     </div>
                     <div className="text-xs text-stone-300 font-light">
-                      Mouture fine sur meule • Prêtes à déguster
+                      Vision, Discipline & Goût du Terroir
                     </div>
                   </div>
                   <span className="shrink-0 rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold uppercase tracking-wider">
-                    100% Naturel
+                    Cereals House
                   </span>
                 </div>
               </div>
@@ -395,12 +398,19 @@ export function AboutPage() {
           <div className="relative overflow-hidden rounded-3xl border border-gold/35 bg-card/60 backdrop-blur-md p-8 sm:p-12 shadow-xl">
             <Quote className="h-12 w-12 text-gold/25 absolute -top-2 -left-2" />
             <div className="relative z-10 text-center max-w-3xl mx-auto space-y-5">
+              <div className="mx-auto h-20 w-20 rounded-full border-2 border-gold/50 p-1 shadow-lg shadow-gold/10">
+                <img
+                  src={founderImage}
+                  alt="DOSSOU Lucette"
+                  className="h-full w-full rounded-full object-cover object-top"
+                />
+              </div>
               <p className="font-display text-lg sm:text-xl md:text-2xl text-primary font-medium italic leading-relaxed">
                 « Cereal House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »
               </p>
               <div className="pt-4 border-t border-border/60">
                 <div className="font-display text-lg font-bold text-gold">DOSSOU Lucette</div>
-                <div className="text-xs text-muted-foreground">Fondatrice de Cereal House</div>
+                <div className="text-xs text-muted-foreground">Fondatrice & CEO de Cereal House</div>
               </div>
             </div>
           </div>

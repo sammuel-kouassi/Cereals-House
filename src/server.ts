@@ -15,6 +15,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleCinetPayNotify, handleCinetPayReturn } from "./lib/payments/cinetpay.webhook.server";
 import { handlePaystackWebhook } from "./lib/payments/paystack.webhook.server";
+import { handleGeniusPayWebhook } from "./lib/payments/geniuspay.webhook.server";
 import { handleInvoicePdfDownload } from "./lib/receipt/download-invoice.server";
 
 type ServerEntry = {
@@ -56,6 +57,9 @@ export default {
     try {
       // Callbacks CinetPay & Paystack, et téléchargement PDF direct
       const { pathname } = new URL(request.url);
+      if (pathname === "/api/geniuspay/webhook") {
+        return await handleGeniusPayWebhook(request);
+      }
       if (pathname === "/api/paystack/webhook") {
         return await handlePaystackWebhook(request);
       }

@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/admin/require-admin";
 import { sendEmail } from "@/lib/email/resend.server";
 import { buildQuoteRequestAdminEmail } from "@/lib/email/templates";
 import { getPublicAppUrl } from "@/lib/app-url.server";
-import { initializePaystackTransaction } from "@/lib/payments/paystack.server";
+import { initializeGeniusPayTransaction } from "@/lib/payments/geniuspay.server";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 
 const submitQuoteSchema = z.object({
@@ -239,17 +239,17 @@ export const createInvoiceFromQuoteFn = createServerFn({ method: "POST" })
         subtotal: data.subtotal,
         shippingFee: data.shippingFee,
         total,
-        paymentMethodLabel: "Paiement en ligne Paystack (Mobile Money / Carte)",
+        paymentMethodLabel: "Paiement en ligne GeniusPay (Mobile Money / Carte)",
       });
     } catch (pdfErr) {
       console.error("[quotes] Erreur génération PDF facture:", pdfErr);
     }
 
-    // 5. Initialiser directement la session Paystack pour obtenir le lien direct
-    let directPaystackUrl = "";
+    // 5. Initialiser directement la session GeniusPay pour obtenir le lien direct
+    let directGeniusPayUrl = "";
     try {
       const clientEmail = (quote.email && quote.email.includes("@")) ? quote.email.trim() : "client@cerealshouse.com";
-      const paystackRes = await initializePaystackTransaction({
+      const geniusRes = await initializeGeniusPayTransaction({
         order: {
           id: order.id,
           order_number: order.order_number,
@@ -261,13 +261,13 @@ export const createInvoiceFromQuoteFn = createServerFn({ method: "POST" })
         },
         email: clientEmail,
       });
-      directPaystackUrl = paystackRes.authorizationUrl;
-    } catch (paystackErr) {
-      console.error("[quotes] Erreur initialisation Paystack direct:", paystackErr);
+      directGeniusPayUrl = geniusRes.checkoutUrl;
+    } catch (geniusErr) {
+      console.error("[quotes] Erreur initialisation GeniusPay direct:", geniusErr);
     }
 
-    // Le lien de paiement prioritaire est l'URL Paystack directe demandée par le client
-    const paymentUrl = directPaystackUrl || internalPayUrl;
+    // Le lien de paiement prioritaire est l'URL GeniusPay directe
+    const paymentUrl = directGeniusPayUrl || internalPayUrl;
 
     // 6. Envoi automatique de l'email avec la facture PDF en pièce jointe
     let emailSent = false;
@@ -360,7 +360,8 @@ export const createInvoiceFromQuoteFn = createServerFn({ method: "POST" })
       orderId: order.id,
       orderNumber: order.order_number,
       paymentUrl,
-      directPaystackUrl,
+      directGeniusPayUrl,
+      directPaystackUrl: directGeniusPayUrl,
       pdfUrl,
       token,
       emailSent,

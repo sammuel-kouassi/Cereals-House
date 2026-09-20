@@ -9,7 +9,7 @@ const createOrderSchema = z.object({
   subtotal: z.coerce.number().positive(),
   shippingFee: z.coerce.number().min(0),
   total: z.coerce.number().positive(),
-  paymentMethod: z.enum(["orange_money", "wave", "mtn_money", "moov_money", "visa", "cash_on_delivery", "paystack"]),
+  paymentMethod: z.enum(["orange_money", "wave", "mtn_money", "moov_money", "visa", "cash_on_delivery", "paystack", "geniuspay"]),
   shippingFullName: z.string().min(2),
   shippingPhone: z.string().min(5),
   shippingAddress: z.string().min(3),

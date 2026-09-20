@@ -60,7 +60,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
       });
       window.location.href = paymentUrl;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Échec de l'accès à Paystack");
+      toast.error(err instanceof Error ? err.message : "Échec de l'accès à GeniusPay");
       setSubmitting(false);
     }
   }
@@ -165,7 +165,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-gold" />
-                <h2 className="font-display text-base sm:text-lg font-bold text-primary">Paiement Sécurisé Paystack</h2>
+                <h2 className="font-display text-base sm:text-lg font-bold text-primary">Paiement Sécurisé GeniusPay</h2>
               </div>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                 100% Sécurisé
@@ -173,12 +173,12 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Vous allez être redirigé vers la plate-forme officielle Paystack. Choisissez votre moyen préféré : <strong>Wave, Orange Money, MTN, Moov</strong> ou <strong>Carte bancaire</strong>.
+              Vous allez être redirigé vers la plate-forme officielle GeniusPay. Choisissez votre moyen préféré : <strong>Wave, Orange Money, MTN MoMo, Moov Money</strong> ou <strong>Carte bancaire</strong>.
             </p>
 
             <div className="flex flex-wrap items-center gap-1.5 py-1">
               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mr-1">Canaux :</span>
-              {["Wave", "Orange Money", "MTN", "Moov", "Carte Bancaire", "Apple Pay"].map((c) => (
+              {["Wave", "Orange Money", "MTN MoMo", "Moov Money", "Carte bancaire"].map((c) => (
                 <span key={c} className="rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-foreground">
                   {c}
                 </span>
@@ -194,12 +194,12 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Accès en cours à Paystack...</span>
+                  <span>Accès en cours à GeniusPay...</span>
                 </>
               ) : (
                 <>
                   <Lock className="h-4 w-4" />
-                  <span>Payer sur Paystack ({formatPrice(order.total, order.currencyCode, order.currencySymbol)})</span>
+                  <span>Payer avec GeniusPay ({formatPrice(order.total, order.currencyCode, order.currencySymbol)})</span>
                   <ExternalLink className="h-4 w-4 ml-1" />
                 </>
               )}

@@ -28,14 +28,21 @@ import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/format";
 import { createOrderFn } from "@/lib/orders/orders.functions";
 import { listPublicCityShippingRatesFn } from "@/lib/shipping/shipping.functions";
-import { initiatePaystackPaymentFn } from "@/lib/payments/paystack.functions";
+import { initiateGeniusPayPaymentFn } from "@/lib/payments/geniuspay.functions";
 import { PageLoader } from "@/components/page-loader";
-import { isOnlinePaymentSupported } from "@/lib/payments/supported-countries";
+import {
+  isOnlinePaymentSupported,
+  getCountryPaymentChannels,
+  detectCountryFromPhone,
+  getCountryDialInfo,
+  COUNTRY_DIAL_DATA,
+} from "@/lib/payments/supported-countries";
+import { Flag } from "@/components/flag";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 export function CheckoutPage() {
   const { items, clearCart, totalItems } = useCart();
-  const { country } = useCountry();
+  const { country, setCountryCode } = useCountry();
   const { user, loading } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
@@ -44,8 +51,7 @@ export function CheckoutPage() {
   const [redirecting, setRedirecting] = useState(false);
   const orderPlacedRef = useRef(false);
 
-  const [paymentMode, setPaymentMode] = useState<"online" | "cod">("online");
-  const [selectedOperator, setSelectedOperator] = useState<string>("all");
+  const [paymentMode, setPaymentMode] = useState<"geniuspay" | "cod">("geniuspay");
   const [form, setForm] = useState({
     full_name: user?.full_name ?? "",
     phone: user?.phone ?? "",
@@ -63,13 +69,17 @@ export function CheckoutPage() {
   const currencySymbol = country?.currency_symbol ?? "FCFA";
   const currencyCode = country?.currency_code ?? "XOF";
 
+  const isOnlineSupported = isOnlinePaymentSupported(currentCountryCode);
+  const countryPaymentChannels = getCountryPaymentChannels(currentCountryCode);
+  const currentDialInfo = getCountryDialInfo(currentCountryCode);
+
   const COUNTRY_METADATA: Record<string, { name: string; flag: string; phoneCode: string; placeholder: string }> = {
     CI: { name: "Côte d'Ivoire", flag: "🇨🇮", phoneCode: "+225", placeholder: "+225 07 00 00 00 00" },
     SN: { name: "Sénégal", flag: "🇸🇳", phoneCode: "+221", placeholder: "+221 77 000 00 00" },
-    ML: { name: "Mali", flag: "🇲🇱", phoneCode: "+223", placeholder: "+223 70 00 00 00" },
-    BF: { name: "Burkina Faso", flag: "🇧🇫", phoneCode: "+226", placeholder: "+226 70 00 00 00" },
-    TG: { name: "Togo", flag: "🇹🇬", phoneCode: "+228", placeholder: "+228 90 00 00 00" },
     BJ: { name: "Bénin", flag: "🇧🇯", phoneCode: "+229", placeholder: "+229 97 00 00 00" },
+    BF: { name: "Burkina Faso", flag: "🇧🇫", phoneCode: "+226", placeholder: "+226 70 00 00 00" },
+    ML: { name: "Mali", flag: "🇲🇱", phoneCode: "+223", placeholder: "+223 70 00 00 00" },
+    TG: { name: "Togo", flag: "🇹🇬", phoneCode: "+228", placeholder: "+228 90 00 00 00" },
     GH: { name: "Ghana", flag: "🇬🇭", phoneCode: "+233", placeholder: "+233 24 000 0000" },
     FR: { name: "France & Europe", flag: "🇫🇷", phoneCode: "+33", placeholder: "+33 6 00 00 00 00" },
     US: { name: "États-Unis", flag: "🇺🇸", phoneCode: "+1", placeholder: "+1 202 555 0100" },
@@ -78,17 +88,29 @@ export function CheckoutPage() {
   const currentCountryMeta = COUNTRY_METADATA[currentCountryCode] || {
     name: country?.name || currentCountryCode,
     flag: "🌍",
-    phoneCode: "+225",
-    placeholder: "+225 00 00 00 00 00",
+    phoneCode: currentDialInfo.dialCode,
+    placeholder: currentDialInfo.placeholder,
   };
 
   const isCodAvailable = currentCountryCode === "CI";
 
   useEffect(() => {
     if (!isCodAvailable && paymentMode === "cod") {
-      setPaymentMode("online");
+      setPaymentMode("geniuspay");
     }
   }, [currentCountryCode, isCodAvailable, paymentMode]);
+
+  // Gestion de la saisie téléphonique avec détection automatique du pays
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setForm((prev) => ({ ...prev, phone: raw }));
+
+    // Si l'utilisateur saisit ou colle un indicatif (+221, 00221, etc.), synchroniser le pays
+    const detected = detectCountryFromPhone(raw);
+    if (detected && detected !== currentCountryCode) {
+      setCountryCode(detected);
+    }
+  };
 
   // Tarifs spécifiques aux villes pour ce pays
   const availableCityRates = (cityRatesData?.rates ?? []).filter(
@@ -105,7 +127,8 @@ export function CheckoutPage() {
   // Calcul du sous-total
   const subtotal = items.reduce((acc, it) => {
     const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
-    const unitPrice = Number(priceObj?.price ?? it.unitPrice ?? 0);
+    const fallbackPrice = it.prices?.find((p) => p.country_code === "CI")?.price ?? it.unitPrice ?? 0;
+    const unitPrice = Number(priceObj?.price ?? fallbackPrice);
     return acc + unitPrice * Number(it.quantity || 1);
   }, 0);
 
@@ -170,7 +193,7 @@ export function CheckoutPage() {
     );
   }
 
-  async function handleSubmit(e?: React.FormEvent, chosenMode?: "online" | "cod") {
+  async function handleSubmit(e?: React.FormEvent, chosenMode?: "geniuspay" | "cod") {
     if (e) e.preventDefault();
     if (!country) return;
     if (!form.full_name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
@@ -178,8 +201,8 @@ export function CheckoutPage() {
       return;
     }
 
-    // Commandes export hors Côte d'Ivoire : prise en charge personnalisée via WhatsApp
-    if (currentCountryCode !== "CI") {
+    // Commandes export vers pays non pris en charge par le paiement direct GeniusPay : prise en charge personnalisée via WhatsApp
+    if (!isOnlineSupported) {
       handleWhatsAppExport();
       return;
     }
@@ -193,7 +216,8 @@ export function CheckoutPage() {
     try {
       const orderPayloadItems = items.map((it) => {
         const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
-        const unitPrice = Number(priceObj?.price ?? it.unitPrice ?? 0);
+        const fallbackPrice = it.prices?.find((p) => p.country_code === "CI")?.price ?? it.unitPrice ?? 0;
+        const unitPrice = Number(priceObj?.price ?? fallbackPrice);
         const quantity = Number(it.quantity || 1);
         return {
           productId: it.productId || it.slug,
@@ -205,7 +229,8 @@ export function CheckoutPage() {
         };
       });
 
-      const effectivePaymentMethod = selectedMode === "cod" ? "cash_on_delivery" : "paystack";
+      const effectivePaymentMethod =
+        selectedMode === "cod" ? "cash_on_delivery" : "geniuspay";
 
       const orderRes = await createOrderFn({
         data: {
@@ -239,9 +264,9 @@ export function CheckoutPage() {
         return;
       }
 
-      // Paiement en ligne sécurisé via Paystack (Mobile Money & Carte)
+      // Paiement en ligne sécurisé via GeniusPay
       setRedirecting(true);
-      const paymentRes = await initiatePaystackPaymentFn({
+      const paymentRes = await initiateGeniusPayPaymentFn({
         data: {
           orderId,
           emailOverride: user?.email || undefined,
@@ -249,10 +274,10 @@ export function CheckoutPage() {
       });
 
       if (paymentRes.paymentUrl) {
-        toast.info("Redirection vers la passerelle sécurisée de paiement Paystack…");
+        toast.info("Redirection vers la passerelle sécurisée GeniusPay…");
         window.location.href = paymentRes.paymentUrl;
       } else {
-        throw new Error("Lien de paiement introuvable");
+        throw new Error("Lien de paiement GeniusPay introuvable");
       }
     } catch (err: any) {
       console.error("[Checkout error]", err);
@@ -330,9 +355,9 @@ export function CheckoutPage() {
               </div>
               <div>
                 <h2 className="font-display text-lg sm:text-xl font-bold text-primary">
-                  {t("checkout.shippingSection", "1. Adresse & Coordonnées de Livraison")}
+                  {t("checkout.shippingSection", "Coordonnées de Livraison & Règlement")}
                 </h2>
-                <p className="text-xs text-muted-foreground">{t("checkout.shippingSubtitle", "Où souhaitez-vous recevoir votre colis ?")}</p>
+                <p className="text-xs text-muted-foreground">{t("checkout.shippingSubtitle", "Renseignez vos informations de livraison et choisissez votre mode de règlement")}</p>
               </div>
             </div>
 
@@ -355,14 +380,31 @@ export function CheckoutPage() {
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.phone", "Numéro de téléphone / WhatsApp *")}
                 </label>
-                <input
-                  type="tel"
-                  required
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder={currentCountryMeta.placeholder}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
-                />
+                <div className="flex rounded-xl border border-border bg-background focus-within:border-gold overflow-hidden transition-colors">
+                  <div className="flex items-center gap-1.5 px-3 bg-muted/40 border-r border-border/60 text-xs font-semibold shrink-0 cursor-pointer select-none">
+                    <Flag code={currentCountryCode} className="h-3.5 w-5 rounded-[2px] object-cover" />
+                    <select
+                      value={currentCountryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className="bg-transparent border-0 outline-none text-foreground font-semibold cursor-pointer py-2.5 text-xs pr-1"
+                      aria-label="Indicatif pays"
+                    >
+                      {Object.entries(COUNTRY_DIAL_DATA).map(([cCode, info]) => (
+                        <option key={cCode} value={cCode} className="bg-background text-foreground">
+                          {info.flag} {info.dialCode} ({info.code})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    value={form.phone}
+                    onChange={handlePhoneChange}
+                    placeholder={currentDialInfo.placeholder}
+                    className="w-full bg-transparent px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
+                  />
+                </div>
               </div>
 
               <div>
@@ -406,144 +448,55 @@ export function CheckoutPage() {
                 />
               </div>
             </div>
-          </section>
 
-          {/* Section 2 : Mode de règlement (Côte d'Ivoire) */}
-          {currentCountryCode === "CI" ? (
-            <section className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/60 backdrop-blur-md p-5 sm:p-6 shadow-xs space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
-                    <CreditCard className="h-4.5 w-4.5" />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-base sm:text-lg font-bold text-primary">
-                      2. Mode de Règlement
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      Choisissez comment vous souhaitez régler votre commande
-                    </p>
-                  </div>
+            {/* Mode de règlement intégré style pilule (comme l'image de référence) */}
+            {isOnlineSupported && (
+              <div className="mt-7 pt-6 border-t border-border/70 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="block text-xs font-semibold text-foreground">
+                    {t("checkout.paymentMode", "Mode de règlement")}
+                  </label>
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {countryPaymentChannels.countryName} ({currencySymbol})
+                  </span>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 border border-gold/20 px-3 py-1 text-xs font-semibold text-gold">
-                  <span>🇨🇮</span>
-                  <span>Côte d'Ivoire</span>
-                </span>
-              </div>
 
-              {/* Sélection simple et élégante du mode de règlement */}
-              <div className="grid gap-3 sm:grid-cols-2 pt-1">
-                {/* Option 1 : Mobile Money & Carte */}
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setPaymentMode("online")}
-                  className={`flex items-center justify-between rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
-                    paymentMode === "online"
-                      ? "border-gold bg-gold/[0.08] shadow-xs"
-                      : "border-border/70 bg-background/50 hover:border-gold/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`grid h-9 w-9 place-items-center rounded-xl transition-colors ${
-                        paymentMode === "online"
-                          ? "bg-gold text-white"
-                          : "bg-muted text-muted-foreground"
+                {/* Boutons de sélection segmentés style pilule */}
+                <div className="flex items-center">
+                  <div className="inline-flex items-center p-1.5 rounded-full bg-secondary/50 border border-border/80 gap-1 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMode("geniuspay")}
+                      className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                        paymentMode === "geniuspay"
+                          ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                          : "text-muted-foreground hover:text-foreground hover:bg-card/40"
                       }`}
                     >
-                      <Smartphone className="h-4.5 w-4.5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-display text-sm font-bold text-primary">
-                          Mobile Money & Carte
-                        </span>
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-gold bg-gold/15 px-1.5 py-0.5 rounded-md">
-                          En ligne
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-muted-foreground block mt-0.5">
-                        Wave, Orange, MTN, Moov, Carte (Paystack)
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                      paymentMode === "online"
-                        ? "border-gold bg-gold text-white"
-                        : "border-muted-foreground/30"
-                    }`}
-                  >
-                    {paymentMode === "online" && <CheckCircle2 className="h-3.5 w-3.5" />}
-                  </div>
-                </div>
+                      Payer en ligne
+                    </button>
 
-                {/* Option 2 : Espèces à la livraison */}
-                {isCodAvailable ? (
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setPaymentMode("cod")}
-                    className={`flex items-center justify-between rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer ${
-                      paymentMode === "cod"
-                        ? "border-gold bg-gold/[0.08] shadow-xs"
-                        : "border-border/70 bg-background/50 hover:border-gold/40"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`grid h-9 w-9 place-items-center rounded-xl transition-colors ${
+                    {isCodAvailable && (
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMode("cod")}
+                        className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                           paymentMode === "cod"
-                            ? "bg-gold text-white"
-                            : "bg-muted text-muted-foreground"
+                            ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-card/40"
                         }`}
                       >
-                        <Banknote className="h-4.5 w-4.5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-display text-sm font-bold text-primary">
-                            Espèces à la livraison
-                          </span>
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md">
-                            Abidjan
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-muted-foreground block mt-0.5">
-                          Règlement auprès du livreur à la réception
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                        paymentMode === "cod"
-                          ? "border-gold bg-gold text-white"
-                          : "border-muted-foreground/30"
-                      }`}
-                    >
-                      {paymentMode === "cod" && <CheckCircle2 className="h-3.5 w-3.5" />}
-                    </div>
+                        Payer à la livraison
+                      </button>
+                    )}
                   </div>
-                ) : null}
+                </div>
               </div>
+            )}
+          </section>
 
-              {/* Badges de sécurité et réseaux */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60 text-[11px] text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>Paiement sécurisé · Chiffrement SSL</span>
-                </div>
-                <div className="flex items-center gap-1 text-[10px]">
-                  <span className="rounded bg-[#1BAEF4]/10 text-[#0084C7] font-bold px-1.5 py-0.5">Wave</span>
-                  <span className="rounded bg-[#FF6600]/10 text-[#E65100] font-bold px-1.5 py-0.5">Orange</span>
-                  <span className="rounded bg-[#FFCC00]/15 text-[#8A6D00] font-bold px-1.5 py-0.5">MTN</span>
-                  <span className="rounded bg-[#006699]/10 text-[#006699] font-bold px-1.5 py-0.5">Moov</span>
-                  <span className="rounded bg-muted text-foreground font-medium px-1.5 py-0.5">Carte</span>
-                </div>
-              </div>
-            </section>
-          ) : (
+          {/* Section Export réservée aux pays hors couverture directe (ex : France, USA) */}
+          {!isOnlineSupported && (
             /* Section 2 Export : Pour les pays hors Côte d'Ivoire */
             <section className="relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-card/60 backdrop-blur-md p-6 sm:p-7 shadow-xs space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -561,7 +514,7 @@ export function CheckoutPage() {
                   </div>
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1 text-xs font-semibold text-emerald-700">
-                  <span>{currentCountryMeta.flag}</span>
+                  <Flag code={currentCountryCode} className="h-3.5 w-5 rounded-[2px] object-cover shadow-2xs" />
                   <span>{currentCountryMeta.name}</span>
                 </span>
               </div>
@@ -644,7 +597,8 @@ export function CheckoutPage() {
             <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
               {items.map((it) => {
                 const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
-                const unitPrice = priceObj?.price ?? it.unitPrice ?? 0;
+                const fallbackPrice = it.prices?.find((p) => p.country_code === "CI")?.price ?? it.unitPrice ?? 0;
+                const unitPrice = Number(priceObj?.price ?? fallbackPrice);
                 return (
                   <div key={it.slug} className="flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2.5 truncate">
@@ -676,7 +630,7 @@ export function CheckoutPage() {
             </div>
 
             {/* Bouton de confirmation unique */}
-            {currentCountryCode === "CI" ? (
+            {isOnlineSupported ? (
               <button
                 type="submit"
                 disabled={submitting}

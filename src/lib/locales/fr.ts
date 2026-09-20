@@ -379,7 +379,7 @@ export const fr = {
     signInTitle: "Finaliser votre commande",
     signInDesc: "Veuillez vous connecter ou créer un compte pour sécuriser votre commande et suivre la livraison.",
     signIn: "Se connecter / S'inscrire",
-    shippingSection: "1. Adresse & Coordonnées de Livraison",
+    shippingSection: "Adresse & Coordonnées de Livraison",
     shippingSubtitle: "Où souhaitez-vous recevoir votre colis ?",
     fullName: "Nom & Prénom du destinataire *",
     phone: "Numéro de téléphone / WhatsApp *",

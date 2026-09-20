@@ -115,7 +115,7 @@ function AdminInvoicePage() {
       : `${window.location.origin}${result.pdfUrl}`;
 
     const whatsappText = encodeURIComponent(
-      `Bonjour ${form.customerName}, Cereals House vous remercie pour votre commande !\n\nVoici votre facture officielle ${result.orderNumber} d'un montant de ${total.toLocaleString("fr-FR")} FCFA.\n\n📄 Votre facture en PDF à télécharger :\n${fullPdfUrl}\n\n💳 Régler directement sur Paystack (Mobile Money / Carte) :\n${result.paymentLink}\n\n${
+      `Bonjour ${form.customerName}, Cereals House vous remercie pour votre commande !\n\nVoici votre facture officielle ${result.orderNumber} d'un montant de ${total.toLocaleString("fr-FR")} FCFA.\n\n📄 Votre facture en PDF à télécharger :\n${fullPdfUrl}\n\n💳 Régler directement sur GeniusPay (Mobile Money / Carte) :\n${result.paymentLink}\n\n${
         result.emailSent
           ? "Un email récapitulatif avec votre facture PDF jointe vous a également été envoyé automatiquement.\n\n"
           : ""
@@ -134,7 +134,7 @@ function AdminInvoicePage() {
           Facture {result.orderNumber} créée
         </h2>
         <p className="text-sm text-muted-foreground">
-          La commande a été enregistrée. Le client peut payer directement sur Paystack et télécharger son reçu PDF.
+          La commande a été enregistrée. Le client peut payer directement sur GeniusPay et télécharger son reçu PDF.
         </p>
 
         {result.emailSent && (
@@ -160,7 +160,7 @@ function AdminInvoicePage() {
           </div>
 
           <div className="flex justify-between items-center pt-2 border-t border-border">
-            <span className="text-muted-foreground">Lien Paystack direct :</span>
+            <span className="text-muted-foreground">Lien GeniusPay direct :</span>
             <div className="flex items-center gap-2">
               <a
                 href={result.paymentLink}
@@ -175,7 +175,7 @@ function AdminInvoicePage() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(result.paymentLink);
-                  toast.success("Lien Paystack copié !");
+                  toast.success("Lien GeniusPay copié !");
                 }}
                 className="inline-flex items-center gap-1 font-semibold text-gold hover:underline"
               >
@@ -193,7 +193,7 @@ function AdminInvoicePage() {
             rel="noopener noreferrer"
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-xs font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:brightness-95"
           >
-            <MessageCircle className="h-4 w-4" /> Envoyer par WhatsApp (Lien + PDF)
+            <MessageCircle className="h-4 w-4" /> Envoyer par WhatsApp (Lien GeniusPay + PDF)
           </a>
           <button
             type="button"

@@ -1,5 +1,6 @@
 import { getCinetPayClient, type SupportedCinetPayCountry } from "@/lib/payments/cinetpay.server";
 import { verifyPaystackTransaction } from "@/lib/payments/paystack.server";
+import { verifyGeniusPayTransaction } from "@/lib/payments/geniuspay.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 import { sendEmail } from "@/lib/email/resend.server";
 import { buildPaymentReceivedAdminEmail } from "@/lib/email/templates";
@@ -26,7 +27,82 @@ export async function verifyAndConfirmPayment(
     return { status: "paid" };
   }
 
-  // 1. Vérification Paystack
+  // 1. Vérification GeniusPay
+  if (
+    order.payment_method?.toLowerCase().includes("genius") ||
+    order.payment_reference?.startsWith("SANDBOX_") ||
+    order.payment_reference?.startsWith("GP_")
+  ) {
+    const reference = order.payment_reference;
+    if (reference) {
+      try {
+        const gResult = await verifyGeniusPayTransaction(reference);
+        if (gResult.success && gResult.status === "success") {
+          const nextStatus = order.status === "pending_payment" ? "paid" : order.status;
+          const gatewayNote = gResult.gateway ? ` (${String(gResult.gateway).toUpperCase()})` : "";
+
+          await query(
+            `UPDATE orders SET payment_status = 'paid', status = $1, payment_method = 'geniuspay', updated_at = now() WHERE id = $2`,
+            [nextStatus, order.id],
+          );
+
+          const existingHistory = await queryOne<{ id: string }>(
+            `SELECT id FROM order_status_history WHERE order_id = $1 AND status = 'paid' LIMIT 1`,
+            [order.id],
+          );
+
+          if (!existingHistory) {
+            await query(
+              `INSERT INTO order_status_history (order_id, status, note)
+               VALUES ($1, 'paid', $2)`,
+              [order.id, `Paiement confirmé par GeniusPay${gatewayNote}`],
+            );
+
+            try {
+              await notifyCustomerOfStatusChange(order.id, "paid");
+            } catch (err) {
+              console.error("[payment:geniuspay] échec de notification client paid", err);
+            }
+
+            try {
+              const ownerEmail = process.env.SHOP_OWNER_EMAIL;
+              if (ownerEmail) {
+                const appUrl = getPublicAppUrl();
+                const emailContent = buildPaymentReceivedAdminEmail({
+                  orderNumber: order.order_number,
+                  amount: `${Number(order.total).toLocaleString("fr-FR")} ${order.currency_code}`,
+                  countryCode: order.country_code,
+                  paymentMethod: `GeniusPay${gatewayNote}`,
+                  adminUrl: `${appUrl}/admin/orders`,
+                });
+                await sendEmail({
+                  to: ownerEmail,
+                  subject: emailContent.subject,
+                  html: emailContent.html,
+                });
+              }
+            } catch (err) {
+              console.error("[payment:geniuspay] échec de notification email propriétaire", err);
+            }
+          }
+
+          return { status: "paid" };
+        }
+
+        if (gResult.status === "failed") {
+          await query(
+            `UPDATE orders SET payment_status = 'failed', updated_at = now() WHERE id = $1`,
+            [order.id],
+          );
+          return { status: "failed" };
+        }
+      } catch (gErr) {
+        console.error("[geniuspay] Échec de la vérification de statut :", gErr);
+      }
+    }
+  }
+
+  // 2. Vérification Paystack
   if (
     order.payment_reference?.startsWith("ch_") ||
     order.payment_method?.toLowerCase().includes("paystack")

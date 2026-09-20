@@ -493,7 +493,7 @@ function AdminOrdersPage() {
                 <div className="flex items-start gap-2 text-amber-700 dark:text-amber-300 font-medium">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Attention :</strong> Cette commande est déjà réglée en ligne ({orderToCancel.payment_method}). Pensez à procéder au remboursement sur Paystack / Mobile Money.
+                    <strong>Attention :</strong> Cette commande est déjà réglée en ligne ({orderToCancel.payment_method}). Pensez à procéder au remboursement sur GeniusPay / Mobile Money.
                   </span>
                 </div>
               )}

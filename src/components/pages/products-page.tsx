@@ -23,7 +23,6 @@ import { ProductSearchBar } from "@/components/product-search-bar";
 import { useCountry } from "@/lib/country-context";
 import { Flag } from "@/components/flag";
 import { Reveal } from "@/components/reveal";
-import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 type AudienceFilter = "all" | "enfant" | "adulte";
@@ -325,22 +324,6 @@ export function ProductsPage() {
           </div>
         )}
       </div>
-
-      {/* 5. Bannière Bas de Page Vente en Gros (Style Concentrique Or) */}
-      <GoldCtaBanner
-        eyebrow="Gros Volumes & Professionnels"
-        title="Vente en sacs de 25kg & 50kg pour professionnels"
-        description="Tarifs dégressifs pour crèches, restaurants, transformateurs, hôtels et grossistes avec expédition express."
-        primaryAction={{
-          label: "Demander un devis B2B",
-          href: "/contact",
-        }}
-        secondaryAction={{
-          label: "WhatsApp Direct",
-          href: "https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20un%20devis%20grossiste.",
-          isExternal: true,
-        }}
-      />
     </div>
   );
 }

@@ -24,7 +24,8 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
   // Calcul du sous-total
   const subtotal = items.reduce((acc, it) => {
     const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
-    const unitPrice = priceObj?.price ?? it.unitPrice ?? 0;
+    const fallbackPrice = it.prices?.find((p) => p.country_code === "CI")?.price ?? it.unitPrice ?? 0;
+    const unitPrice = Number(priceObj?.price ?? fallbackPrice);
     return acc + unitPrice * it.quantity;
   }, 0);
 
@@ -99,7 +100,8 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
             <div className="space-y-4">
               {items.map((it) => {
                 const priceObj = it.prices?.find((p) => p.country_code === currentCountryCode);
-                const unitPrice = priceObj?.price ?? it.unitPrice ?? 0;
+                const fallbackPrice = it.prices?.find((p) => p.country_code === "CI")?.price ?? it.unitPrice ?? 0;
+                const unitPrice = Number(priceObj?.price ?? fallbackPrice);
                 const lineTotal = unitPrice * it.quantity;
                 const itemImg = it.imageUrl || it.image;
 

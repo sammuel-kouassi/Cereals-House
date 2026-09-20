@@ -12,7 +12,9 @@ export type PaymentId =
   | "moov_money"
   | "tmoney"
   | "visa"
-  | "cash_on_delivery";
+  | "cash_on_delivery"
+  | "paystack"
+  | "geniuspay";
 
 export type PaymentMethodDef = {
   id: Exclude<PaymentId, "cash_on_delivery">;
@@ -26,15 +28,20 @@ export type PaymentMethodDef = {
   logo?: string;
 };
 
-// Méthodes de paiement disponibles via Paystack
-// En Côte d'Ivoire (CI) : Mobile Money (Wave, Orange, MTN, Moov) + Carte bancaire
-// Dans les autres pays (Sénégal, Mali, Burkina, France, etc.) : Carte bancaire internationale (Visa, Mastercard, Apple Pay)
+// Méthodes de paiement disponibles via GeniusPay selon le pays :
+// - CI : Wave, Orange Money, MTN MoMo, Moov Money, Carte bancaire
+// - SN : Wave, Orange Money, Free Money, Carte bancaire
+// - BJ : MTN Mobile Money, Moov Money, Carte bancaire
+// - BF : Orange Money, Moov Money, Carte bancaire
+// - ML : Orange Money, Moov Money, Carte bancaire
+// - TG : Moov Money, T-Money, Carte bancaire
+// - GH : MTN Mobile Money, Vodafone Cash, Carte bancaire
 export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "orange_money",
     name: "Orange Money",
-    tagline: "Paiement sécurisé via Orange Money Côte d'Ivoire",
-    countries: ["CI"],
+    tagline: "Paiement sécurisé via Orange Money",
+    countries: ["CI", "SN", "BF", "ML"],
     bg: "bg-[#FF7900]",
     fg: "text-white",
     ring: "ring-[#FF7900]",
@@ -44,8 +51,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "wave",
     name: "Wave",
-    tagline: "Paiement instantané sans frais via Wave Côte d'Ivoire",
-    countries: ["CI"],
+    tagline: "Paiement instantané sans frais via Wave",
+    countries: ["CI", "SN"],
     bg: "bg-[#1DC8F2]",
     fg: "text-white",
     ring: "ring-[#1DC8F2]",
@@ -55,8 +62,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "mtn_money",
     name: "MTN Mobile Money",
-    tagline: "Paiement rapide via MTN MoMo Côte d'Ivoire",
-    countries: ["CI"],
+    tagline: "Paiement rapide via MTN MoMo",
+    countries: ["CI", "BJ", "GH"],
     bg: "bg-[#FFCC00]",
     fg: "text-black",
     ring: "ring-[#FFCC00]",
@@ -66,8 +73,8 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   {
     id: "moov_money",
     name: "Moov Money",
-    tagline: "Réglez directement avec Moov Money Côte d'Ivoire",
-    countries: ["CI"],
+    tagline: "Réglez directement avec Moov Money",
+    countries: ["CI", "BJ", "BF", "ML", "TG"],
     bg: "bg-[#005BAA]",
     fg: "text-white",
     ring: "ring-[#005BAA]",
@@ -76,9 +83,9 @@ export const PAYMENT_METHODS: PaymentMethodDef[] = [
   },
   {
     id: "visa",
-    name: "Carte bancaire (Visa, Mastercard, Apple Pay)",
+    name: "Carte bancaire (Visa, Mastercard)",
     tagline: "Paiement sécurisé international par carte bancaire",
-    countries: ["CI"],
+    countries: ["CI", "SN", "BJ", "BF", "ML", "TG", "GH"],
     bg: "bg-gradient-to-br from-slate-800 to-slate-900",
     fg: "text-white",
     ring: "ring-slate-800",

@@ -24,6 +24,7 @@ import { useCountry } from "@/lib/country-context";
 import { HeroNarrativeBanner } from "@/components/hero-narrative-banner";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
+import { DynamicHowItWorks } from "@/components/dynamic-how-it-works";
 
 export function HomePage() {
   const { country } = useCountry();
@@ -37,13 +38,6 @@ export function HomePage() {
 
   const featured = allProducts.filter((p) => p.is_featured);
   const displayedProducts = featured.length > 0 ? featured : allProducts;
-
-  const steps = [
-    { n: "1", t: t("home.step1Title", "Faites votre choix"), d: t("home.step1Desc", "Farines d'éveil, mil propre, fonio ou sorgho : choisissez les céréales adaptées aux repas de votre foyer.") },
-    { n: "2", t: t("home.step2Title", "Indiquez votre adresse"), d: t("home.step2Desc", "Renseignez votre quartier et numéro pour une livraison directe à domicile ou en point relais.") },
-    { n: "3", t: t("home.step3Title", "Réglez en toute confiance"), d: t("home.step3Desc", "Paiement instantané et sécurisé par Wave, Orange Money, MTN, Moov ou carte bancaire.") },
-    { n: "4", t: t("home.step4Title", "Cuisinez sans attendre"), d: t("home.step4Desc", "Recevez votre colis hermétique sous 24h à 48h, prêt à être versé directement dans votre marmite.") },
-  ];
 
   const testimonials = [
     {
@@ -200,37 +194,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* 4. Processus de Commande : Simple et Humain */}
-      <section className="border-y border-border/80 bg-secondary/30 py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <h2 className="font-display text-2xl sm:text-4xl font-bold text-primary">
-                Commander vos céréales en toute sérénité
-              </h2>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
-                Quatre étapes simples pour recevoir vos produits frais à la maison.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((s, idx) => (
-              <Reveal key={s.n} delay={idx * 70}>
-                <div className="relative flex flex-col justify-between rounded-3xl border border-border bg-card p-6 h-full transition hover:border-gold/40">
-                  <div>
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gold/15 font-display text-base font-bold text-gold border border-gold/30">
-                      {s.n}
-                    </span>
-                    <h3 className="mt-4 font-display text-base font-bold text-primary">{s.t}</h3>
-                    <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">{s.d}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 4. Processus de Commande Dynamique (Modèle Dribbble) */}
+      <DynamicHowItWorks />
 
       {/* 5. Vrais Avis de Nos Familles & Cuisiniers */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

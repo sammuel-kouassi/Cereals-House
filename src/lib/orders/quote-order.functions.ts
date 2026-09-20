@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
 import { initializePaystackTransaction } from "@/lib/payments/paystack.server";
+import { initializeGeniusPayTransaction } from "@/lib/payments/geniuspay.server";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 import { sendEmail } from "@/lib/email/resend.server";
 import { query, queryOne } from "@/integrations/neon/db.server";
@@ -101,17 +102,17 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
         subtotal,
         shippingFee: data.shippingFee,
         total,
-        paymentMethodLabel: "Paiement en ligne Paystack (Mobile Money / Carte)",
+        paymentMethodLabel: "Paiement en ligne GeniusPay (Mobile Money / Carte)",
       });
     } catch (pdfErr) {
       console.error("[quote-order] Erreur génération PDF:", pdfErr);
     }
 
-    // Initialiser la transaction Paystack directe
-    let directPaystackUrl = "";
+    // Initialiser la transaction GeniusPay directe
+    let directGeniusPayUrl = "";
     try {
       const clientEmail = (data.email && data.email.includes("@")) ? data.email.trim() : "client@cerealshouse.com";
-      const paystackRes = await initializePaystackTransaction({
+      const geniusRes = await initializeGeniusPayTransaction({
         order: {
           id: order.id,
           order_number: order.order_number,
@@ -123,12 +124,12 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
         },
         email: clientEmail,
       });
-      directPaystackUrl = paystackRes.authorizationUrl;
-    } catch (paystackErr) {
-      console.error("[quote-order] Erreur initialisation Paystack direct:", paystackErr);
+      directGeniusPayUrl = geniusRes.checkoutUrl;
+    } catch (geniusErr) {
+      console.error("[quote-order] Erreur initialisation GeniusPay direct:", geniusErr);
     }
 
-    const paymentLink = directPaystackUrl || internalPayUrl;
+    const paymentLink = directGeniusPayUrl || internalPayUrl;
 
     // Envoi automatique par email si email renseigné
     let emailSent = false;
@@ -198,7 +199,8 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
       orderId: order.id,
       orderNumber: order.order_number,
       paymentLink,
-      directPaystackUrl,
+      directGeniusPayUrl,
+      directPaystackUrl: directGeniusPayUrl,
       pdfUrl,
       emailSent,
     };
@@ -277,10 +279,10 @@ export const initiateGuestQuotePaymentFn = createServerFn({ method: "POST" })
       ? data.email.trim()
       : (order.shipping_email || "client@cerealshouse.com");
 
-    const result = await initializePaystackTransaction({
+    const result = await initializeGeniusPayTransaction({
       order,
       email: clientEmail,
     });
 
-    return { paymentUrl: result.authorizationUrl };
+    return { paymentUrl: result.checkoutUrl };
   });

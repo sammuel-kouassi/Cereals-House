@@ -42,10 +42,13 @@ export async function handleInvoicePdfDownload(orderIdOrNumber: string): Promise
     subtotal: Number(order.subtotal || 0),
     shippingFee: Number(order.shipping_fee || 0),
     total: Number(order.total || 0),
-    paymentMethodLabel: order.payment_method || "Paiement sécurisé Paystack",
+    paymentMethodLabel:
+      order.payment_method === "geniuspay"
+        ? "Paiement en ligne GeniusPay"
+        : order.payment_method || "Paiement sécurisé GeniusPay",
   });
 
-  return new Response(pdfBytes, {
+  return new Response(pdfBytes as any, {
     status: 200,
     headers: {
       "content-type": "application/pdf",

@@ -258,7 +258,7 @@ function AdminQuotesPage() {
             Demandes de devis & Facturation B2B
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gérez les demandes de devis professionnels et générez directement des liens de paiement Paystack personnalisés.
+            Gérez les demandes de devis professionnels et générez directement des liens de paiement GeniusPay personnalisés.
           </p>
         </div>
       </div>
@@ -1021,16 +1021,16 @@ function AdminQuotesPage() {
                 </a>
               </div>
 
-              {/* Lien direct Paystack */}
+              {/* Lien direct GeniusPay */}
               <div className="flex justify-between items-center pt-2 border-t border-border">
-                <span className="text-muted-foreground">Lien Paystack direct :</span>
+                <span className="text-muted-foreground">Lien GeniusPay direct :</span>
                 <div className="flex items-center gap-2">
                   <a
                     href={successInvoice?.paymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
-                    title="Accéder directement à Paystack"
+                    title="Accéder directement à GeniusPay"
                   >
                     <ExternalLink className="w-3 h-3" />
                     Ouvrir
@@ -1040,7 +1040,7 @@ function AdminQuotesPage() {
                     onClick={() => {
                       if (successInvoice?.paymentUrl) {
                         navigator.clipboard.writeText(successInvoice.paymentUrl);
-                        toast.success("Lien Paystack copié dans le presse-papier !");
+                        toast.success("Lien GeniusPay copié dans le presse-papier !");
                       }
                     }}
                     className="inline-flex items-center gap-1 text-[11px] font-semibold text-gold hover:underline"
@@ -1061,7 +1061,7 @@ function AdminQuotesPage() {
                           successInvoice.pdfUrl.startsWith("http")
                             ? successInvoice.pdfUrl
                             : `${window.location.origin}${successInvoice.pdfUrl}`
-                        }\n\n💳 Régler directement sur Paystack (Mobile Money / Carte) :\n${successInvoice.paymentUrl}\n\n${
+                        }\n\n💳 Régler directement sur GeniusPay (Mobile Money / Carte) :\n${successInvoice.paymentUrl}\n\n${
                           successInvoice.emailSent
                             ? "Un email avec la facture PDF en pièce jointe vous a également été envoyé automatiquement.\n\n"
                             : ""
@@ -1074,7 +1074,7 @@ function AdminQuotesPage() {
                 className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
-                Envoyer par WhatsApp (Lien Paystack + PDF)
+                Envoyer par WhatsApp (Lien GeniusPay + PDF)
               </a>
 
               <button

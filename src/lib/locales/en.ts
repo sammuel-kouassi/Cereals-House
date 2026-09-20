@@ -376,7 +376,7 @@ export const en: Dict = {
     signInTitle: "Complete your order",
     signInDesc: "Please sign in or create an account to secure your order and track delivery.",
     signIn: "Sign In / Register",
-    shippingSection: "1. Delivery Address & Contact",
+    shippingSection: "Delivery Address & Contact",
     shippingSubtitle: "Where should we deliver your parcel?",
     fullName: "Recipient Full Name *",
     phone: "Phone / WhatsApp Number *",
