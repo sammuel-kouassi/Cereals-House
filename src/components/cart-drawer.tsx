@@ -183,33 +183,36 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
 
         {/* Pied du tiroir avec Sous-total & CTA de paiement */}
         {items.length > 0 && (
-          <div className="border-t border-border bg-background p-6 space-y-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{t("cart.subtotal", "Sous-total")}</span>
-              <span className="font-display text-xl font-bold text-primary">
+          <div className="border-t border-stone-200/80 dark:border-stone-800 bg-[#FAF7F2] dark:bg-[#18110B] p-6 space-y-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">{t("cart.subtotal", "Sous-total")}</span>
+              <span className="font-display text-2xl font-bold text-stone-950 dark:text-stone-100">
                 {formatPrice(subtotal, currencySymbol)}
               </span>
             </div>
 
-            <p className="text-[11px] text-muted-foreground">
-              {t("cart.shippingCalculatedLater", "Frais de livraison et options de paiement calculés à l'étape suivante.")}
+            <p className="text-[11px] text-stone-500 leading-relaxed font-light">
+              {t("cart.shippingCalculatedLater", "Frais de livraison calculés à la validation. Paiement 100% en ligne sécurisé (Mobile Money & Carte).")}
             </p>
 
-            <div className="grid gap-2">
+            <div className="space-y-2.5 pt-1">
               <Link
                 to={getLocalizedPath("/checkout")}
                 onClick={onClose}
-                className="group flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
+                className="group flex w-full items-center justify-between rounded-full bg-[#1C140E] dark:bg-gold pl-6 pr-2 py-2 text-xs sm:text-sm font-bold text-white dark:text-stone-950 shadow-xl transition-all duration-300 hover:bg-gold hover:text-stone-950 hover:scale-[1.01]"
               >
-                {t("cart.checkoutCta", "Commander maintenant")}
-                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <span>{t("cart.checkoutCta", "Valider ma Commande")}</span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 dark:bg-stone-950/15 group-hover:bg-stone-950 group-hover:text-gold transition-colors">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
               </Link>
+
               <Link
                 to={getLocalizedPath("/cart")}
                 onClick={onClose}
-                className="flex w-full items-center justify-center rounded-full border border-border bg-card py-2.5 text-xs font-semibold text-foreground/80 transition hover:bg-secondary"
+                className="flex w-full items-center justify-center rounded-full border border-stone-300/80 dark:border-stone-700 bg-white/60 dark:bg-stone-900/60 py-2.5 text-xs font-semibold text-stone-700 dark:text-stone-300 transition hover:bg-stone-100 dark:hover:bg-stone-800"
               >
-                {t("cart.viewFullCart", "Voir le panier détaillé")}
+                {t("cart.viewFullCart", "Consulter le panier détaillé")}
               </Link>
             </div>
           </div>

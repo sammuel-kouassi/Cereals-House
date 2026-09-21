@@ -76,60 +76,67 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           scrolled
-            ? "border-b border-gold/35 bg-[#FAF6F0]/98 dark:bg-[#1A130C]/98 backdrop-blur-xl shadow-[0_8px_30px_rgba(180,140,40,0.12)] py-0"
-            : "border-b border-gold/20 bg-[#FAF6F0]/92 dark:bg-[#1A130C]/92 backdrop-blur-md py-1"
+            ? "py-2 sm:py-2.5"
+            : "py-3 sm:py-3.5"
         }`}
       >
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <div
+          className={`mx-auto flex h-16 sm:h-18 max-w-7xl items-center justify-between gap-2 sm:gap-3 px-3.5 sm:px-6 lg:px-6 xl:px-8 rounded-2xl sm:rounded-3xl transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            scrolled
+              ? "border border-gold/30 bg-white/55 dark:bg-[#18110B]/65 shadow-[0_16px_40px_-12px_rgba(20,15,10,0.12)] backdrop-blur-2xl"
+              : "border border-gold/20 bg-white/40 dark:bg-[#18110B]/45 shadow-[0_4px_24px_-6px_rgba(20,15,10,0.06)] backdrop-blur-xl"
+          }`}
+        >
           {/* Logo & Slogan de Prestige */}
-          <Link to={getLocalizedPath("/")} className="group flex shrink-0 items-center gap-3">
+          <Link to={getLocalizedPath("/")} className="group flex shrink-0 items-center gap-2.5 sm:gap-3">
             <div className="relative">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-gold/40 to-amber-600/10 opacity-0 blur-xs transition-opacity duration-300 group-hover:opacity-100" />
               <img
                 src={logo}
                 alt="Cereals House"
-                className="h-11 w-11 sm:h-12 sm:w-12 shrink-0 rounded-full object-cover ring-2 ring-gold/40 shadow-sm transition-all duration-500 ease-out group-hover:scale-105 group-hover:ring-gold/70"
+                className="relative h-9 w-9 sm:h-11 sm:w-11 shrink-0 rounded-full object-cover ring-1.5 ring-gold/40 shadow-xs transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105 group-hover:ring-gold/80"
               />
             </div>
             <div className="whitespace-nowrap leading-tight">
-              <div className="font-display text-lg sm:text-xl font-bold text-primary tracking-tight transition-colors duration-200 group-hover:text-gold">
-                Cereals House
+              <div className="font-display text-base sm:text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight transition-colors duration-200 group-hover:text-gold">
+                Cereals <span className="text-gold font-serif italic">House</span>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground font-medium">
+              <div className="hidden sm:flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em] text-stone-500 font-semibold">
                 <span>{t("header.tagline", "Terroirs d'Afrique")}</span>
               </div>
             </div>
           </Link>
 
-          {/* Navigation desktop aérée et élégante */}
-          <nav className="hidden shrink-0 items-center gap-6 lg:flex xl:gap-8 mx-auto px-2">
+          {/* Navigation desktop aérée et éditoriale */}
+          <nav className="hidden shrink-0 items-center gap-5 lg:flex xl:gap-7 2xl:gap-8 mx-auto px-1">
             {nav.map((n) => (
               <Link
                 key={n.to}
                 to={getLocalizedPath(n.to)}
                 activeOptions={{ exact: n.to === "/" }}
-                className="group relative whitespace-nowrap px-1 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80 transition-colors duration-200 hover:text-gold [&.active]:text-gold xl:text-sm xl:normal-case xl:font-medium xl:tracking-normal cursor-pointer"
+                className="group relative whitespace-nowrap py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700 dark:text-stone-300 transition-colors duration-300 hover:text-stone-950 dark:hover:text-gold [&.active]:text-amber-900 dark:[&.active]:text-gold cursor-pointer"
                 activeProps={{ className: "active" }}
               >
                 {n.label}
-                <span className="pointer-events-none absolute -bottom-1 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-gold transition-all duration-250 ease-out group-hover:w-full [.active_&]:w-full shadow-[0_0_8px_rgba(212,175,55,0.6)]" />
+                <span className="pointer-events-none absolute -bottom-1 left-1/2 h-0.5 w-0 -translate-x-1/2 rounded-full bg-gradient-to-r from-gold to-amber-600 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:w-full [.active_&]:w-full shadow-[0_0_8px_rgba(200,157,66,0.6)]" />
               </Link>
             ))}
           </nav>
 
           {/* Actions & Réglages */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
-            {/* Bouton Recherche Instantanée */}
+            {/* Bouton Recherche Instantanée Glassmorphism */}
             <button
               type="button"
               onClick={() => setSearchModalOpen(true)}
-              className="hidden md:flex items-center gap-2 rounded-full border border-border/80 bg-secondary/40 px-3.5 py-1.5 text-xs text-muted-foreground transition hover:border-gold/40 hover:bg-secondary hover:text-foreground cursor-pointer shadow-2xs"
+              className="hidden md:flex items-center gap-2 rounded-full border border-stone-200/60 dark:border-stone-700/60 bg-white/40 dark:bg-white/5 px-2.5 py-1.5 sm:px-3 text-xs text-stone-600 dark:text-stone-300 transition hover:border-gold/40 hover:bg-white/70 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-stone-100 cursor-pointer shadow-2xs backdrop-blur-sm"
               title="Rechercher (Cmd+K)"
             >
-              <Search className="h-3.5 w-3.5 text-gold" />
-              <span className="hidden xl:inline">{t("header.search", "Rechercher une céréale...")}</span>
-              <kbd className="rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              <Search className="h-3.5 w-3.5 text-gold shrink-0" />
+              <span className="hidden 2xl:inline">{t("header.search", "Rechercher une céréale...")}</span>
+              <kbd className="rounded border border-stone-200/80 dark:border-stone-700 bg-white/60 dark:bg-stone-800/60 px-1.5 py-0.5 text-[10px] font-semibold text-stone-500">
                 ⌘K
               </kbd>
             </button>
@@ -243,14 +250,17 @@ export function SiteHeader() {
               id="site-cart-icon"
               type="button"
               onClick={() => setCartDrawerOpen(true)}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/60 text-foreground transition-all duration-200 hover:scale-105 hover:bg-gold/15 hover:text-gold active:scale-95 cursor-pointer border border-border hover:border-gold/40 shadow-xs"
+              className="relative flex shrink-0 items-center gap-2 rounded-full border border-gold/30 bg-gold/10 hover:border-gold/60 hover:bg-gold/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-stone-900 dark:text-stone-100 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.03] active:scale-95 cursor-pointer shadow-xs"
               aria-label={t("nav.cart", "Panier")}
             >
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <ShoppingBag className="h-4 w-4 text-amber-900 dark:text-gold shrink-0" />
+              <span className="hidden sm:inline text-xs font-bold tracking-tight">
+                {t("nav.cart", "Panier")}
+              </span>
               {totalItems > 0 && (
                 <span
                   key={totalItems}
-                  className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-[#14110F] shadow-sm motion-safe:animate-in motion-safe:zoom-in-75 motion-safe:duration-200"
+                  className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-gold via-amber-400 to-amber-600 px-1.5 text-[10px] font-black text-stone-950 shadow-xs ring-1 ring-white/20 motion-safe:animate-in motion-safe:zoom-in-75 motion-safe:duration-200"
                 >
                   {totalItems}
                 </span>

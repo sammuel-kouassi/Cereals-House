@@ -125,7 +125,7 @@ export function HeroNarrativeBanner() {
 
   return (
     <section
-      className="relative w-full min-h-[580px] sm:min-h-[640px] lg:min-h-[700px] overflow-hidden bg-[#0a0a0c] text-white flex items-center"
+      className="relative w-full min-h-[580px] sm:min-h-[640px] lg:min-h-[700px] overflow-hidden bg-gradient-to-b from-[#18110B] via-[#1E150E] to-[#160F0A] text-white flex items-center"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -139,8 +139,8 @@ export function HeroNarrativeBanner() {
               isActive ? "opacity-100 z-0" : "opacity-0 z-[-1]"
             }`}
           >
-            {/* Lueur chaude subtile en arrière-plan derrière le produit */}
-            <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full bg-[#F38218]/10 blur-[120px] pointer-events-none" />
+            {/* Lueur chaude dorée et réconfortante derrière le produit */}
+            <div className="absolute right-[12%] top-1/2 -translate-y-1/2 w-[380px] sm:w-[560px] h-[380px] sm:h-[560px] rounded-full bg-gradient-to-tr from-[#D97706]/20 via-[#F59E0B]/15 to-transparent blur-[110px] pointer-events-none" />
 
             {/* Image nette intégrée sans cadre ni bordure */}
             <div className="absolute inset-y-0 right-0 w-full sm:w-4/5 md:w-3/5 lg:w-3/5 h-full flex items-center justify-end overflow-hidden">
@@ -152,9 +152,9 @@ export function HeroNarrativeBanner() {
                 }`}
                 style={{
                   maskImage:
-                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.85) 40%, black 70%)",
+                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 15%, rgba(0,0,0,0.85) 45%, black 75%)",
                   WebkitMaskImage:
-                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.15) 15%, rgba(0,0,0,0.85) 40%, black 70%)",
+                    "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 15%, rgba(0,0,0,0.85) 45%, black 75%)",
                 }}
                 loading={idx === 0 ? "eager" : "lazy"}
               />
@@ -163,48 +163,48 @@ export function HeroNarrativeBanner() {
         );
       })}
 
-      {/* 2. DÉGRADÉS DE TRANSITION CINÉMATOGRAPHIQUES (0 FRONTIÈRE VISIBLE) */}
-      {/* Fondu latéral gauche 100% noir vers la droite */}
+      {/* 2. DÉGRADÉS DE TRANSITION CHAUDS TERROIR & CACAO NOBLE */}
+      {/* Fondu latéral gauche chaud et gourmand */}
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-full sm:w-3/4 lg:w-3/5 bg-gradient-to-r from-[#0a0a0c] via-[#0a0a0c]/95 to-transparent z-[1]"
+        className="pointer-events-none absolute inset-y-0 left-0 w-full sm:w-3/4 lg:w-3/5 bg-gradient-to-r from-[#18110B] via-[#18110B]/90 to-transparent z-[1]"
         aria-hidden="true"
       />
-      {/* Fondu vertical bas et haut pour sceller l'intégration dans la page */}
+      {/* Fondu vertical haut et bas */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-24 sm:h-32 bg-gradient-to-b from-[#0a0a0c] to-transparent z-[1]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 sm:h-32 bg-gradient-to-b from-[#18110B] to-transparent z-[1]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-36 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/90 to-transparent z-[1]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-28 sm:h-36 bg-gradient-to-t from-[#18110B] via-[#18110B]/85 to-transparent z-[1]"
         aria-hidden="true"
       />
 
-      {/* 3. CONTENU PRINCIPAL & TYPOGRAPHIE D'IMPACT (INSPIRÉ DU MODÈLE DRIBBBLE) */}
+      {/* 3. CONTENU PRINCIPAL & TYPOGRAPHIE D'IMPACT */}
       <div className="relative z-10 mx-auto max-w-7xl w-full px-6 sm:px-8 lg:px-12 py-8 sm:py-10 lg:py-12 flex flex-col justify-between min-h-[560px] sm:min-h-[600px] lg:min-h-[660px] pointer-events-none">
         {/* Colonne Gauche : Surtitre, Titre géant, Description, Actions */}
         <div className="my-auto max-w-xl lg:max-w-2xl pointer-events-auto">
-          {/* Surtitre accentué en orange ambré */}
-          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#F38218] font-bold mb-2.5 sm:mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#F38218] animate-pulse" />
+          {/* Surtitre accentué en or ambré chaud */}
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#F59E0B] font-bold mb-2.5 sm:mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
             <span>{current.eyebrow}</span>
           </div>
 
           {/* Titre Principal Ultra-Bold en 2 lignes superposées */}
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-black uppercase tracking-tight text-white leading-[1.02] drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-[3.5rem] font-black uppercase tracking-tight text-white leading-[1.02] drop-shadow-[0_4px_20px_rgba(0,0,0,0.85)]">
             <span className="block">{current.titleLine1}</span>
-            <span className="block text-white/95 mt-1">{current.titleLine2}</span>
+            <span className="block text-amber-100/95 mt-1">{current.titleLine2}</span>
           </h1>
 
           {/* Description claire et chaleureuse */}
-          <p className="mt-4 sm:mt-5 text-sm sm:text-base text-stone-300 font-normal leading-relaxed max-w-lg drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+          <p className="mt-4 sm:mt-5 text-sm sm:text-base text-stone-200 font-normal leading-relaxed max-w-lg drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
             {current.subtitle}
           </p>
 
-          {/* Boutons d'action (Bouton orange vibrant + Lien discret) */}
+          {/* Boutons d'action (Bouton ambre chaleureux + Lien discret) */}
           <div className="mt-7 sm:mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
             <Link
               to={getLocalizedPath(current.ctaLink)}
-              className="group inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-[#F38218] to-[#E67E22] hover:from-[#e67510] hover:to-[#d26c15] px-7 py-3.5 text-xs sm:text-sm lg:text-base font-bold text-white shadow-[0_10px_25px_rgba(243,130,24,0.4)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              className="group inline-flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] px-7 py-3.5 text-xs sm:text-sm lg:text-base font-bold text-white shadow-[0_8px_20px_rgba(217,119,6,0.35)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
             >
               <span>{current.ctaText}</span>
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -212,7 +212,7 @@ export function HeroNarrativeBanner() {
 
             <Link
               to={getLocalizedPath("/products")}
-              className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base font-semibold text-stone-300 hover:text-white transition-colors duration-200 cursor-pointer py-3.5 px-3 hover:translate-x-1"
+              className="inline-flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base font-semibold text-stone-300 hover:text-amber-200 transition-colors duration-200 cursor-pointer py-3.5 px-3 hover:translate-x-1"
             >
               <span>{t("hero.viewMenu", "Voir la boutique")}</span>
               <span className="text-xs">→</span>
@@ -228,19 +228,19 @@ export function HeroNarrativeBanner() {
                   <div key={slide.id} className="relative flex flex-col items-center shrink-0">
                     {/* Indicateur triangulaire pointant sur la miniature active */}
                     <div
-                      className={`w-0 h-0 border-x-[5px] border-x-transparent border-t-[6px] border-t-[#F38218] mb-1.5 transition-all duration-300 ${
+                      className={`w-0 h-0 border-x-[5px] border-x-transparent border-t-[6px] border-t-[#F59E0B] mb-1.5 transition-all duration-300 ${
                         isThumbActive ? "opacity-100 scale-100" : "opacity-0 scale-75"
                       }`}
                     />
 
-                    {/* Miniature interactive avec bordure orange active */}
+                    {/* Miniature interactive avec bordure ambrée active */}
                     <button
                       type="button"
                       onClick={() => goToSlide(idx)}
                       className={`relative h-14 w-14 sm:h-18 sm:w-18 md:h-20 md:w-20 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 focus:outline-none ${
                         isThumbActive
-                          ? "border-2 border-[#F38218] ring-4 ring-[#F38218]/30 scale-105 shadow-xl"
-                          : "border border-white/15 opacity-55 hover:opacity-90 hover:border-white/45 hover:scale-102"
+                          ? "border-2 border-[#F59E0B] ring-4 ring-[#F59E0B]/30 scale-105 shadow-xl"
+                          : "border border-amber-200/20 opacity-60 hover:opacity-95 hover:border-amber-400/50 hover:scale-102"
                       }`}
                       title={`${slide.titleLine1} - ${slide.titleLine2}`}
                       aria-label={`Afficher ${slide.titleLine1}`}
@@ -250,7 +250,7 @@ export function HeroNarrativeBanner() {
                         alt={slide.titleLine1}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#160F0A]/60 to-transparent" />
                     </button>
                   </div>
                 );
@@ -264,7 +264,7 @@ export function HeroNarrativeBanner() {
           <button
             type="button"
             onClick={prevSlide}
-            className="h-10 w-10 rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 hover:bg-white hover:text-black hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+            className="h-10 w-10 rounded-full border border-amber-500/30 bg-[#251810]/70 backdrop-blur-md text-amber-100 flex items-center justify-center transition-all duration-200 hover:bg-[#F59E0B] hover:text-stone-950 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
             title="Précédent"
             aria-label="Diapositive précédente"
           >
@@ -274,7 +274,7 @@ export function HeroNarrativeBanner() {
           <button
             type="button"
             onClick={nextSlide}
-            className="h-10 w-10 rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 hover:bg-white hover:text-black hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+            className="h-10 w-10 rounded-full border border-amber-500/30 bg-[#251810]/70 backdrop-blur-md text-amber-100 flex items-center justify-center transition-all duration-200 hover:bg-[#F59E0B] hover:text-stone-950 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
             title="Suivant"
             aria-label="Diapositive suivante"
           >
@@ -282,7 +282,7 @@ export function HeroNarrativeBanner() {
           </button>
 
           {isPaused && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-white/15 text-[11px] text-amber-300 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#251810]/80 border border-amber-500/30 text-[11px] text-amber-300 backdrop-blur-md">
               <Pause className="h-3 w-3" />
               <span>Pause</span>
             </span>

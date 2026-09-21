@@ -51,7 +51,6 @@ export function CheckoutPage() {
   const [redirecting, setRedirecting] = useState(false);
   const orderPlacedRef = useRef(false);
 
-  const [paymentMode, setPaymentMode] = useState<"geniuspay" | "cod">("geniuspay");
   const [form, setForm] = useState({
     full_name: user?.full_name ?? "",
     phone: user?.phone ?? "",
@@ -91,14 +90,6 @@ export function CheckoutPage() {
     phoneCode: currentDialInfo.dialCode,
     placeholder: currentDialInfo.placeholder,
   };
-
-  const isCodAvailable = currentCountryCode === "CI";
-
-  useEffect(() => {
-    if (!isCodAvailable && paymentMode === "cod") {
-      setPaymentMode("geniuspay");
-    }
-  }, [currentCountryCode, isCodAvailable, paymentMode]);
 
   // Gestion de la saisie téléphonique avec détection automatique du pays
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,7 +184,7 @@ export function CheckoutPage() {
     );
   }
 
-  async function handleSubmit(e?: React.FormEvent, chosenMode?: "geniuspay" | "cod") {
+  async function handleSubmit(e?: React.FormEvent) {
     if (e) e.preventDefault();
     if (!country) return;
     if (!form.full_name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
@@ -205,11 +196,6 @@ export function CheckoutPage() {
     if (!isOnlineSupported) {
       handleWhatsAppExport();
       return;
-    }
-
-    const selectedMode = chosenMode || paymentMode;
-    if (chosenMode) {
-      setPaymentMode(chosenMode);
     }
 
     setSubmitting(true);
@@ -229,9 +215,6 @@ export function CheckoutPage() {
         };
       });
 
-      const effectivePaymentMethod =
-        selectedMode === "cod" ? "cash_on_delivery" : "geniuspay";
-
       const orderRes = await createOrderFn({
         data: {
           countryCode: currentCountryCode,
@@ -239,7 +222,7 @@ export function CheckoutPage() {
           subtotal: Number(subtotal),
           shippingFee: Number(shipping),
           total: Number(total),
-          paymentMethod: effectivePaymentMethod,
+          paymentMethod: "geniuspay",
           shippingFullName: form.full_name.trim(),
           shippingPhone: form.phone.trim(),
           shippingAddress: form.address.trim(),
@@ -257,14 +240,7 @@ export function CheckoutPage() {
       orderPlacedRef.current = true;
       clearCart();
 
-      // Paiement à la livraison
-      if (selectedMode === "cod") {
-        toast.success(t("checkout.successToast", "Commande enregistrée ! Vous allez être redirigé vers le suivi."));
-        router.navigate({ href: getLocalizedPath(`/orders/${orderId}`), replace: true });
-        return;
-      }
-
-      // Paiement en ligne sécurisé via GeniusPay
+      // Paiement en ligne sécurisé obligatoire via GeniusPay
       setRedirecting(true);
       const paymentRes = await initiateGeniusPayPaymentFn({
         data: {
@@ -449,7 +425,7 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Mode de règlement intégré style pilule (comme l'image de référence) */}
+            {/* Mode de règlement 100% en ligne */}
             {isOnlineSupported && (
               <div className="mt-7 pt-6 border-t border-border/70 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -461,34 +437,17 @@ export function CheckoutPage() {
                   </span>
                 </div>
 
-                {/* Boutons de sélection segmentés style pilule */}
-                <div className="flex items-center">
-                  <div className="inline-flex items-center p-1.5 rounded-full bg-secondary/50 border border-border/80 gap-1 shadow-inner">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMode("geniuspay")}
-                      className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                        paymentMode === "geniuspay"
-                          ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-card/40"
-                      }`}
-                    >
-                      Payer en ligne
-                    </button>
-
-                    {isCodAvailable && (
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMode("cod")}
-                        className={`px-5 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                          paymentMode === "cod"
-                            ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-card/40"
-                        }`}
-                      >
-                        Payer à la livraison
-                      </button>
-                    )}
+                <div className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-950">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-500/20 text-amber-700 shrink-0">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs sm:text-sm font-bold text-stone-900">
+                      Paiement en ligne sécurisé
+                    </div>
+                    <div className="text-[11px] sm:text-xs text-stone-600 leading-relaxed">
+                      Validation instantanée par Mobile Money (Wave, Orange, MTN, Moov) ou Carte bancaire avant expédition.
+                    </div>
                   </div>
                 </div>
               </div>

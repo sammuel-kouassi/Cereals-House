@@ -182,100 +182,110 @@ export function ProductCard({
     );
   }
 
-  // Disposition en grille par défaut (optimale, compacte et élégante)
+  // Disposition en grille par défaut (haute épicerie, architecture double-bezel & micro-interactions haptiques)
   return (
-    <Link
-      to={getLocalizedPath(`/products/${slug}`)}
-      className="group relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-md"
-    >
-      {/* Liseré doré signature */}
-      <span className="absolute inset-x-0 top-0 z-10 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
+    <div className="group relative flex h-full w-full flex-col rounded-[1.75rem] p-1.5 sm:p-2 bg-stone-900/[0.03] dark:bg-white/[0.04] ring-1 ring-stone-900/5 dark:ring-white/10 hover:ring-gold/40 hover:bg-gold/[0.04] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(44,30,20,0.14)]">
+      <Link
+        to={getLocalizedPath(`/products/${slug}`)}
+        className="relative flex h-full w-full flex-col overflow-hidden rounded-[calc(1.75rem-0.375rem)] bg-card border border-stone-200/80 dark:border-stone-800/80 transition-colors"
+      >
+        {/* Zone visuelle avec proportions équilibrées et zoom sensoriel */}
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 dark:bg-stone-900">
+          <img
+            src={imageFor(slug, imageUrl)}
+            alt={name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-108"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-950/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      {/* Zone visuelle avec ratio 4/3 équilibré (plus de hauteur démesurée) */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary/60">
-        <img
-          src={imageFor(slug, imageUrl)}
-          alt={name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          {/* Badge Catégorie façon étiquette d'atelier */}
+          {category && (
+            <span className="absolute left-3 top-3 rounded-full bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-800 dark:text-stone-200 border border-stone-300/60 dark:border-stone-700/60 shadow-xs">
+              {category}
+            </span>
+          )}
 
-        {/* Badge Catégorie */}
-        {category && (
-          <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 backdrop-blur-md px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary border border-border/40 shadow-2xs">
-            {category}
-          </span>
-        )}
-
-        {/* Badges Publics */}
-        {(isKid || isAdult) && (
-          <div className="absolute right-2.5 top-2.5 flex flex-col gap-1">
-            {isKid && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-background/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
-                <Baby className="h-2.5 w-2.5" /> {t("audience.kid", "Bébé")}
-              </span>
-            )}
-            {isAdult && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-background/90 backdrop-blur-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
-                <User className="h-2.5 w-2.5" /> {t("audience.adult", "Adulte")}
-              </span>
-            )}
-          </div>
-        )}
-
-        {lowStock && !isOutOfStock && (
-          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
-            <Flame className="h-3 w-3" /> {t("product.lowStock", "Plus que {{count}} en stock", { count: stock })}
-          </span>
-        )}
-
-        {isOutOfStock && (
-          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
-            {t("product.outOfStock", "Rupture")}
-          </span>
-        )}
-
-        {/* Bouton d'ajout rapide au panier express */}
-        <button
-          type="button"
-          onClick={handleQuickAdd}
-          disabled={isOutOfStock}
-          className={`absolute bottom-2.5 right-2.5 flex h-8.5 w-8.5 items-center justify-center rounded-full transition-all duration-300 shadow-sm ${
-            added
-              ? "bg-green-600 text-white scale-105 opacity-100"
-              : "bg-gold text-gold-foreground opacity-90 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-110 hover:bg-gold/90 shadow-gold/20"
-          } cursor-pointer`}
-          title={added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}
-        >
-          {added ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-        </button>
-      </div>
-
-      {/* Contenu compact et proportionné */}
-      <div className="flex flex-1 flex-col p-3.5 sm:p-4 gap-2">
-        <h3 className="font-display text-sm sm:text-base font-bold text-primary transition-colors duration-200 group-hover:text-gold line-clamp-2 min-h-[2.5rem] sm:min-h-[2.8rem] flex items-start">
-          {name}
-        </h3>
-        {shortDescription && (
-          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3 min-h-[3rem] sm:min-h-[3.4rem]">
-            {shortDescription}
-          </p>
-        )}
-        <div className="mt-auto flex items-end justify-between pt-2.5 border-t border-border/60">
-          <div>
-            <div className="text-base sm:text-lg font-bold text-gold font-display leading-tight">
-              {formatPrice(price, currencySymbol)}
+          {/* Badges Publics */}
+          {(isKid || isAdult) && (
+            <div className="absolute right-3 top-3 flex flex-col gap-1">
+              {isKid && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-900 dark:text-gold shadow-xs">
+                  <Baby className="h-2.5 w-2.5 text-gold" /> {t("audience.kid", "Bébé")}
+                </span>
+              )}
+              {isAdult && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-stone-300/50 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 shadow-xs">
+                  <User className="h-2.5 w-2.5" /> {t("audience.adult", "Famille")}
+                </span>
+              )}
             </div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {unit}
-            </div>
-          </div>
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-primary transition-all duration-200 group-hover:bg-gold group-hover:text-gold-foreground">
-            {t("common.details", "Détails →")}
-          </span>
+          )}
+
+          {lowStock && !isOutOfStock && (
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-amber-900/90 text-amber-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
+              <Flame className="h-3 w-3 text-gold" /> {t("product.lowStock", "Plus que {{count}}", { count: stock })}
+            </span>
+          )}
+
+          {isOutOfStock && (
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-stone-900/85 text-stone-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
+              {t("product.outOfStock", "Rupture")}
+            </span>
+          )}
+
+          {/* Bouton d'ajout rapide tactile avec puce interne animée */}
+          <button
+            type="button"
+            onClick={handleQuickAdd}
+            disabled={isOutOfStock}
+            className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-md ${
+              added
+                ? "bg-emerald-600 text-white scale-105 opacity-100"
+                : "bg-[#1C140E] text-gold hover:bg-gold hover:text-stone-950 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 hover:scale-105"
+            } cursor-pointer`}
+            title={added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}
+          >
+            {added ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <ShoppingBag className="h-4 w-4" />
+            )}
+          </button>
         </div>
-      </div>
-    </Link>
+
+        {/* Corps textuel éditorial */}
+        <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 gap-3">
+          <div>
+            <h3 className="font-display text-base sm:text-lg font-bold text-stone-900 dark:text-stone-100 transition-colors duration-200 group-hover:text-amber-800 dark:group-hover:text-gold line-clamp-1">
+              {name}
+            </h3>
+
+            {shortDescription && (
+              <p className="mt-1.5 text-xs text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
+                {shortDescription}
+              </p>
+            )}
+          </div>
+
+          {/* Tarification & Sceau de qualité */}
+          <div className="flex items-baseline justify-between pt-3 border-t border-stone-200/60 dark:border-stone-800/60">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg sm:text-xl font-bold text-stone-950 dark:text-stone-100 font-display tracking-tight">
+                {formatPrice(price, currencySymbol)}
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+                / {unit}
+              </span>
+            </div>
+
+            <span className="text-[11px] font-bold text-amber-800 dark:text-gold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span>Découvrir</span>
+              <span>→</span>
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
   );
 }

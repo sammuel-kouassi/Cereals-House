@@ -102,31 +102,36 @@ export function ProductsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
-      {/* 1. Header Épuré & Transparent de la Boutique */}
-      <div className="relative overflow-hidden rounded-3xl border border-gold/35 border-animated-fine bg-card/40 backdrop-blur-md p-8 sm:p-12 text-foreground shadow-sm">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-gold/10 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-amber-600/5 blur-3xl" />
+      {/* 1. Header Écrin Terroir & Épicerie Fine */}
+      <div className="relative overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-[#1C140E] via-[#241912] to-[#18110B] p-8 sm:p-14 text-white shadow-xl border border-gold/30">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gold/15 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-amber-700/10 blur-3xl" />
 
         <div className="relative z-10 max-w-3xl">
-          <h1 className="font-display text-3xl sm:text-5xl font-bold tracking-tight text-primary leading-tight">
-            {t("products.title", "Nos farines & céréales fraîches")}
+          <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-gold mb-4">
+            <Leaf className="h-3 w-3" />
+            <span>Catalogue Officiel & Moutures d'Afrique</span>
+          </div>
+
+          <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-100 leading-[1.1]">
+            Farines & céréales <span className="font-editorial text-gold font-normal">d'exception</span>
           </h1>
 
-          <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
-            {t("products.subtitle", "Garanties sans sable ni cailloux, moulues sur meule de pierre et prêtes à être cuisinées pour toute la famille.")}
+          <p className="mt-4 text-xs sm:text-base text-stone-300 max-w-2xl leading-relaxed font-light">
+            {t("products.subtitle", "Garanties 100% sans sable, vannées avec soin et prêtes pour vos recettes familiales et créations culinaires.")}
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
-            <div className="flex items-center gap-1.5 rounded-full border border-border/80 bg-transparent px-3.5 py-1 text-foreground/80 font-medium shadow-2xs">
+          <div className="mt-8 flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-4 py-1.5 text-stone-200 font-medium shadow-xs">
               <Leaf className="h-3.5 w-3.5 text-gold" />
               <span>100% Naturel & Sans additifs</span>
             </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-border/80 bg-transparent px-3.5 py-1 text-foreground/80 font-medium shadow-2xs">
+            <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-4 py-1.5 text-stone-200 font-medium shadow-xs">
               <ShieldCheck className="h-3.5 w-3.5 text-gold" />
               <span>Fraîcheur scellée sous vide</span>
             </div>
             {country && (
-              <div className="flex items-center gap-1.5 rounded-full border border-gold/35 bg-transparent px-3.5 py-1 text-gold font-semibold shadow-2xs">
+              <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-4 py-1.5 text-gold font-semibold shadow-xs">
                 <Flag code={country.code} className="h-3.5 w-5 rounded-[2px]" />
                 <span>Livraison vers {country.name}</span>
               </div>
@@ -145,14 +150,34 @@ export function ProductsPage() {
         />
       </div>
 
-      {/* 3. Zone de Filtrage & Contrôles */}
-      <div className="space-y-6 pt-2">
+      {/* 3. Rail Horizontal des Catégories (Atelier Style) */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {categories.map((cat) => {
+          const active = category === cat;
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setCategory(cat)}
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold tracking-tight transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-pointer ${
+                active
+                  ? "bg-[#1C140E] text-gold dark:bg-gold dark:text-stone-950 shadow-md scale-102 font-bold"
+                  : "bg-[#FAF7F2] dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:border-gold/40"
+              }`}
+            >
+              {cat}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 4. Zone de Contrôles : Public + Tri + Bascule Vue */}
+      <div className="space-y-6 pt-1">
         <div className="flex flex-col gap-4">
-          {/* Barre de contrôle : Public + Tri + Bascule Vue */}
-          <div className="flex w-full flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card/60 p-3.5 backdrop-blur shadow-xs">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-3 backdrop-blur shadow-xs">
             {/* Filtre Public Cible */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hidden sm:inline">
+              <span className="mr-1 text-xs font-bold uppercase tracking-wider text-stone-400 hidden sm:inline">
                 {t("products.filterAudience", "Public")} :
               </span>
               {audienceChips.map((chip) => {
@@ -163,10 +188,10 @@ export function ProductsPage() {
                     key={chip.key}
                     type="button"
                     onClick={() => setAudience(chip.key)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
                       active
-                        ? "bg-primary text-primary-foreground shadow-sm font-bold"
-                        : "bg-secondary/70 text-foreground/70 hover:text-primary hover:bg-secondary"
+                        ? "bg-[#1C140E] text-gold dark:bg-gold dark:text-stone-950 shadow-xs font-bold"
+                        : "bg-stone-100 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5 text-gold" /> {chip.label}

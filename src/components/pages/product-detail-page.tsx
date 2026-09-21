@@ -157,37 +157,39 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       </nav>
 
       <div className="grid gap-12 lg:grid-cols-2 items-start">
-        {/* Colonne Galerie & Image */}
-        <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-secondary shadow-xl">
-            <img
-              src={product.image_url || imageFor(product.slug)}
-              alt={product.name}
-              className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-            />
-            {product.is_featured && (
-              <span className="absolute left-4 top-4 rounded-full bg-gold px-3.5 py-1 text-xs font-bold text-gold-foreground shadow-gold">
-                {t("product.featuredBadge", "Coup de Cœur")}
-              </span>
-            )}
+        {/* Colonne Galerie & Image avec Architecture Double-Bezel */}
+        <div className="space-y-5">
+          <div className="rounded-[2.25rem] p-2 bg-stone-900/[0.03] dark:bg-white/[0.04] ring-1 ring-stone-900/5 dark:ring-white/10 shadow-lg">
+            <div className="relative aspect-square overflow-hidden rounded-[calc(2.25rem-0.5rem)] border border-stone-200/80 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 shadow-inner">
+              <img
+                src={product.image_url || imageFor(product.slug)}
+                alt={product.name}
+                className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+              />
+              {product.is_featured && (
+                <span className="absolute left-4 top-4 rounded-full bg-gradient-to-r from-gold via-amber-400 to-amber-600 px-4 py-1 text-xs font-bold text-stone-950 shadow-md">
+                  {t("product.featuredBadge", "Coup de Cœur de l'Atelier")}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Garanties visuelles sous l'image */}
-          <div className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-card/60 p-4 text-center">
-            <div className="flex flex-col items-center gap-1 text-xs">
-              <Leaf className="h-5 w-5 text-gold" />
-              <span className="font-semibold text-primary">{t("product.natural", "100% Naturel")}</span>
-              <span className="text-[10px] text-muted-foreground">{t("product.naturalSub", "Sans additifs")}</span>
+          {/* Garanties visuelles sous l'image en 3 dalles tactiles */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
+              <Leaf className="h-5 w-5 text-amber-800 dark:text-gold" />
+              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.natural", "100% Naturel")}</span>
+              <span className="text-[10px] text-stone-500 font-light">{t("product.naturalSub", "Sans aucun additif")}</span>
             </div>
-            <div className="flex flex-col items-center gap-1 text-xs border-x border-border px-2">
-              <Truck className="h-5 w-5 text-gold" />
-              <span className="font-semibold text-primary">{t("product.fastDelivery", "Livraison 24-48h")}</span>
-              <span className="text-[10px] text-muted-foreground">{t("product.fastDeliverySub", "Suivi en direct")}</span>
+            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
+              <Truck className="h-5 w-5 text-amber-800 dark:text-gold" />
+              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.fastDelivery", "Livraison Express")}</span>
+              <span className="text-[10px] text-stone-500 font-light">{t("product.fastDeliverySub", "Suivi WhatsApp")}</span>
             </div>
-            <div className="flex flex-col items-center gap-1 text-xs">
-              <ShieldCheck className="h-5 w-5 text-gold" />
-              <span className="font-semibold text-primary">{t("product.securePayment", "Paiement Mobile")}</span>
-              <span className="text-[10px] text-muted-foreground">{t("product.securePaymentSub", "Wave, Orange, MTN")}</span>
+            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
+              <ShieldCheck className="h-5 w-5 text-amber-800 dark:text-gold" />
+              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.securePayment", "Règlement Sécurisé")}</span>
+              <span className="text-[10px] text-stone-500 font-light">{t("product.securePaymentSub", "Wave, OM, MoMo, CB")}</span>
             </div>
           </div>
         </div>
@@ -196,66 +198,66 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         <div className="flex flex-col justify-between space-y-6">
           <div>
             {product.category && (
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-900 dark:text-gold">
                 {product.category}
               </span>
             )}
-            <h1 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary leading-tight">
+            <h1 className="mt-3 font-display text-3xl sm:text-5xl font-bold text-stone-950 dark:text-stone-100 leading-tight">
               {product.name}
             </h1>
 
             {/* Note moyenne */}
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2.5">
               <div className="flex text-gold">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Star key={i} className="h-4 w-4 fill-gold" />
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground">
-                ({reviews.length > 0 ? t("product.reviewsVerified", { count: reviews.length }) : t("product.reviewsExcellent", "4.9 / 5 (Recommandé par nos clients)")})
+              <span className="text-xs text-stone-500 font-medium">
+                ({reviews.length > 0 ? t("product.reviewsVerified", { count: reviews.length }) : t("product.reviewsExcellent", "4.9 / 5 — Recommandé par nos cuisiniers")})
               </span>
             </div>
 
             {/* Prix */}
-            <div className="mt-5 flex items-baseline gap-3">
-              <span className="font-display text-3xl sm:text-4xl font-bold text-gold">
+            <div className="mt-5 flex items-baseline gap-2.5">
+              <span className="font-display text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-100">
                 {formatPrice(unitPrice, currencySymbol)}
               </span>
-              <span className="text-sm uppercase tracking-wider text-muted-foreground">
+              <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
                 / {product.unit}
               </span>
             </div>
 
             {product.short_description && (
-              <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              <p className="mt-4 text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-light">
                 {product.short_description}
               </p>
             )}
 
             {/* État du stock */}
             <div className="mt-6 flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-xs font-semibold text-primary">
-                {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} disponibles) : expédié sous 24h` })}
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+                {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} sachets) : préparation immédiate` })}
               </span>
             </div>
 
-            {/* Sélecteur de Quantité & Bouton d'Achat */}
+            {/* Sélecteur de Quantité & Bouton d'Achat Tactile */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <div className="flex items-center rounded-full border border-border bg-card p-1 shadow-xs">
+              <div className="flex items-center rounded-full border border-stone-300/80 dark:border-stone-700 bg-card p-1 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="grid h-9 w-9 place-items-center rounded-full text-foreground/80 hover:bg-secondary hover:text-gold transition cursor-pointer"
+                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
                   aria-label="Diminuer"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-12 text-center text-sm font-bold">{qty}</span>
+                <span className="w-12 text-center text-sm font-bold text-stone-950 dark:text-stone-100">{qty}</span>
                 <button
                   type="button"
                   onClick={() => setQty((q) => q + 1)}
-                  className="grid h-9 w-9 place-items-center rounded-full text-foreground/80 hover:bg-secondary hover:text-gold transition cursor-pointer"
+                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
                   aria-label="Augmenter"
                 >
                   <Plus className="h-4 w-4" />
@@ -265,17 +267,19 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-full py-3.5 px-8 text-sm font-bold shadow-gold transition-all duration-300 cursor-pointer ${
+                className={`flex-1 inline-flex items-center justify-between rounded-full pl-6 pr-2 py-2 text-xs sm:text-sm font-bold shadow-xl transition-all duration-300 cursor-pointer ${
                   addedAnimation
-                    ? "bg-green-600 text-white scale-102"
-                    : "bg-gold text-gold-foreground hover:bg-gold/90 hover:-translate-y-0.5"
+                    ? "bg-emerald-600 text-white scale-[1.02]"
+                    : "bg-[#1C140E] text-white hover:bg-gold hover:text-stone-950 hover:scale-[1.01]"
                 }`}
               >
-                {addedAnimation ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
                 <span>
                   {addedAnimation
-                    ? t("product.addedToast", "Ajouté !")
+                    ? t("product.addedToast", "Ajouté au panier !")
                     : `${t("product.addToCart", "Ajouter au panier")} • ${formatPrice(totalPrice, currencySymbol)}`}
+                </span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-gold group-hover:bg-stone-950">
+                  {addedAnimation ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
                 </span>
               </button>
             </div>
