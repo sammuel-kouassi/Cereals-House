@@ -288,6 +288,7 @@ export function HomePage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Reveal>
           <GoldCtaBanner
+            variant="b2b"
             eyebrow={t("home.bulkEyebrow", "Pour crèches, restaurants & distributeurs")}
             title={t("home.bulkTitle", "Commandes en gros & sacs de 25kg / 50kg")}
             description={t(

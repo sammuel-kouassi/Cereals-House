@@ -140,7 +140,7 @@ export function OrdersPage() {
                 className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 transition hover:border-gold/40 hover:shadow-soft cursor-pointer"
               >
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-display text-base font-bold text-primary group-hover:text-gold transition">
                       {order.order_number}
                     </span>
@@ -148,6 +148,12 @@ export function OrdersPage() {
                       <StatusIcon className="h-3.5 w-3.5" />
                       {statusConfig.label}
                     </span>
+                    {order.cancellation_requested && order.status !== "cancelled" && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-200">
+                        <Clock className="h-3 w-3 animate-spin" />
+                        Annulation en attente admin
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Passée le {new Date(order.created_at).toLocaleDateString("fr-FR", { dateStyle: "long" })}

@@ -353,3 +353,82 @@ export function buildQuoteRequestAdminEmail(params: {
   };
 }
 
+export function buildCustomerCancellationRequestAdminEmail(params: {
+  orderNumber: string;
+  customerName: string;
+  phone: string;
+  amount: string;
+  paymentStatus: string;
+  reason: string;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `🚨 Demande d'annulation client — Commande ${params.orderNumber}`,
+    html: `
+    <div style="font-family:Georgia,'Times New Roman',serif;padding:24px;background:${CREAM};">
+      <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;border:1px solid #eee;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <span style="color:${GOLD};font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;">Cereals House — Administration</span>
+        </div>
+        <h1 style="color:${BROWN};font-size:20px;margin:0 0 14px;text-align:center;">Demande d'annulation reçue</h1>
+        <p style="color:#444;font-size:14px;line-height:1.6;">
+          Le client <strong>${params.customerName}</strong> souhaite annuler sa commande <strong>${params.orderNumber}</strong>.
+        </p>
+        <div style="margin:16px 0;background:#FFF9F0;border-left:4px solid ${GOLD};padding:14px;border-radius:4px;">
+          <p style="margin:0 0 6px;font-size:13px;color:#666;"><strong>Motif indiqué par le client :</strong></p>
+          <p style="margin:0;font-size:14px;color:${BROWN};font-style:italic;">« ${params.reason} »</p>
+        </div>
+        <table style="width:100%;color:#333;font-size:14px;line-height:1.6;border-collapse:collapse;margin-top:12px;">
+          <tr><td style="padding:4px 0;width:40%;color:#777;">Client</td><td style="padding:4px 0;font-weight:bold;">${params.customerName}</td></tr>
+          <tr><td style="padding:4px 0;color:#777;">Téléphone</td><td style="padding:4px 0;font-weight:bold;">${params.phone}</td></tr>
+          <tr><td style="padding:4px 0;color:#777;">Montant total</td><td style="padding:4px 0;font-weight:bold;">${params.amount}</td></tr>
+          <tr><td style="padding:4px 0;color:#777;">Paiement</td><td style="padding:4px 0;font-weight:bold;">${params.paymentStatus === "paid" ? "Payée en ligne" : "En attente / Livraison"}</td></tr>
+        </table>
+        <p style="color:#555;font-size:12px;line-height:1.5;margin-top:16px;">
+          Conformément au processus, seule l'administration peut finaliser et valider cette annulation pour réintégrer les stocks et traiter le remboursement si applicable.
+        </p>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="${params.adminUrl}" style="display:inline-block;background:${GOLD};color:${BROWN};text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:999px;font-size:13px;">
+            Examiner la commande dans l'admin
+          </a>
+        </div>
+      </div>
+    </div>`,
+  };
+}
+
+export function buildCustomerCancellationRequestReceivedEmail(params: {
+  orderNumber: string;
+  customerName: string;
+  reason: string;
+  trackingUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `Demande d'annulation reçue — Commande ${params.orderNumber}`,
+    html: `
+    <div style="font-family:Georgia,'Times New Roman',serif;padding:24px;background:${CREAM};">
+      <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:24px;border:1px solid #eee;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <span style="color:${GOLD};font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;">Cereals House</span>
+        </div>
+        <h1 style="color:${BROWN};font-size:20px;margin:0 0 14px;text-align:center;">Votre demande d'annulation</h1>
+        <p style="color:#444;font-size:14px;line-height:1.6;">
+          Bonjour ${params.customerName},<br/><br/>
+          Nous avons bien reçu votre demande d'annulation pour la commande <strong>${params.orderNumber}</strong>.
+        </p>
+        <div style="margin:16px 0;background:${CREAM};padding:14px;border-radius:8px;font-size:13px;color:#555;">
+          <strong>Motif enregistré :</strong> ${params.reason}
+        </div>
+        <p style="color:#555;font-size:13px;line-height:1.6;">
+          Notre équipe administrative examine votre dossier et finalisera l'annulation sous peu. Vous pourrez suivre l'état de votre demande en temps réel sur votre espace de suivi.
+        </p>
+        <div style="text-align:center;margin-top:20px;">
+          <a href="${params.trackingUrl}" style="display:inline-block;background:${GOLD};color:${BROWN};text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:999px;font-size:13px;">
+            Suivre l'état de ma commande
+          </a>
+        </div>
+      </div>
+    </div>`,
+  };
+}
+

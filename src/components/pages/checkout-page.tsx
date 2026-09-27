@@ -1,5 +1,5 @@
 import { Link, useRouter, Navigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -7,19 +7,8 @@ import {
   ShieldCheck,
   Loader2,
   Truck,
-  CreditCard,
-  Banknote,
-  CheckCircle2,
-  MapPin,
-  Sparkles,
   ArrowRight,
-  BadgeCheck,
-  Smartphone,
-  Shield,
-  HelpCircle,
-  MessageCircle,
-  Plane,
-  Globe,
+  Sparkles,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
@@ -31,18 +20,20 @@ import { listPublicCityShippingRatesFn } from "@/lib/shipping/shipping.functions
 import { initiateGeniusPayPaymentFn } from "@/lib/payments/geniuspay.functions";
 import { PageLoader } from "@/components/page-loader";
 import {
-  isOnlinePaymentSupported,
   getCountryPaymentChannels,
-  detectCountryFromPhone,
   getCountryDialInfo,
-  COUNTRY_DIAL_DATA,
 } from "@/lib/payments/supported-countries";
-import { Flag } from "@/components/flag";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
+import logoWave from "@/assets/wave.png";
+import logoOM from "@/assets/om.png";
+import logoMTN from "@/assets/mtn.jpg";
+import logoMoov from "@/assets/moov.png";
+import logoVisa from "@/assets/visa.png";
+
 export function CheckoutPage() {
-  const { items, clearCart, totalItems } = useCart();
-  const { country, setCountryCode } = useCountry();
+  const { items, clearCart } = useCart();
+  const { country } = useCountry();
   const { user, loading } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
@@ -64,48 +55,28 @@ export function CheckoutPage() {
     queryFn: () => listPublicCityShippingRatesFn(),
   });
 
-  const currentCountryCode = country?.code ?? "CI";
-  const currencySymbol = country?.currency_symbol ?? "FCFA";
-  const currencyCode = country?.currency_code ?? "XOF";
+  const currentCountryCode = "CI";
+  const currencySymbol = "FCFA";
+  const currencyCode = "XOF";
 
-  const isOnlineSupported = isOnlinePaymentSupported(currentCountryCode);
-  const countryPaymentChannels = getCountryPaymentChannels(currentCountryCode);
-  const currentDialInfo = getCountryDialInfo(currentCountryCode);
+  const isOnlineSupported = true;
+  const countryPaymentChannels = getCountryPaymentChannels("CI");
+  const currentDialInfo = getCountryDialInfo("CI");
 
-  const COUNTRY_METADATA: Record<string, { name: string; flag: string; phoneCode: string; placeholder: string }> = {
-    CI: { name: "Côte d'Ivoire", flag: "🇨🇮", phoneCode: "+225", placeholder: "+225 07 00 00 00 00" },
-    SN: { name: "Sénégal", flag: "🇸🇳", phoneCode: "+221", placeholder: "+221 77 000 00 00" },
-    BJ: { name: "Bénin", flag: "🇧🇯", phoneCode: "+229", placeholder: "+229 97 00 00 00" },
-    BF: { name: "Burkina Faso", flag: "🇧🇫", phoneCode: "+226", placeholder: "+226 70 00 00 00" },
-    ML: { name: "Mali", flag: "🇲🇱", phoneCode: "+223", placeholder: "+223 70 00 00 00" },
-    TG: { name: "Togo", flag: "🇹🇬", phoneCode: "+228", placeholder: "+228 90 00 00 00" },
-    GH: { name: "Ghana", flag: "🇬🇭", phoneCode: "+233", placeholder: "+233 24 000 0000" },
-    FR: { name: "France & Europe", flag: "🇫🇷", phoneCode: "+33", placeholder: "+33 6 00 00 00 00" },
-    US: { name: "États-Unis", flag: "🇺🇸", phoneCode: "+1", placeholder: "+1 202 555 0100" },
+  const currentCountryMeta = {
+    name: "Côte d'Ivoire",
+    flag: "🇨🇮",
+    phoneCode: "+225",
+    placeholder: "+225 07 00 00 00 00",
   };
 
-  const currentCountryMeta = COUNTRY_METADATA[currentCountryCode] || {
-    name: country?.name || currentCountryCode,
-    flag: "🌍",
-    phoneCode: currentDialInfo.dialCode,
-    placeholder: currentDialInfo.placeholder,
-  };
-
-  // Gestion de la saisie téléphonique avec détection automatique du pays
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    setForm((prev) => ({ ...prev, phone: raw }));
-
-    // Si l'utilisateur saisit ou colle un indicatif (+221, 00221, etc.), synchroniser le pays
-    const detected = detectCountryFromPhone(raw);
-    if (detected && detected !== currentCountryCode) {
-      setCountryCode(detected);
-    }
+    setForm((prev) => ({ ...prev, phone: e.target.value }));
   };
 
-  // Tarifs spécifiques aux villes pour ce pays
+  // Tarifs spécifiques aux villes pour la Côte d'Ivoire
   const availableCityRates = (cityRatesData?.rates ?? []).filter(
-    (r) => r.country_code === currentCountryCode
+    (r) => r.country_code === "CI"
   );
 
   const matchedCityRate = availableCityRates.find(
@@ -157,44 +128,10 @@ export function CheckoutPage() {
     return <Navigate to={getLocalizedPath("/cart") as any} replace />;
   }
 
-  const WHATSAPP_NUMBER = "2250584637219";
-
-  function handleWhatsAppExport() {
-    if (!form.full_name.trim() || !form.phone.trim() || !form.city.trim()) {
-      toast.error(t("checkout.errorFields", "Veuillez renseigner votre nom, téléphone et ville de destination."));
-      return;
-    }
-    const itemsLines = items.map((it) => `• ${it.quantity}x ${it.name}`).join("\n");
-    const msg =
-      `Bonjour Cereals House 🌾\n\n` +
-      `Je souhaite finaliser ma commande export pour une livraison vers : *${currentCountryMeta.name}* ${currentCountryMeta.flag}\n\n` +
-      `📋 *Articles sélectionnés :*\n${itemsLines}\n\n` +
-      `💰 *Total articles :* ${formatPrice(subtotal, currencySymbol)}\n\n` +
-      `👤 *Destinataire :* ${form.full_name}\n` +
-      `📞 *Téléphone / WhatsApp :* ${form.phone}\n` +
-      `📍 *Ville & Pays :* ${form.city}, ${currentCountryMeta.name}\n` +
-      `🏠 *Adresse / Quartier :* ${form.address || "À convenir"}\n` +
-      (form.notes ? `📝 *Consignes :* ${form.notes}\n` : "") +
-      `\nMerci de me transmettre le devis d'expédition et les modalités de paiement adaptées.`;
-
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank");
-    toast.success(
-      `Votre commande export pour le ${currentCountryMeta.name} a été préparée sur WhatsApp ! Notre équipe vous répond immédiatement.`
-    );
-  }
-
   async function handleSubmit(e?: React.FormEvent) {
     if (e) e.preventDefault();
-    if (!country) return;
     if (!form.full_name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
       toast.error(t("checkout.errorFields", "Veuillez renseigner tous les champs obligatoires (nom, téléphone, adresse, ville)."));
-      return;
-    }
-
-    // Commandes export vers pays non pris en charge par le paiement direct GeniusPay : prise en charge personnalisée via WhatsApp
-    if (!isOnlineSupported) {
-      handleWhatsAppExport();
       return;
     }
 
@@ -357,27 +294,16 @@ export function CheckoutPage() {
                   {t("checkout.phone", "Numéro de téléphone / WhatsApp *")}
                 </label>
                 <div className="flex rounded-xl border border-border bg-background focus-within:border-gold overflow-hidden transition-colors">
-                  <div className="flex items-center gap-1.5 px-3 bg-muted/40 border-r border-border/60 text-xs font-semibold shrink-0 cursor-pointer select-none">
-                    <Flag code={currentCountryCode} className="h-3.5 w-5 rounded-[2px] object-cover" />
-                    <select
-                      value={currentCountryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      className="bg-transparent border-0 outline-none text-foreground font-semibold cursor-pointer py-2.5 text-xs pr-1"
-                      aria-label="Indicatif pays"
-                    >
-                      {Object.entries(COUNTRY_DIAL_DATA).map(([cCode, info]) => (
-                        <option key={cCode} value={cCode} className="bg-background text-foreground">
-                          {info.flag} {info.dialCode} ({info.code})
-                        </option>
-                      ))}
-                    </select>
+                  <div className="flex items-center gap-1.5 px-3 bg-muted/40 border-r border-border/60 text-xs font-semibold shrink-0 select-none">
+                    <span className="text-sm">🇨🇮</span>
+                    <span className="text-xs font-bold text-foreground">+225</span>
                   </div>
                   <input
                     type="tel"
                     required
                     value={form.phone}
                     onChange={handlePhoneChange}
-                    placeholder={currentDialInfo.placeholder}
+                    placeholder="07 00 00 00 00 (Orange, Wave, MTN, Moov)"
                     className="w-full bg-transparent px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                   />
                 </div>
@@ -385,14 +311,14 @@ export function CheckoutPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  {t("checkout.city", "Ville de destination *")}
+                  Ville ou Commune de destination (Côte d'Ivoire) *
                 </label>
                 <input
                   type="text"
                   required
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="ex : Abidjan / Accra / Dakar..."
+                  placeholder="ex : Abidjan (Cocody, Yopougon, Marcory...), Yamoussoukro, Bouaké..."
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
                 />
               </div>
@@ -425,124 +351,57 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Mode de règlement 100% en ligne */}
-            {isOnlineSupported && (
-              <div className="mt-7 pt-6 border-t border-border/70 space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="block text-xs font-semibold text-foreground">
-                    {t("checkout.paymentMode", "Mode de règlement")}
-                  </label>
-                  <span className="text-[11px] text-muted-foreground font-medium">
-                    {countryPaymentChannels.countryName} ({currencySymbol})
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-950">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-500/20 text-amber-700 shrink-0">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold text-stone-900">
-                      Paiement en ligne sécurisé
-                    </div>
-                    <div className="text-[11px] sm:text-xs text-stone-600 leading-relaxed">
-                      Validation instantanée par Mobile Money (Wave, Orange, MTN, Moov) ou Carte bancaire avant expédition.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* Section Export réservée aux pays hors couverture directe (ex : France, USA) */}
-          {!isOnlineSupported && (
-            /* Section 2 Export : Pour les pays hors Côte d'Ivoire */
-            <section className="relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-card/60 backdrop-blur-md p-6 sm:p-7 shadow-xs space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3.5">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-600">
-                    <Globe className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-lg sm:text-xl font-bold text-primary">
-                      2. Expédition & Commande Export
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      Acheminement sur-mesure vers le <strong className="text-foreground">{currentCountryMeta.name}</strong>
-                    </p>
-                  </div>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1 text-xs font-semibold text-emerald-700">
-                  <Flag code={currentCountryCode} className="h-3.5 w-5 rounded-[2px] object-cover shadow-2xs" />
-                  <span>{currentCountryMeta.name}</span>
+            {/* Mode de règlement 100% en ligne GeniusPay */}
+            <div className="mt-7 pt-6 border-t border-border/70 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-xs font-semibold text-foreground">
+                  {t("checkout.paymentMode", "Mode de règlement")}
+                </label>
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  Côte d'Ivoire (FCFA)
                 </span>
               </div>
 
-              <div className="rounded-2xl border border-emerald-500/20 bg-background/50 p-5 space-y-5">
-                <div className="flex items-start gap-3.5">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500/15 text-emerald-600">
-                    <Plane className="h-4.5 w-4.5" />
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
+                    <ShieldCheck className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-primary">
-                      Prise en charge dédiée hors Côte d'Ivoire
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                      Pour les livraisons vers le <strong>{currentCountryMeta.name}</strong>, notre service export coordonne l'acheminement (fret aérien express ou groupage) et met à votre disposition un mode de règlement sans frontières.
-                    </p>
+                    <div className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                      <span>Paiement en ligne sécurisé GeniusPay</span>
+                      <span className="rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+                        Agréé
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* 3 piliers épurés style WorkHub */}
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl border border-border/70 bg-card/80 p-3.5 text-xs space-y-1">
-                    <div className="flex items-center gap-2 font-bold text-foreground">
-                      <Plane className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                      <span>Fret & Transport</span>
+                {/* Logos des moyens de paiement uniquement */}
+                <div className="flex items-center gap-1.5 shrink-0 pl-13 sm:pl-0">
+                  {[
+                    { name: "Wave", src: logoWave },
+                    { name: "Orange Money", src: logoOM },
+                    { name: "MTN MoMo", src: logoMTN },
+                    { name: "Moov Money", src: logoMoov },
+                    { name: "Carte bancaire", src: logoVisa },
+                  ].map((p) => (
+                    <div
+                      key={p.name}
+                      className="flex h-7 w-10 items-center justify-center rounded-md bg-white p-1 shadow-2xs border border-stone-200/80"
+                      title={p.name}
+                    >
+                      <img
+                        src={p.src}
+                        alt={p.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Calcul optimisé selon le volume et votre ville ({form.city.trim() || currentCountryMeta.name}).
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-border/70 bg-card/80 p-3.5 text-xs space-y-1">
-                    <div className="flex items-center gap-2 font-bold text-foreground">
-                      <CreditCard className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                      <span>Règlement Souple</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Wave International, Orange Money, virement bancaire ou transfert direct.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-border/70 bg-card/80 p-3.5 text-xs space-y-1">
-                    <div className="flex items-center gap-2 font-bold text-foreground">
-                      <MessageCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                      <span>Conseiller Dédié</span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Votre panier est transmis en 1 clic sur WhatsApp pour préparation express.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Grand bouton WhatsApp d'action */}
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleWhatsAppExport}
-                    className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-4 text-xs sm:text-sm font-bold shadow-md transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    <MessageCircle className="h-4.5 w-4.5" />
-                    <span>Finaliser ma Commande pour le {currentCountryMeta.name} sur WhatsApp</span>
-                  </button>
-                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                    Ligne officielle du service export : <strong>+225 05 84 63 72 19</strong>
-                  </p>
+                  ))}
                 </div>
               </div>
-            </section>
-          )}
+            </div>
+          </section>
         </div>
 
         {/* Récapitulatif Commande (Droite) */}
@@ -588,40 +447,24 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Bouton de confirmation unique */}
-            {isOnlineSupported ? (
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-gold transition-all duration-200 hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>{t("checkout.submitting", "Traitement de votre commande…")}</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="h-4 w-4" />
-                    <span>Commander ({formatPrice(total, currencySymbol)})</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <div className="space-y-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 rounded-full bg-emerald-600 py-4 text-sm font-bold text-white shadow-md transition-all duration-200 hover:bg-emerald-700 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Commander via WhatsApp Export</span>
-                </button>
-                <p className="text-center text-[11px] text-muted-foreground">
-                  Transfert instantané de votre commande pour le {currentCountryMeta.name}
-                </p>
-              </div>
-            )}
+            {/* Bouton de confirmation unique GeniusPay */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-gold transition-all duration-200 hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{t("checkout.submitting", "Connexion à GeniusPay…")}</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="h-4 w-4" />
+                  <span>Procéder au paiement</span>
+                </>
+              )}
+            </button>
           </div>
         </aside>
       </form>

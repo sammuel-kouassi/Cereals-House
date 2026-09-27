@@ -1,7 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { ReactNode } from "react";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
-import { ArrowRight, Briefcase } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  Sparkles,
+  ShieldCheck,
+  CheckCircle2,
+  Truck,
+  Percent,
+  Star,
+  PackageCheck,
+} from "lucide-react";
+import cerealPackImg from "@/assets/hero_cereales_mixtes_pack.jpg";
 
 interface ActionButton {
   label: string;
@@ -18,6 +29,7 @@ interface GoldCtaBannerProps {
   secondaryAction?: ActionButton;
   className?: string;
   children?: ReactNode;
+  variant?: "b2b" | "discovery" | "auto";
 }
 
 function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -41,8 +53,20 @@ export function GoldCtaBanner({
   secondaryAction,
   className = "",
   children,
+  variant = "auto",
 }: GoldCtaBannerProps) {
   const { getLocalizedPath } = useLanguageNavigation();
+
+  // Détection automatique du type de bloc si variant === "auto"
+  const isB2B =
+    variant === "b2b" ||
+    (variant === "auto" &&
+      (eyebrow?.toLowerCase().includes("pro") ||
+        eyebrow?.toLowerCase().includes("crèche") ||
+        eyebrow?.toLowerCase().includes("distributeur") ||
+        title.toLowerCase().includes("gros") ||
+        title.toLowerCase().includes("25kg") ||
+        title.toLowerCase().includes("b2b")));
 
   const isWhatsApp = (action?: ActionButton) =>
     action?.href.includes("wa.me") ||
@@ -51,116 +75,227 @@ export function GoldCtaBanner({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-gold/35 border-animated-fine bg-card/40 backdrop-blur-md p-7 sm:p-11 lg:p-14 text-foreground shadow-sm ${className}`}
+      className={`group relative overflow-hidden rounded-[2.25rem] sm:rounded-[2.75rem] border border-amber-900/15 dark:border-gold/30 border-animated-fine bg-gradient-to-br from-[#FCF9F4] via-[#F8F2E8] to-[#EFE4D2] dark:from-[#1A1410] dark:via-[#16100C] dark:to-[#100C09] py-9 sm:py-12 px-7 sm:px-10 lg:px-12 text-foreground shadow-lg transition-all duration-500 hover:shadow-2xl ${className}`}
     >
-      {/* ============================================================ */}
-      {/* MOTIFS SOLAIRES ÉLÉGANTS & ONDULATIONS OR FINES              */}
-      {/* ============================================================ */}
-      <div
-        className="pointer-events-none absolute -right-24 sm:-right-16 md:right-0 top-1/2 -translate-y-1/2 h-[420px] w-[420px] sm:h-[560px] sm:w-[560px] lg:h-[680px] lg:w-[680px] select-none"
-        aria-hidden="true"
-      >
-        {/* Halo doux central */}
-        <div className="absolute inset-[25%] rounded-full bg-gold/10 blur-3xl" />
+      {/* ─── HALOS LUMINEUX D'AMBIANCE CHAUDE ─── */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-gold/15 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="pointer-events-none absolute -left-20 -bottom-20 h-80 w-80 rounded-full bg-amber-700/10 blur-3xl opacity-50" />
 
-        {/* Cercles fins concentriques gravés */}
-        <div className="absolute inset-0 rounded-full border border-gold/[0.08]" />
-        <div className="absolute inset-[10%] rounded-full border border-gold/[0.10] bg-gold/[0.01]" />
-        <div className="absolute inset-[20%] rounded-full border border-gold/[0.12] bg-gold/[0.02]" />
-        <div className="absolute inset-[30%] rounded-full border border-gold/[0.15] bg-gold/[0.03]" />
-        <div className="absolute inset-[40%] rounded-full border border-gold/[0.18] bg-gold/[0.04]" />
-        <div className="absolute inset-[50%] rounded-full border border-gold/[0.22] bg-gold/[0.06] shadow-[0_0_40px_rgba(217,119,6,0.08)]" />
-        <div className="absolute inset-[62%] rounded-full bg-gradient-to-l from-gold/30 via-gold/15 to-transparent shadow-[0_0_60px_rgba(217,119,6,0.15)]" />
-      </div>
-
-      {/* ============================================================ */}
-      {/* CONTENU TEXTUEL & BOUTONS TRANSPARENTS ÉLÉGANTS              */}
-      {/* ============================================================ */}
-      <div className="relative z-10 max-w-xl lg:max-w-2xl">
-        {eyebrow && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-gold/35 bg-transparent px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-gold shadow-xs mb-4">
-            <Briefcase className="h-3.5 w-3.5 text-gold" />
-            <span>{eyebrow}</span>
-          </div>
-        )}
-
-        <h3 className="font-display text-2xl sm:text-4xl lg:text-[2.65rem] font-bold tracking-tight text-primary leading-[1.14]">
-          {title}
-        </h3>
-
-        <p className="mt-3.5 text-xs sm:text-sm lg:text-base text-muted-foreground font-normal leading-relaxed max-w-lg">
-          {description}
-        </p>
-
-        {children}
-
-        {/* Boutons Haute Finition Transparents */}
-        {(primaryAction || secondaryAction) && (
-          <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-3 sm:gap-4">
-            {/* Bouton Primaire : Transparent avec contour fin et flèche dorée */}
-            {primaryAction &&
-              (primaryAction.isExternal ? (
-                <a
-                  href={primaryAction.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-transparent hover:bg-gold/10 border-2 border-primary/30 hover:border-gold px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer backdrop-blur-xs"
-                >
-                  <span className="tracking-tight font-bold">{primaryAction.label}</span>
-                  <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-gold-foreground group-hover:translate-x-0.5 shadow-xs">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </a>
+      {/* ─── GRILLE EN 2 COLONNES (Contenu à gauche, Visual Stack animé à droite) ─── */}
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        {/* Colonne Gauche : Textes & Boutons (7 cols sur desktop) */}
+        <div className="lg:col-span-7 flex flex-col justify-center">
+          {eyebrow && (
+            <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/40 bg-gold/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-amber-900 dark:text-gold shadow-2xs mb-4">
+              {isB2B ? (
+                <Briefcase className="h-3.5 w-3.5 text-gold shrink-0" />
               ) : (
-                <Link
-                  to={getLocalizedPath(primaryAction.href)}
-                  className="group inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-transparent hover:bg-gold/10 border-2 border-primary/30 hover:border-gold px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-primary shadow-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer backdrop-blur-xs"
-                >
-                  <span className="tracking-tight font-bold">{primaryAction.label}</span>
-                  <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-gold-foreground group-hover:translate-x-0.5 shadow-xs">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </Link>
-              ))}
+                <Sparkles className="h-3.5 w-3.5 text-gold shrink-0" />
+              )}
+              <span>{eyebrow}</span>
+            </div>
+          )}
 
-            {/* Bouton Secondaire : Transparent avec contour vert WhatsApp */}
-            {secondaryAction &&
-              (() => {
-                const whatsapp = isWhatsApp(secondaryAction);
+          <h3 className="font-display text-2xl sm:text-4xl lg:text-[2.5rem] font-bold tracking-tight text-stone-900 dark:text-stone-100 leading-[1.15]">
+            {title}
+          </h3>
 
-                const buttonClass = whatsapp
-                  ? "group inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-transparent hover:bg-emerald-500/10 border-2 border-emerald-600/35 hover:border-emerald-600 px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-emerald-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer backdrop-blur-xs"
-                  : "group inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-transparent hover:bg-secondary/40 border-2 border-border/80 hover:border-primary/40 px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-foreground shadow-sm transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] cursor-pointer backdrop-blur-xs";
+          <p className="mt-3.5 text-xs sm:text-sm lg:text-base text-stone-600 dark:text-stone-300 font-normal leading-relaxed max-w-xl">
+            {description}
+          </p>
 
-                const iconContainer = whatsapp ? (
-                  <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white shadow-xs">
-                    <WhatsAppIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  </span>
-                ) : (
-                  <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:translate-x-0.5 shadow-xs">
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                );
+          {children}
 
-                return secondaryAction.isExternal ? (
+          {/* Boutons Haute Finition Dynamiques */}
+          {(primaryAction || secondaryAction) && (
+            <div className="mt-7 sm:mt-9 flex flex-wrap items-center gap-3 sm:gap-4">
+              {/* Bouton Primaire Haut de Gamme */}
+              {primaryAction &&
+                (primaryAction.isExternal ? (
                   <a
-                    href={secondaryAction.href}
+                    href={primaryAction.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={buttonClass}
+                    className="group/btn inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-[#1C140E] dark:bg-gold text-white dark:text-stone-950 px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:bg-black dark:hover:bg-amber-400 active:scale-[0.98] cursor-pointer"
                   >
-                    <span className="tracking-tight">{secondaryAction.label}</span>
-                    {iconContainer}
+                    <span className="tracking-tight font-bold">{primaryAction.label}</span>
+                    <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-white/15 dark:bg-black/15 text-gold dark:text-stone-950 transition-transform duration-300 group-hover/btn:translate-x-1 shadow-2xs">
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
                   </a>
                 ) : (
-                  <Link to={getLocalizedPath(secondaryAction.href)} className={buttonClass}>
-                    <span className="tracking-tight">{secondaryAction.label}</span>
-                    {iconContainer}
+                  <Link
+                    to={getLocalizedPath(primaryAction.href)}
+                    className="group/btn inline-flex items-center justify-between gap-3 sm:gap-3.5 rounded-full bg-[#1C140E] dark:bg-gold text-white dark:text-stone-950 px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:bg-black dark:hover:bg-amber-400 active:scale-[0.98] cursor-pointer"
+                  >
+                    <span className="tracking-tight font-bold">{primaryAction.label}</span>
+                    <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-white/15 dark:bg-black/15 text-gold dark:text-stone-950 transition-transform duration-300 group-hover/btn:translate-x-1 shadow-2xs">
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
                   </Link>
-                );
-              })()}
-          </div>
-        )}
+                ))}
+
+              {/* Bouton Secondaire Soigné */}
+              {secondaryAction &&
+                (() => {
+                  const whatsapp = isWhatsApp(secondaryAction);
+
+                  const buttonClass = whatsapp
+                    ? "group/sec inline-flex items-center justify-between gap-2.5 sm:gap-3 rounded-full border border-emerald-600/35 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold shadow-xs transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                    : "group/sec inline-flex items-center justify-between gap-2.5 sm:gap-3 rounded-full border border-stone-300 dark:border-stone-700 bg-white/80 dark:bg-stone-900/80 hover:bg-white dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200 px-5 sm:px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-bold shadow-xs transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer";
+
+                  const iconContainer = whatsapp ? (
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-700 dark:text-emerald-400 transition-transform duration-300 group-hover/sec:scale-110">
+                      <WhatsAppIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </span>
+                  ) : (
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 transition-transform duration-300 group-hover/sec:translate-x-0.5">
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  );
+
+                  return secondaryAction.isExternal ? (
+                    <a
+                      href={secondaryAction.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={buttonClass}
+                    >
+                      <span className="tracking-tight">{secondaryAction.label}</span>
+                      {iconContainer}
+                    </a>
+                  ) : (
+                    <Link to={getLocalizedPath(secondaryAction.href)} className={buttonClass}>
+                      <span className="tracking-tight">{secondaryAction.label}</span>
+                      {iconContainer}
+                    </Link>
+                  );
+                })()}
+            </div>
+          )}
+        </div>
+
+        {/* Colonne Droite : Composition Visuelle Stylée & Flottante (5 cols sur desktop) */}
+        <div className="lg:col-span-5 relative w-full flex items-center justify-center pt-5 lg:pt-0">
+          {isB2B ? (
+            /* ─── VISUEL VARIANT B2B / GROSSISTE ─── */
+            <div className="relative w-full max-w-sm my-2">
+              {/* Carte Principale Glassmorphique */}
+              <div className="relative rounded-2xl border border-gold/30 bg-white/80 dark:bg-[#1A1410]/90 backdrop-blur-md p-5 sm:p-6 shadow-xl transition-transform duration-500 hover:scale-[1.02]">
+                <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300">
+                      Disponibilité Immédiate
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-gold px-2 py-0.5 rounded-full bg-gold/15">
+                    Pro & Vrac
+                  </span>
+                </div>
+
+                <div className="my-4 space-y-1">
+                  <div className="text-xl sm:text-2xl font-display font-extrabold text-stone-900 dark:text-white flex items-center gap-2">
+                    <span>Tarifs Grossistes</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-gold">
+                      Sur mesure
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
+                    Dès 20 paquets ou en sacs de 25kg & 50kg
+                  </p>
+                </div>
+
+                {/* 3 Points forts avec checkmarks */}
+                <div className="space-y-2 pt-2 text-xs text-stone-600 dark:text-stone-300">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Conditionnements professionnels scellés</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Certificats sanitaires & traçabilité</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Devis sous 24h & expédition palette</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Badge Flottant 1 (Haut Droite) */}
+              <div className="animate-float-slow absolute -top-3 -right-2 sm:-right-3 rounded-xl border border-gold/40 bg-white/95 dark:bg-[#1E1712]/95 backdrop-blur-md px-3.5 py-1.5 shadow-lg flex items-center gap-2 text-xs font-bold text-stone-800 dark:text-stone-100">
+                <Truck className="h-4 w-4 text-gold shrink-0" />
+                <span>Livraison UEMOA & Abidjan</span>
+              </div>
+
+              {/* Badge Flottant 2 (Bas Gauche) */}
+              <div className="animate-float-delayed absolute -bottom-3 -left-2 sm:-left-3 rounded-xl border border-emerald-500/40 bg-white/95 dark:bg-[#121A15]/95 backdrop-blur-md px-3.5 py-1.5 shadow-lg flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                <WhatsAppIcon className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span>Devis rapide via WhatsApp</span>
+              </div>
+            </div>
+          ) : (
+            /* ─── VISUEL VARIANT DÉCOUVERTE / BOUTIQUE / TERROIR ─── */
+            <div className="relative w-full max-w-sm my-2">
+              {/* Carte Principale avec image de céréales nobles */}
+              <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-white/80 dark:bg-[#1A1410]/90 backdrop-blur-md p-3 sm:p-4 shadow-xl transition-transform duration-500 hover:scale-[1.02]">
+                <div className="relative h-44 sm:h-48 w-full overflow-hidden rounded-xl">
+                  <img
+                    src={cerealPackImg}
+                    alt="Céréales Nobles Cereals House"
+                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  
+                  {/* Badge en overlay sur l'image */}
+                  <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white">
+                    <div>
+                      <div className="flex items-center gap-1 text-gold text-xs">
+                        <Star className="h-3.5 w-3.5 fill-gold" />
+                        <Star className="h-3.5 w-3.5 fill-gold" />
+                        <Star className="h-3.5 w-3.5 fill-gold" />
+                        <Star className="h-3.5 w-3.5 fill-gold" />
+                        <Star className="h-3.5 w-3.5 fill-gold" />
+                        <span className="ml-1 text-[11px] font-bold text-white">4.9 / 5</span>
+                      </div>
+                      <p className="text-[10px] text-stone-300 font-light mt-0.5">
+                        +1 200 familles et cuisiniers conquis
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 px-1 flex items-center justify-between text-xs text-stone-600 dark:text-stone-300">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <ShieldCheck className="h-3.5 w-3.5 text-gold" />
+                    Sans sable garanti
+                  </span>
+                  <span className="text-stone-300 dark:text-stone-700">·</span>
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <PackageCheck className="h-3.5 w-3.5 text-gold" />
+                    Livraison 24-48h
+                  </span>
+                </div>
+              </div>
+
+              {/* Badge Flottant 1 (Haut Droite) */}
+              <div className="animate-float-slow absolute -top-3 -right-2 sm:-right-3 rounded-xl border border-gold/40 bg-white/95 dark:bg-[#1E1712]/95 backdrop-blur-md px-3.5 py-1.5 shadow-lg flex items-center gap-2 text-xs font-bold text-stone-800 dark:text-stone-100">
+                <Sparkles className="h-4 w-4 text-gold shrink-0" />
+                <span>100% Naturel & Meule</span>
+              </div>
+
+              {/* Badge Flottant 2 (Bas Gauche) */}
+              <div className="animate-float-delayed absolute -bottom-3 -left-2 sm:-left-3 rounded-xl border border-amber-600/40 bg-white/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-3.5 py-1.5 shadow-lg flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-gold">
+                <Truck className="h-4 w-4 text-amber-600 dark:text-gold shrink-0" />
+                <span>Expédition suivie en direct</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

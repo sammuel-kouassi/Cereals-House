@@ -2,7 +2,6 @@ import { getPublicAppUrl } from "@/lib/app-url.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin/require-admin";
-import { initializePaystackTransaction } from "@/lib/payments/paystack.server";
 import { initializeGeniusPayTransaction } from "@/lib/payments/geniuspay.server";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 import { sendEmail } from "@/lib/email/resend.server";
@@ -164,10 +163,10 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
                   Votre facture officielle <strong>${order.order_number}</strong> d'un montant de <strong>${formattedTotal}</strong> est disponible.
                 </p>
 
-                <!-- Bouton de règlement direct Paystack -->
+                <!-- Bouton de règlement direct GeniusPay -->
                 <div style="text-align: center; margin: 30px 0;">
                   <a href="${paymentLink}" style="background: #BF9024; color: #FFFFFF; text-decoration: none; padding: 14px 28px; border-radius: 50px; font-weight: bold; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(191,144,36,0.3);">
-                    💳 Régler directement sur Paystack
+                    💳 Régler directement sur GeniusPay
                   </a>
                 </div>
 
@@ -200,7 +199,6 @@ export const createQuoteOrderAdminFn = createServerFn({ method: "POST" })
       orderNumber: order.order_number,
       paymentLink,
       directGeniusPayUrl,
-      directPaystackUrl: directGeniusPayUrl,
       pdfUrl,
       emailSent,
     };

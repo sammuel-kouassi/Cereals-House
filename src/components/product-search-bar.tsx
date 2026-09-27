@@ -9,6 +9,7 @@ type Props = {
   value: string;
   onChange: (v: string) => void;
   suggestions: Suggestion[];
+  className?: string;
 };
 
 const STORAGE_KEY = "ch_search_history";
@@ -34,7 +35,7 @@ function saveHistory(list: string[]) {
   }
 }
 
-export function ProductSearchBar({ value, onChange, suggestions }: Props) {
+export function ProductSearchBar({ value, onChange, suggestions, className }: Props) {
   const { t } = useTranslation();
   const [focused, setFocused] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
@@ -106,7 +107,7 @@ export function ProductSearchBar({ value, onChange, suggestions }: Props) {
   const showPanel = focused && (filteredSuggestions.length > 0 || history.length > 0);
 
   return (
-    <div ref={wrapRef} className="relative w-full max-w-2xl">
+    <div ref={wrapRef} className={cn("relative w-full max-w-2xl", className)}>
       <div
         className={cn(
           "group flex items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-sm transition-all",

@@ -229,21 +229,21 @@ export function AboutPage() {
             {/* Ligne 2 : Grand Titre */}
             <Reveal direction="right" delay={120}>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary leading-tight">
-                Une histoire personnelle : de la quête de confiance à la naissance de Cereal House
+                Une histoire personnelle : de la quête de confiance à la naissance de Cereals House
               </h2>
             </Reveal>
 
             {/* Ligne 3 : Premier paragraphe - Déclic personnel */}
             <Reveal direction="right" delay={220}>
               <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Je m’appelle <strong>DOSSOU Lucette</strong>, fondatrice de Cereal House. L’histoire de Cereal House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.
+                Je m’appelle <strong>DOSSOU Lucette</strong>, fondatrice de Cereals House. L’histoire de Cereals House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.
               </p>
             </Reveal>
 
             {/* Ligne 4 : Deuxième paragraphe - Lancement du projet */}
             <Reveal direction="right" delay={320}>
               <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Cette expérience a été le déclic. Je me suis demandé : <em>si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ?</em> C’est ainsi que j’ai commencé à développer Cereal House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales.
+                Cette expérience a été le déclic. Je me suis demandé : <em>si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ?</em> C’est ainsi que j’ai commencé à développer Cereals House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales.
               </p>
             </Reveal>
 
@@ -405,12 +405,20 @@ export function AboutPage() {
                   className="h-full w-full rounded-full object-cover object-top"
                 />
               </div>
-              <p className="font-display text-lg sm:text-xl md:text-2xl text-primary font-medium italic leading-relaxed">
-                « Cereal House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »
+              <p
+                style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
+                className="text-base sm:text-lg md:text-[1.18rem] text-foreground/90 font-normal italic leading-relaxed tracking-normal max-w-2xl mx-auto"
+              >
+                « Cereals House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »
               </p>
               <div className="pt-4 border-t border-border/60">
-                <div className="font-display text-lg font-bold text-gold">DOSSOU Lucette</div>
-                <div className="text-xs text-muted-foreground">Fondatrice & CEO de Cereal House</div>
+                <div
+                  style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
+                  className="text-base sm:text-lg font-bold text-gold tracking-wide"
+                >
+                  DOSSOU Lucette
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">Fondatrice & CEO de Cereals House</div>
               </div>
             </div>
           </div>
@@ -423,6 +431,7 @@ export function AboutPage() {
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <Reveal>
           <GoldCtaBanner
+            variant="discovery"
             eyebrow="Cuisine saine & gourmande"
             title={t("about.ctaTitle", "Prêt(e) à redécouvrir le goût authentique du bon grain ?")}
             description={t(

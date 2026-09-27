@@ -35,6 +35,9 @@ export const en: Dict = {
     admin: "Admin Portal",
   },
   hero: {
+    aboutLink: "Our Story & Milling Craft",
+    socialProof: "Over 1,200 delighted families",
+    shippingAvailableIn: "Shipping available in",
     slide1: {
       tab: "Ancient Cereals",
       eyebrow: "West African Terroirs",
@@ -90,6 +93,8 @@ export const en: Dict = {
       "Ancestral African grains and pure infant flours. Hand-selected, stone-milled and hermetically sealed for maximum freshness.",
     shop: "Shop",
     allProducts: "All Products",
+    cerealsGrains: "Cereals & Grains",
+    babyFlours: "Organic Infant Flours",
     cart: "Cart",
     orderTracking: "Order Tracking",
     company: "House of Cereals House",

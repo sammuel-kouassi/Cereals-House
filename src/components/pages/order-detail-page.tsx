@@ -21,7 +21,7 @@ import {
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { getOrderByIdFn } from "@/lib/orders/orders.functions";
-import { cancelOrderFn } from "@/lib/orders/cancel-order.functions";
+import { requestOrderCancellationFn } from "@/lib/orders/cancel-order.functions";
 import { checkPaymentStatusFn } from "@/lib/payments/check-status.functions";
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
@@ -61,7 +61,10 @@ export function OrderDetailPage({ id }: { id: string }) {
     refetchInterval: (query) => {
       const order = query.state.data?.order;
       if (!order) return false;
-      return order.status === "pending_payment" ? 4000 : false;
+      const needsPolling =
+        order.status === "pending_payment" ||
+        Boolean(order.cancellation_requested && order.status !== "cancelled");
+      return needsPolling ? 3500 : false;
     },
   });
 
@@ -107,19 +110,22 @@ export function OrderDetailPage({ id }: { id: string }) {
             ? `${cancelReasonPreset} (${cancelReasonCustom.trim()})`
             : cancelReasonPreset;
 
-      await cancelOrderFn({
+      const res = await requestOrderCancellationFn({
         data: {
           orderId: order.id,
           reason: fullReason,
         },
       });
 
-      toast.success("Votre commande a bien été annulée.");
+      toast.success(
+        res?.message ||
+          "Votre demande d'annulation a été envoyée à l'administrateur avec succès."
+      );
       setShowCancelModal(false);
       queryClient.invalidateQueries({ queryKey: ["order-detail", id] });
       queryClient.invalidateQueries({ queryKey: ["user-orders"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Échec de l'annulation");
+      toast.error(err instanceof Error ? err.message : "Échec de l'envoi de la demande d'annulation");
     } finally {
       setCancelling(false);
     }
@@ -157,7 +163,12 @@ export function OrderDetailPage({ id }: { id: string }) {
 
   const isCancelled = order.status === "cancelled";
   const isRefunded = order.status === "refunded";
-  const isClientCancellable = ["pending_payment", "paid", "preparing"].includes(order.status);
+  const isCancellationPending = Boolean(order.cancellation_requested && !isCancelled && !isRefunded);
+  const isClientCancellable =
+    ["pending_payment", "paid", "preparing"].includes(order.status) &&
+    !isCancellationPending &&
+    !isCancelled &&
+    !isRefunded;
   const isShippedOrTransit = ["shipped", "in_transit"].includes(order.status);
   const currentStepIndex = FLOW.findIndex((s) => s.key === order.status);
 
@@ -181,6 +192,12 @@ export function OrderDetailPage({ id }: { id: string }) {
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary">
               Commande {order.order_number}
             </h1>
+            {isCancellationPending && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-200">
+                <Clock className="h-3.5 w-3.5 animate-spin" />
+                Annulation demandée (en attente admin)
+              </span>
+            )}
             {isCancelled && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/15 border border-destructive/20 px-3 py-1 text-xs font-bold text-destructive">
                 <XCircle className="h-3.5 w-3.5" />
@@ -206,6 +223,51 @@ export function OrderDetailPage({ id }: { id: string }) {
           </div>
         </div>
       </div>
+
+      {/* Bannière d'état spécifique : Demande d'annulation transmise à l'administrateur */}
+      {isCancellationPending && (
+        <div className="rounded-3xl border border-amber-500/35 bg-amber-500/[0.08] p-6 sm:p-7 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 mt-0.5">
+                <Clock className="h-5 w-5 animate-pulse" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping" />
+                  Demande d'annulation en cours d'examen par l'administrateur
+                </div>
+                <h3 className="font-display text-base font-bold text-primary">
+                  Votre demande a bien été envoyée à notre administration
+                </h3>
+                <p className="text-xs text-foreground/80 leading-relaxed">
+                  {order.cancellation_request_reason ? (
+                    <>
+                      <strong>Motif enregistré :</strong> {order.cancellation_request_reason}
+                    </>
+                  ) : (
+                    "Votre demande d'annulation est actuellement examinée par notre équipe."
+                  )}
+                </p>
+                <p className="text-[11px] text-muted-foreground pt-0.5">
+                  Conformément au protocole, <strong>seul l'administrateur peut finaliser et valider l'annulation</strong>. Dès validation par l'administrateur, cette page affichera le statut définitif « Annulée ».
+                  {order.cancellation_requested_at && ` · Demande soumise le ${new Date(order.cancellation_requested_at).toLocaleString("fr-FR")}`}
+                </p>
+              </div>
+            </div>
+
+            <a
+              href={`https://wa.me/2250584637219?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-600/30 bg-emerald-600/10 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-600 hover:text-white transition shrink-0"
+            >
+              <MessageCircle className="h-4 w-4 text-emerald-600" />
+              <span>Assistance en direct</span>
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Bannière d'état spécifique : Commande Annulée */}
       {isCancelled && (
@@ -390,7 +452,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                   Gestion de votre commande
                 </h4>
                 <p className="text-[11px] text-muted-foreground">
-                  Vous pouvez annuler sans frais votre commande tant qu'elle n'a pas été expédiée.
+                  Vous pouvez demander l'annulation sans frais tant que la commande n'a pas été expédiée.
                 </p>
               </div>
 
@@ -400,8 +462,21 @@ export function OrderDetailPage({ id }: { id: string }) {
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 py-2.5 px-4 text-xs font-semibold text-destructive hover:bg-destructive hover:text-white transition duration-200 cursor-pointer"
               >
                 <XCircle className="h-4 w-4" />
-                <span>Annuler ma commande</span>
+                <span>Demander l'annulation de ma commande</span>
               </button>
+            </div>
+          )}
+
+          {/* Indication lorsque l'annulation est en attente de validation par l'admin */}
+          {isCancellationPending && (
+            <div className="rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5 shadow-xs space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-200">
+                <Clock className="h-4 w-4 shrink-0 text-amber-600 animate-spin" />
+                <span>Annulation en attente d'approbation</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Votre demande a bien été transmise à notre administration. Dès que l'administrateur aura finalisé la validation, le statut deviendra définitivement « Annulée ».
+              </p>
             </div>
           )}
 
@@ -429,43 +504,53 @@ export function OrderDetailPage({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Modale d'annulation Client */}
+      {/* Modale de demande d'annulation Client */}
       {showCancelModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-xl space-y-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-destructive/15 text-destructive">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-500/15 text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-bold text-primary">
-                    Annuler la commande {order.order_number}
+                    Demande d'annulation : {order.order_number}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Confirmez-vous vouloir interrompre le traitement de cette commande ?
+                    Soumettez votre demande d'annulation à l'équipe administrative.
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCancelModal(false)}
-                className="text-muted-foreground hover:text-foreground text-sm font-bold"
+                className="text-muted-foreground hover:text-foreground text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
+            {/* Note explicative sur le processus */}
+            <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.07] p-4 text-xs space-y-1.5">
+              <span className="font-bold text-amber-900 dark:text-amber-200 block">
+                Validation par l'administration requise :
+              </span>
+              <p className="text-muted-foreground leading-relaxed">
+                En confirmant, votre demande sera transmise avec votre motif à l'administrateur. <strong>Seul l'administrateur peut finaliser et valider le processus d'annulation</strong>. Dès validation, vous verrez immédiatement sur cette page que votre commande est officiellement annulée.
+              </p>
+            </div>
+
             {/* Note de transparence sur le paiement */}
             <div className="rounded-2xl border border-border/70 bg-secondary/40 p-4 text-xs space-y-1.5">
-              <span className="font-bold text-primary block">Conséquence sur votre règlement :</span>
+              <span className="font-bold text-primary block">Règlement & Remboursement :</span>
               {order.payment_status === "paid" ? (
                 <p className="text-muted-foreground leading-relaxed">
-                  Votre commande a déjà été payée ({formatPrice(Number(order.total), order.currency_symbol || order.currency_code)}). Notre équipe comptable effectuera le <strong>remboursement intégral sous 24h à 48h</strong> sur votre compte Mobile Money ou carte bancaire.
+                  Votre commande a déjà été payée ({formatPrice(Number(order.total), order.currency_symbol || order.currency_code)}). Dès que l'administrateur aura validé l'annulation, notre équipe comptable effectuera le <strong>remboursement intégral sous 24h à 48h</strong> sur votre compte Mobile Money ou carte bancaire.
                 </p>
               ) : (
                 <p className="text-muted-foreground leading-relaxed">
-                  Aucun montant n'ayant été prélevé, la commande sera clôturée sans aucun frais pour vous.
+                  Aucun montant n'ayant été prélevé, la commande sera clôturée sans aucun frais après validation administrative.
                 </p>
               )}
             </div>
@@ -473,7 +558,7 @@ export function OrderDetailPage({ id }: { id: string }) {
             {/* Sélection du motif */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-primary">
-                Indiquez le motif de l'annulation *
+                Indiquez le motif de votre demande d'annulation *
               </label>
               <select
                 value={cancelReasonPreset}
@@ -491,7 +576,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                 rows={2}
                 value={cancelReasonCustom}
                 onChange={(e) => setCancelReasonCustom(e.target.value)}
-                placeholder="Précisions complémentaires (facultatif)…"
+                placeholder="Précisions complémentaires pour l'administrateur (facultatif)…"
                 className="w-full rounded-xl border border-border bg-background p-3 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
               />
             </div>
@@ -502,7 +587,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                 type="button"
                 disabled={cancelling}
                 onClick={() => setShowCancelModal(false)}
-                className="rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-secondary transition disabled:opacity-50"
+                className="rounded-xl border border-border px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-secondary transition disabled:opacity-50 cursor-pointer"
               >
                 Garder ma commande
               </button>
@@ -510,15 +595,15 @@ export function OrderDetailPage({ id }: { id: string }) {
                 type="button"
                 disabled={cancelling}
                 onClick={handleConfirmCancellation}
-                className="flex items-center gap-2 rounded-xl bg-destructive px-5 py-2.5 text-xs font-bold text-destructive-foreground hover:bg-destructive/90 transition shadow-xs disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-amber-700 transition shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 {cancelling ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Annulation en cours…</span>
+                    <span>Envoi à l'administrateur…</span>
                   </>
                 ) : (
-                  <span>Confirmer l'annulation</span>
+                  <span>Envoyer la demande d'annulation</span>
                 )}
               </button>
             </div>

@@ -10,12 +10,6 @@
 
 export const ONLINE_PAYMENT_SUPPORTED_COUNTRIES = [
   "CI",
-  "SN",
-  "BJ",
-  "BF",
-  "ML",
-  "TG",
-  "GH",
 ] as const;
 
 export type OnlinePaymentSupportedCountry =
@@ -25,8 +19,7 @@ export function isOnlinePaymentSupported(
   code: string | undefined | null,
 ): boolean {
   if (!code) return false;
-  const upper = code.toUpperCase().trim();
-  return (ONLINE_PAYMENT_SUPPORTED_COUNTRIES as readonly string[]).includes(upper);
+  return code.toUpperCase().trim() === "CI";
 }
 
 export type CountryPaymentOperator = {
@@ -63,6 +56,7 @@ export type CountryDialInfo = {
   example: string;
 };
 
+// Paiement actif uniquement pour la Côte d'Ivoire (autres pays masqués pour le moment)
 export const COUNTRY_DIAL_DATA: Record<string, CountryDialInfo> = {
   CI: {
     code: "CI",
@@ -72,120 +66,17 @@ export const COUNTRY_DIAL_DATA: Record<string, CountryDialInfo> = {
     placeholder: "07 00 00 00 00",
     example: "+225 07 12 34 56 78",
   },
-  SN: {
-    code: "SN",
-    name: "Sénégal",
-    flag: "🇸🇳",
-    dialCode: "+221",
-    placeholder: "77 000 00 00",
-    example: "+221 77 123 45 67",
-  },
-  BJ: {
-    code: "BJ",
-    name: "Bénin",
-    flag: "🇧🇯",
-    dialCode: "+229",
-    placeholder: "97 00 00 00",
-    example: "+229 97 12 34 56",
-  },
-  BF: {
-    code: "BF",
-    name: "Burkina Faso",
-    flag: "🇧🇫",
-    dialCode: "+226",
-    placeholder: "70 00 00 00",
-    example: "+226 70 12 34 56",
-  },
-  ML: {
-    code: "ML",
-    name: "Mali",
-    flag: "🇲🇱",
-    dialCode: "+223",
-    placeholder: "70 00 00 00",
-    example: "+223 70 12 34 56",
-  },
-  TG: {
-    code: "TG",
-    name: "Togo",
-    flag: "🇹🇬",
-    dialCode: "+228",
-    placeholder: "90 00 00 00",
-    example: "+228 90 12 34 56",
-  },
-  GH: {
-    code: "GH",
-    name: "Ghana",
-    flag: "🇬🇭",
-    dialCode: "+233",
-    placeholder: "24 000 0000",
-    example: "+233 24 123 4567",
-  },
-  FR: {
-    code: "FR",
-    name: "France",
-    flag: "🇫🇷",
-    dialCode: "+33",
-    placeholder: "6 00 00 00 00",
-    example: "+33 6 12 34 56 78",
-  },
-  US: {
-    code: "US",
-    name: "États-Unis",
-    flag: "🇺🇸",
-    dialCode: "+1",
-    placeholder: "202 555 0100",
-    example: "+1 202 555 0100",
-  },
 };
 
 /**
- * Détecte le pays à partir de l'indicatif dans un numéro de téléphone saisi
- * Gère les formats : +221..., 00221..., 221...
+ * Détecte le pays (verrouillé sur la Côte d'Ivoire pour le moment)
  */
-export function detectCountryFromPhone(rawPhone: string): string | null {
-  if (!rawPhone) return null;
-  const clean = rawPhone.trim().replace(/[\s\-\(\)]/g, "");
-
-  // Formats internationaux avec + ou 00
-  const normalized = clean.startsWith("00")
-    ? "+" + clean.slice(2)
-    : clean.startsWith("+")
-    ? clean
-    : "+" + clean;
-
-  const prefixes: Array<{ prefix: string; code: string }> = [
-    { prefix: "+225", code: "CI" },
-    { prefix: "+221", code: "SN" },
-    { prefix: "+229", code: "BJ" },
-    { prefix: "+226", code: "BF" },
-    { prefix: "+223", code: "ML" },
-    { prefix: "+228", code: "TG" },
-    { prefix: "+233", code: "GH" },
-    { prefix: "+33", code: "FR" },
-    { prefix: "+1", code: "US" },
-  ];
-
-  for (const { prefix, code } of prefixes) {
-    if (normalized.startsWith(prefix) && normalized.length > prefix.length) {
-      return code;
-    }
-  }
-
-  return null;
+export function detectCountryFromPhone(_rawPhone?: string | null): string {
+  return "CI";
 }
 
-export function getCountryDialInfo(countryCode?: string | null): CountryDialInfo {
-  const code = (countryCode || "CI").toUpperCase().trim();
-  return (
-    COUNTRY_DIAL_DATA[code] || {
-      code,
-      name: code,
-      flag: "🌍",
-      dialCode: "+225",
-      placeholder: "00 00 00 00 00",
-      example: "+225 00 00 00 00",
-    }
-  );
+export function getCountryDialInfo(_countryCode?: string | null): CountryDialInfo {
+  return COUNTRY_DIAL_DATA.CI;
 }
 
 export function getCountryPaymentChannels(countryCode?: string | null): CountryPaymentChannels {

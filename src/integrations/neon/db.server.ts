@@ -79,3 +79,29 @@ export async function queryOne<T = any>(queryString: string, params: any[] = [])
   const rows = await query<T>(queryString, params);
   return rows.length > 0 ? rows[0] : null;
 }
+
+let _cancellationColumnsEnsured = false;
+export async function ensureCancellationColumns(): Promise<void> {
+  if (_cancellationColumnsEnsured) return;
+  _cancellationColumnsEnsured = true;
+  if (!DATABASE_URL || !sql) return;
+  try {
+    await query(`
+      ALTER TABLE orders 
+      ADD COLUMN IF NOT EXISTS cancellation_requested BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS cancellation_request_reason TEXT,
+      ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS cancellation_request_status TEXT;
+    `);
+    await query(`
+      DO $$ BEGIN
+        ALTER TYPE admin_notification_type ADD VALUE IF NOT EXISTS 'cancellation_request';
+      EXCEPTION
+        WHEN undefined_object THEN null;
+        WHEN duplicate_object THEN null;
+      END $$;
+    `).catch(() => null);
+  } catch (e) {
+    console.warn("[Neon DB] ensureCancellationColumns notice:", e);
+  }
+}

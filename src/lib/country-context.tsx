@@ -52,13 +52,31 @@ export function CountryProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
-    const initialCode = saved || "CI";
-    setCode(initialCode);
+    // Actif uniquement pour la Côte d'Ivoire (autres pays masqués pour le paiement)
+    setCode("CI");
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, "CI");
+    }
 
     listCountriesFn()
       .then((data) => {
-        setCountries(data ?? []);
+        const ciList = (data ?? []).filter((c) => c.code === "CI");
+        setCountries(
+          ciList.length > 0
+            ? ciList
+            : [
+                {
+                  code: "CI",
+                  name: "Côte d'Ivoire",
+                  currency_code: "XOF",
+                  currency_symbol: "FCFA",
+                  base_shipping_fee: 1500,
+                  flag_emoji: "🇨🇮",
+                  is_active: true,
+                  sort_order: 1,
+                },
+              ]
+        );
       })
       .catch((err) => {
         console.error("[CountryProvider load error]", err);
@@ -68,14 +86,15 @@ export function CountryProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  const setCountryCode = (c: string) => {
-    setCode(c);
+  const setCountryCode = (_c: string) => {
+    // Verrouillé sur la Côte d'Ivoire
+    setCode("CI");
     if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, c);
+      localStorage.setItem(STORAGE_KEY, "CI");
     }
   };
 
-  const country = countries.find((c) => c.code === code) ?? countries[0] ?? null;
+  const country = countries.find((c) => c.code === "CI") ?? countries[0] ?? null;
 
   return (
     <CountryContext.Provider value={{ countries, country, setCountryCode, loading }}>

@@ -10,6 +10,12 @@ import { checkGuestPaymentStatusFn } from "@/lib/payments/check-status.functions
 import { formatPrice } from "@/lib/format";
 import { PageLoader } from "@/components/page-loader";
 
+import logoWave from "@/assets/wave.png";
+import logoOM from "@/assets/om.png";
+import logoMTN from "@/assets/mtn.jpg";
+import logoMoov from "@/assets/moov.png";
+import logoVisa from "@/assets/visa.png";
+
 export function PayOrderPage({ orderId, token }: { orderId: string; token: string }) {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
@@ -162,27 +168,37 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
       ) : (
         <div className="mt-6 space-y-4">
           <div className="rounded-2xl border border-gold/30 bg-card/70 backdrop-blur-md p-6 shadow-xl space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-gold" />
                 <h2 className="font-display text-base sm:text-lg font-bold text-primary">Paiement Sécurisé GeniusPay</h2>
-              </div>
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                100% Sécurisé
-              </span>
-            </div>
-
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Vous allez être redirigé vers la plate-forme officielle GeniusPay. Choisissez votre moyen préféré : <strong>Wave, Orange Money, MTN MoMo, Moov Money</strong> ou <strong>Carte bancaire</strong>.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-1.5 py-1">
-              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mr-1">Canaux :</span>
-              {["Wave", "Orange Money", "MTN MoMo", "Moov Money", "Carte bancaire"].map((c) => (
-                <span key={c} className="rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-foreground">
-                  {c}
+                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                  Agréé
                 </span>
-              ))}
+              </div>
+
+              {/* Logos des moyens de paiement uniquement */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {[
+                  { name: "Wave", src: logoWave },
+                  { name: "Orange Money", src: logoOM },
+                  { name: "MTN MoMo", src: logoMTN },
+                  { name: "Moov Money", src: logoMoov },
+                  { name: "Carte bancaire", src: logoVisa },
+                ].map((p) => (
+                  <div
+                    key={p.name}
+                    className="flex h-7 w-10 items-center justify-center rounded-md bg-white p-1 shadow-2xs border border-stone-200/80"
+                    title={p.name}
+                  >
+                    <img
+                      src={p.src}
+                      alt={p.name}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
             <button
@@ -199,7 +215,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
               ) : (
                 <>
                   <Lock className="h-4 w-4" />
-                  <span>Payer avec GeniusPay ({formatPrice(order.total, order.currencyCode, order.currencySymbol)})</span>
+                  <span>Procéder au paiement</span>
                   <ExternalLink className="h-4 w-4 ml-1" />
                 </>
               )}

@@ -168,11 +168,11 @@ export const fr = {
     terroirBadge: "Partenariats durables au Sahel & Fouta",
     artisanalBadge: "100% Naturel",
     storyEyebrow: "L'histoire de DOSSOU Lucette",
-    storyTitle: "Une histoire personnelle : de la quête de confiance à la naissance de Cereal House",
+    storyTitle: "Une histoire personnelle : de la quête de confiance à la naissance de Cereals House",
     storyP1:
-      "Je m’appelle DOSSOU Lucette, fondatrice de Cereal House. L’histoire de Cereal House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.",
+      "Je m’appelle DOSSOU Lucette, fondatrice de Cereals House. L’histoire de Cereals House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.",
     storyP2:
-      "Cette expérience a été le déclic. Je me suis demandé : si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ? C’est ainsi que j’ai commencé à développer Cereal House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales. Aujourd’hui, mon ambition va plus loin : faire découvrir et voyager nos céréales africaines, jusqu’à la diaspora, sans leur faire perdre leur âme.",
+      "Cette expérience a été le déclic. Je me suis demandé : si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ? C’est ainsi que j’ai commencé à développer Cereals House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales. Aujourd’hui, mon ambition va plus loin : faire découvrir et voyager nos céréales africaines, jusqu’à la diaspora, sans leur faire perdre leur âme.",
     v1t: "Terroirs Nobles & Durables",
     v1d: "Partenariats directs avec des coopératives paysannes d'Afrique de l'Ouest, garantissant une juste rémunération et un respect absolu des sols.",
     v2t: "Meunerie Traditionnelle",

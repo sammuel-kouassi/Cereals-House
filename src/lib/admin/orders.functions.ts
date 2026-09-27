@@ -26,6 +26,7 @@ const listInputSchema = z.object({
   status: z.enum(ORDER_STATUSES).optional(),
   countryCode: z.string().optional(),
   search: z.string().trim().optional(),
+  cancellationRequestedOnly: z.boolean().optional(),
   page: z.number().int().min(0).default(0),
   pageSize: z.number().int().min(1).max(100).default(25),
 });
@@ -37,26 +38,34 @@ export const listOrdersAdminFn = createServerFn({ method: "POST" })
     let whereClauses: string[] = [];
     let params: any[] = [];
 
-    if (data.status) {
+    if (data.cancellationRequestedOnly) {
+      whereClauses.push(`(o.cancellation_requested = true AND o.status != 'cancelled')`);
+    } else if (data.status) {
       params.push(data.status);
-      whereClauses.push(`status = $${params.length}`);
+      whereClauses.push(`o.status = $${params.length}`);
     }
+
     if (data.countryCode) {
       params.push(data.countryCode);
-      whereClauses.push(`country_code = $${params.length}`);
+      whereClauses.push(`o.country_code = $${params.length}`);
     }
     if (data.search) {
       params.push(`%${data.search}%`);
-      whereClauses.push(`order_number ILIKE $${params.length}`);
+      whereClauses.push(`o.order_number ILIKE $${params.length}`);
     }
 
     const whereStr = whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
     const countRes = await queryOne<{ count: string }>(
-      `SELECT count(*) as count FROM orders ${whereStr}`,
+      `SELECT count(*) as count FROM orders o ${whereStr}`,
       params
     );
     const total = parseInt(countRes?.count ?? "0", 10);
+
+    const pendingCancelsRes = await queryOne<{ count: string }>(
+      `SELECT count(*) as count FROM orders WHERE cancellation_requested = true AND status != 'cancelled'`
+    );
+    const pendingCancellationCount = parseInt(pendingCancelsRes?.count ?? "0", 10);
 
     const limit = data.pageSize;
     const offset = data.page * data.pageSize;
@@ -72,7 +81,7 @@ export const listOrdersAdminFn = createServerFn({ method: "POST" })
       params
     );
 
-    return { orders: orders ?? [], total };
+    return { orders: orders ?? [], total, pendingCancellationCount };
   });
 
 const exportInputSchema = z.object({
@@ -154,6 +163,8 @@ export const updateOrderStatusAdminFn = createServerFn({ method: "POST" })
              cancellation_reason = $1, 
              cancelled_at = now(), 
              cancelled_by = 'admin', 
+             cancellation_requested = true,
+             cancellation_request_status = 'approved',
              updated_at = now() 
          WHERE id = $2`,
         [data.note?.trim() || "Annulée par l'administrateur", data.orderId]

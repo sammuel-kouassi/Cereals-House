@@ -11,7 +11,7 @@ export const Route = createFileRoute("/auth")({
     throw redirect({
       to: "/$lang/auth",
       params: { lang },
-      search: search.redirect ? { redirect: search.redirect } : undefined,
+      search: { redirect: search.redirect },
       replace: true,
     });
   },
