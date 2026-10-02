@@ -70,6 +70,7 @@ export type InitializeGeniusPayResult = {
 export async function initializeGeniusPayTransaction(
   params: InitializeGeniusPayParams,
 ): Promise<InitializeGeniusPayResult> {
+  const { order, email, mmoProvider, channel } = params;
   const publicKey = getGeniusPayPublicKey();
   const secretKey = getGeniusPaySecretKey();
   const apiUrl = getGeniusPayApiUrl();
