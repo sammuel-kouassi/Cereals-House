@@ -2,11 +2,6 @@
 // ou à garder en entrepôt pendant la préparation. Différent du reçu client
 // (generate-receipt.server.ts) : pas de logo ni de ton commercial, axé sur
 // ce qu'il faut préparer et où l'envoyer.
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-
-const BROWN = rgb(0.239, 0.157, 0.09);
-const GOLD = rgb(0.831, 0.686, 0.216);
-
 type SlipItem = { name: string; quantity: number; unit: string };
 
 export async function generatePackingSlipPdf(params: {
@@ -22,6 +17,10 @@ export async function generatePackingSlipPdf(params: {
   paymentStatus: string;
   items: SlipItem[];
 }): Promise<Uint8Array> {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const BROWN = rgb(0.239, 0.157, 0.09);
+  const GOLD = rgb(0.831, 0.686, 0.216);
+
   const doc = await PDFDocument.create();
   const page = doc.addPage([595, 842]);
   const font = await doc.embedFont(StandardFonts.Helvetica);

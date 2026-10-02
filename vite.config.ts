@@ -7,6 +7,11 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv } from "vite";
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 // Charge toutes les variables du .env (sans restriction de préfixe) dans process.env
 const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
 Object.assign(process.env, env);
@@ -24,6 +29,14 @@ export default defineConfig({
   // webhooks CinetPay, qui doivent être appelables depuis internet).
   // Le préfixe "." autorise tous les sous-domaines générés aléatoirement.
   vite: {
+    resolve: {
+      alias: [
+        {
+          find: /^pdf-lib$/,
+          replacement: path.resolve(__dirname, "node_modules/pdf-lib/dist/pdf-lib.esm.js"),
+        },
+      ],
+    },
     server: {
       allowedHosts: [".ngrok-free.dev", ".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
     },

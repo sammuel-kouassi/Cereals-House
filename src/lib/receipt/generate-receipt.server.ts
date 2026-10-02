@@ -2,11 +2,7 @@
 // statut "delivered". Utilise pdf-lib (pur JS, aucune dépendance native) —
 // compatible avec l'environnement Cloudflare Workers, contrairement à la
 // plupart des générateurs PDF basés sur un navigateur headless.
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { LOGO_JPEG_BASE64 } from "@/lib/receipt/logo-base64";
-
-const GOLD = rgb(0.831, 0.686, 0.216); // #D4AF37
-const BROWN = rgb(0.239, 0.157, 0.09); // #3D2817
 
 // toLocaleString("fr-FR") insère une espace insécable fine (U+202F) comme
 // séparateur de milliers, que la police standard WinAnsi de pdf-lib ne sait
@@ -33,6 +29,10 @@ export async function generateReceiptPdf(params: {
   total: number;
   paymentMethodLabel: string;
 }): Promise<Uint8Array> {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const GOLD = rgb(0.831, 0.686, 0.216); // #D4AF37
+  const BROWN = rgb(0.239, 0.157, 0.09); // #3D2817
+
   const doc = await PDFDocument.create();
   const page = doc.addPage([595, 842]); // A4
   const font = await doc.embedFont(StandardFonts.Helvetica);
