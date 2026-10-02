@@ -32,6 +32,18 @@ export const createOrderFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const user = await getCurrentUser();
 
+    // Recalcul et validation de sécurité du sous-total et du total
+    const calculatedSubtotal = data.items.reduce(
+      (sum, it) => sum + it.quantity * it.unitPrice,
+      0
+    );
+    const calculatedTotal = calculatedSubtotal + data.shippingFee;
+    if (Math.abs(calculatedTotal - data.total) > 2) {
+      throw new Error("Incohérence dans le calcul du montant total.");
+    }
+    const finalSubtotal = calculatedSubtotal;
+    const finalTotal = calculatedTotal;
+
     // 1. Insérer la commande
     const order = await queryOne<any>(
       `INSERT INTO orders (
@@ -45,9 +57,9 @@ export const createOrderFn = createServerFn({ method: "POST" })
         user?.id || null,
         data.countryCode,
         data.currencyCode,
-        data.subtotal,
+        finalSubtotal,
         data.shippingFee,
-        data.total,
+        finalTotal,
         data.paymentMethod,
         data.shippingFullName,
         data.shippingPhone,
@@ -142,6 +154,14 @@ export const getOrderByIdFn = createServerFn({ method: "POST" })
     );
 
     if (!order) return null;
+
+    const user = await getCurrentUser();
+    const isAdmin = user?.role === "admin";
+
+    // Si la commande est liée à un compte utilisateur enregistré, seul ce compte (ou un admin) peut y accéder
+    if (order.user_id && (!user || (user.id !== order.user_id && !isAdmin))) {
+      throw new Error("Accès non autorisé à cette commande.");
+    }
 
     const items = await query<any>(
       `SELECT * FROM order_items WHERE order_id = $1`,

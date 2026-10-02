@@ -94,20 +94,20 @@ export function ProductCard({
 
           {/* Badge Catégorie sur mobile */}
           {category && (
-            <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-2xs sm:hidden">
+            <span className="absolute left-2.5 top-2.5 rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary backdrop-blur shadow-2xs sm:hidden">
               {category}
             </span>
           )}
 
           {/* Alerte stock faible */}
           {lowStock && !isOutOfStock && (
-            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
+            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-destructive/90 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow-sm backdrop-blur">
               <Flame className="h-3 w-3" /> {t("product.lowStock", "Plus que {{count}}", { count: stock })}
             </span>
           )}
 
           {isOutOfStock && (
-            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
+            <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-secondary/90 text-muted-foreground px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider shadow-sm backdrop-blur">
               {t("product.outOfStock", "Rupture")}
             </span>
           )}
@@ -119,17 +119,17 @@ export function ProductCard({
             {/* Header badges */}
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
               {category && (
-                <span className="hidden sm:inline-flex rounded-full bg-secondary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                <span className="hidden sm:inline-flex rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                   {category}
                 </span>
               )}
               {isKid && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/5 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-gold/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gold shadow-2xs">
                   <Baby className="h-3 w-3" /> {t("audience.kid", "Bébé / Enfant")}
                 </span>
               )}
               {isAdult && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-secondary/60 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-secondary/60 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary shadow-2xs">
                   <User className="h-3 w-3" /> {t("audience.adult", "Adulte")}
                 </span>
               )}
@@ -201,7 +201,7 @@ export function ProductCard({
 
           {/* Badge Catégorie façon étiquette d'atelier */}
           {category && (
-            <span className="absolute left-3 top-3 rounded-full bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-stone-800 dark:text-stone-200 border border-stone-300/60 dark:border-stone-700/60 shadow-xs">
+            <span className="absolute left-3 top-3 rounded-full bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-800 dark:text-stone-200 border border-stone-300/60 dark:border-stone-700/60 shadow-xs">
               {category}
             </span>
           )}
@@ -210,12 +210,12 @@ export function ProductCard({
           {(isKid || isAdult) && (
             <div className="absolute right-3 top-3 flex flex-col gap-1">
               {isKid && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-900 dark:text-gold shadow-xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/40 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-900 dark:text-gold shadow-xs">
                   <Baby className="h-2.5 w-2.5 text-gold" /> {t("audience.kid", "Bébé")}
                 </span>
               )}
               {isAdult && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-stone-300/50 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 shadow-xs">
+                <span className="inline-flex items-center gap-1 rounded-full border border-stone-300/50 bg-[#FAF7F2]/95 dark:bg-[#1C140E]/95 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 shadow-xs">
                   <User className="h-2.5 w-2.5" /> {t("audience.adult", "Famille")}
                 </span>
               )}
@@ -223,13 +223,13 @@ export function ProductCard({
           )}
 
           {lowStock && !isOutOfStock && (
-            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-amber-900/90 text-amber-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-amber-900/90 text-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
               <Flame className="h-3 w-3 text-gold" /> {t("product.lowStock", "Plus que {{count}}", { count: stock })}
             </span>
           )}
 
           {isOutOfStock && (
-            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-stone-900/85 text-stone-300 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
+            <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-stone-900/85 text-stone-300 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md">
               {t("product.outOfStock", "Rupture")}
             </span>
           )}
@@ -280,12 +280,34 @@ export function ProductCard({
             </div>
 
             <span className="text-[11px] font-bold text-amber-800 dark:text-gold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-              <span>Découvrir</span>
+              <span>{t("product.discover", "Découvrir")}</span>
               <span>→</span>
             </span>
           </div>
         </div>
       </Link>
+    </div>
+  );
+}
+
+export function ProductCardSkeleton({ layout = "grid" }: { layout?: "grid" | "list" }) {
+  if (layout === "list") {
+    return (
+      <div className="flex flex-col sm:flex-row gap-4 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 bg-white/70 dark:bg-stone-900/40 p-3.5 sm:p-4 animate-pulse shadow-xs items-center">
+        <div className="h-28 w-full sm:w-44 shrink-0 rounded-xl bg-stone-200/90 dark:bg-stone-800" />
+        <div className="flex-1 w-full space-y-2.5">
+          <div className="h-3.5 bg-stone-200/90 dark:bg-stone-800 rounded w-3/4" />
+          <div className="h-2.5 bg-stone-200/80 dark:bg-stone-800 rounded w-1/2" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-stone-200/80 dark:border-stone-800/80 bg-white/70 dark:bg-stone-900/40 p-3 sm:p-3.5 animate-pulse space-y-2.5 shadow-xs">
+      <div className="aspect-[4/3] rounded-xl bg-stone-200/90 dark:bg-stone-800 w-full" />
+      <div className="h-3.5 bg-stone-200/90 dark:bg-stone-800 rounded w-3/4" />
+      <div className="h-2.5 bg-stone-200/80 dark:bg-stone-800 rounded w-1/2" />
     </div>
   );
 }

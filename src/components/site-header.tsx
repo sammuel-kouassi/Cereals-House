@@ -70,21 +70,21 @@ export function SiteHeader() {
   ] as const;
 
   const iconBtn =
-    "relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-foreground/80 transition-all duration-300 ease-out hover:scale-105 hover:bg-gold/15 hover:text-gold active:scale-95 cursor-pointer border border-transparent hover:border-gold/30 shadow-2xs";
+    "relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 items-center justify-center rounded-full text-foreground/80 transition-all duration-300 ease-out hover:scale-105 hover:bg-gold/15 hover:text-gold active:scale-95 cursor-pointer border border-transparent hover:border-gold/30 shadow-2xs";
 
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 w-full px-3 sm:px-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          scrolled ? "py-2 sm:py-2.5" : "py-3 sm:py-4"
+          scrolled ? "py-1.5 sm:py-2" : "py-2 sm:py-2.5"
         }`}
       >
         {/* ─── CAPSULE FLOTTANTE ULTRA-PRO (Glassmorphism & Rayon Spéculaire) ─── */}
         <div
-          className={`relative mx-auto flex items-center justify-between gap-2.5 sm:gap-4 pl-4 sm:pl-6 pr-5 sm:pr-7 rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] island-specular max-w-7xl ${
+          className={`relative mx-auto flex items-center justify-between gap-2.5 sm:gap-4 pl-3.5 sm:pl-5 pr-4 sm:pr-6 rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] island-specular max-w-7xl ${
             scrolled
-              ? "h-15 sm:h-16 bg-[#FAF7F2]/90 dark:bg-[#140F0A]/92 border border-gold/45 header-gold-glow backdrop-blur-2xl"
-              : "h-16 sm:h-18 bg-[#FAF7F2]/75 dark:bg-[#140F0A]/80 border border-gold/30 shadow-[0_12px_36px_-10px_rgba(20,15,10,0.1)] backdrop-blur-xl"
+              ? "h-13 sm:h-14 bg-[#FAF7F2]/90 dark:bg-[#140F0A]/92 border border-gold/45 header-gold-glow backdrop-blur-2xl"
+              : "h-14 sm:h-[58px] bg-[#FAF7F2]/80 dark:bg-[#140F0A]/85 border border-gold/30 shadow-[0_8px_30px_-10px_rgba(20,15,10,0.08)] backdrop-blur-xl"
           }`}
         >
           {/* Rayon lumineux spéculaire supérieur (masqué dans sa propre couche pill) */}
@@ -95,21 +95,21 @@ export function SiteHeader() {
           {/* Logo & Identité Prestige */}
           <Link
             to={getLocalizedPath("/")}
-            className="group flex shrink-0 items-center gap-2.5 sm:gap-3 cursor-pointer"
+            className="group flex shrink-0 items-center gap-2 sm:gap-2.5 cursor-pointer"
           >
             <div className="relative">
               <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-gold/50 to-amber-600/20 opacity-0 blur-xs transition-opacity duration-300 group-hover:opacity-100" />
               <img
                 src={logo}
                 alt="Cereals House"
-                className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-full object-cover ring-1.5 ring-gold/45 shadow-xs transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105 group-hover:ring-gold"
+                className="relative h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 rounded-full object-cover ring-1.5 ring-gold/45 shadow-xs transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105 group-hover:ring-gold"
               />
             </div>
             <div className="whitespace-nowrap leading-tight">
-              <div className="font-display text-base sm:text-lg font-bold text-stone-950 dark:text-stone-100 tracking-tight transition-colors duration-200 group-hover:text-gold">
+              <div className="font-display text-sm sm:text-base font-bold text-stone-950 dark:text-stone-100 tracking-tight transition-colors duration-200 group-hover:text-gold">
                 Cereals <span className="text-gold font-serif italic">House</span>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 text-[9px] uppercase tracking-[0.22em] text-stone-500 font-semibold">
+              <div className="hidden sm:flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.2em] text-stone-500 font-semibold">
                 <span>{t("header.tagline", "Terroirs d'Afrique")}</span>
               </div>
             </div>
@@ -360,7 +360,7 @@ export function SiteHeader() {
       </header>
 
       {/* Spacer pour compenser la hauteur du header fixe et éviter tout chevauchement */}
-      <div className="h-20 w-full shrink-0" aria-hidden="true" />
+      <div className="h-[76px] sm:h-[88px] w-full shrink-0" aria-hidden="true" />
 
       {/* Tiroir Panier interactif */}
       <CartDrawer open={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />

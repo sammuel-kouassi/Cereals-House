@@ -357,7 +357,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                     <label className="block text-xs font-semibold text-stone-800">
                       {t("auth.phone", "Téléphone / WhatsApp")}
                     </label>
-                    <span className="text-[10px] text-stone-400">Pour le suivi de livraison</span>
+                    <span className="text-[10px] text-stone-400">{t("auth.phoneHint", "Pour le suivi de livraison")}</span>
                   </div>
                   <div className="relative group">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 group-focus-within:text-amber-600 transition-colors" />
@@ -383,12 +383,15 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                       type="button"
                       onClick={() =>
                         toast.info(
-                          "Pour réinitialiser votre mot de passe, contactez notre service client WhatsApp ou écrivez à contact@cereals-house.com",
+                          t(
+                            "auth.forgotPasswordToast",
+                            "Pour réinitialiser votre mot de passe, contactez notre service client WhatsApp ou écrivez à contact@cereals-house.com",
+                          ),
                         )
                       }
                       className="text-[11px] text-amber-700 hover:text-amber-900 font-semibold transition-colors cursor-pointer"
                     >
-                      Mot de passe oublié ?
+                      {t("auth.forgotPassword", "Mot de passe oublié ?")}
                     </button>
                   )}
                 </div>
@@ -427,8 +430,8 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                       ))}
                     </div>
                     <div className="flex justify-between items-center text-[10px] text-stone-500">
-                      <span>Force : {passStrength.label}</span>
-                      <span>8 caractères min. recommandés</span>
+                      <span>{t("auth.passwordStrength", { strength: passStrength.label, defaultValue: `Force : ${passStrength.label}` })}</span>
+                      <span>{t("auth.passwordHint", "8 caractères min. recommandés")}</span>
                     </div>
                   </div>
                 )}
@@ -445,7 +448,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                     className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
                   />
                   <label htmlFor="rememberMe" className="text-xs text-stone-600 cursor-pointer select-none">
-                    Rester connecté sur cet appareil
+                    {t("auth.rememberMe", "Rester connecté sur cet appareil")}
                   </label>
                 </div>
               )}
@@ -521,7 +524,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
           <div className="relative z-10 p-6 xl:p-8 flex items-center justify-between">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-stone-950/60 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300 shadow-md">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Maison Cereals House</span>
+              <span>{t("auth.panelEyebrow", "Maison Cereals House")}</span>
             </div>
 
             <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-stone-950/60 backdrop-blur-md px-3 py-1 text-xs font-semibold text-amber-300 shadow-md">
@@ -534,18 +537,21 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
           <div className="relative z-10 p-6 xl:p-8">
             <div className="rounded-2xl border border-white/20 bg-stone-950/75 backdrop-blur-md p-5 text-white shadow-xl space-y-2">
               <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
-                L'Excellence des Terroirs <span className="font-editorial text-amber-400 font-normal">à votre table</span>
+                {t("auth.panelTitlePart1", "L'Excellence des Terroirs")}{" "}
+                <span className="font-editorial text-amber-400 font-normal">
+                  {t("auth.panelTitlePart2", "à votre table")}
+                </span>
               </h2>
               <p className="text-xs sm:text-sm text-stone-200 font-light leading-relaxed">
-                Farines et céréales pures, 100% garanties sans sable et prêtes en 3 minutes.
+                {t("auth.panelDesc", "Farines et céréales pures, 100% garanties sans sable et prêtes en 3 minutes.")}
               </p>
 
               <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-stone-300">
                 <span className="inline-flex items-center gap-1.5 text-amber-300 font-medium">
                   <BadgeCheck className="h-4 w-4" />
-                  <span>Zéro sable garanti</span>
+                  <span>{t("auth.badgeSandFree", "Zéro sable garanti")}</span>
                 </span>
-                <span className="text-stone-300 font-light">Mouture meule de pierre</span>
+                <span className="text-stone-300 font-light">{t("auth.badgeStoneMilled", "Mouture meule de pierre")}</span>
               </div>
             </div>
           </div>

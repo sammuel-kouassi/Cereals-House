@@ -1,4 +1,7 @@
-import { verifyGeniusPayWebhookSignature } from "@/lib/payments/geniuspay.server";
+import {
+  verifyGeniusPayWebhookSignature,
+  verifyGeniusPayTransaction,
+} from "@/lib/payments/geniuspay.server";
 import { query, queryOne } from "@/integrations/neon/db.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 import { sendEmail } from "@/lib/email/resend.server";
@@ -22,8 +25,8 @@ export async function handleGeniusPayWebhook(request: Request): Promise<Response
   const timestamp = request.headers.get("x-webhook-timestamp");
 
   const isSignatureValid = verifyGeniusPayWebhookSignature(rawBody, signature, timestamp);
-  if (!isSignatureValid && process.env.NODE_ENV === "production" && process.env.GENIUSPAY_WEBHOOK_SECRET) {
-    console.error("[GeniusPay Webhook] Signature invalide rejetée.");
+  if (!isSignatureValid) {
+    console.error("[GeniusPay Webhook] Signature invalide ou manquante rejetée.");
     return new Response("Invalid signature", { status: 401 });
   }
 
@@ -50,6 +53,19 @@ export async function handleGeniusPayWebhook(request: Request): Promise<Response
     const reference = data.reference;
     const orderId = data.metadata?.order_id;
     const gateway = data.payment_method || data.payment_provider || data.gateway || "geniuspay";
+
+    // Double vérification auprès de l'API GeniusPay si la référence est disponible
+    if (reference) {
+      try {
+        const verifyRes = await verifyGeniusPayTransaction(reference);
+        if (!verifyRes.success && verifyRes.status === "failed") {
+          console.warn(`[GeniusPay Webhook] Transaction ${reference} rejetée par la vérification API.`);
+          return new Response("Payment not confirmed by API", { status: 400 });
+        }
+      } catch (e) {
+        console.warn("[GeniusPay Webhook] Impossible de vérifier via l'API, poursuite avec précaution :", e);
+      }
+    }
 
     try {
       const order = await queryOne<any>(
@@ -101,7 +117,7 @@ export async function handleGeniusPayWebhook(request: Request): Promise<Response
         }
 
         try {
-          const ownerEmail = process.env.SHOP_OWNER_EMAIL;
+          const ownerEmail = process.env.SHOP_OWNER_EMAIL || process.env.ADMIN_EMAIL || "lucettedossou@gmail.com";
           if (ownerEmail) {
             const appUrl = getPublicAppUrl();
             const emailContent = buildPaymentReceivedAdminEmail({

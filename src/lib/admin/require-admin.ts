@@ -5,9 +5,10 @@ export const requireAdmin = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
     const user = await getCurrentUser();
 
-    // En développement, si l'utilisateur a le rôle admin ou si c'est le mode dev
+    // En développement uniquement, si ALLOW_DEV_ADMIN est explicitement activé
     if (!user || user.role !== "admin") {
-      if (process.env.NODE_ENV === "development" || process.env.ALLOW_DEV_ADMIN === "true") {
+      const isDev = process.env.NODE_ENV === "development" && process.env.NODE_ENV !== "production";
+      if (isDev && process.env.ALLOW_DEV_ADMIN === "true") {
         const devUser: UserRecord = {
           id: user?.id || "dev-admin",
           email: user?.email || "admin@cerealshouse.com",

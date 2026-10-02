@@ -46,8 +46,10 @@ export const requestOrderCancellationFn = createServerFn({ method: "POST" })
     }
 
     // Vérification de sécurité : propriétaire ou admin
-    if (user && order.user_id && order.user_id !== user.id && !isAdmin) {
-      throw new Error("Vous n'êtes pas autorisé à modifier cette commande.");
+    if (order.user_id) {
+      if (!user || (order.user_id !== user.id && !isAdmin)) {
+        throw new Error("Vous n'êtes pas autorisé à modifier cette commande. Veuillez vous connecter au compte approprié.");
+      }
     }
 
     // Statuts terminaux
@@ -121,7 +123,7 @@ export const requestOrderCancellationFn = createServerFn({ method: "POST" })
 
     // 4. Email prioritaire à l'administrateur / propriétaire
     try {
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.SHOP_OWNER_EMAIL || "sammuel.kouassi2026@gmail.com";
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.SHOP_OWNER_EMAIL || "lucettedossou@gmail.com";
       const toAdmin = adminEmail.includes("<") ? adminEmail.match(/<([^>]+)>/)?.[1] || adminEmail : adminEmail;
 
       const adminEmailContent = buildCustomerCancellationRequestAdminEmail({

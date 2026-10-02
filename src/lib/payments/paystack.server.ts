@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 import { query } from "@/integrations/neon/db.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 
@@ -17,38 +15,13 @@ function cleanEnvVal(val: string | undefined | null): string {
 }
 
 function readEnvKey(key: string): string {
-  // 1. Essai depuis process.env nettoyé
   const fromProcess = cleanEnvVal(process.env[key]);
   if (fromProcess) {
     if (key === "PAYSTACK_SECRET_KEY" && fromProcess.startsWith("sk_")) return fromProcess;
     if (key === "PAYSTACK_PUBLIC_KEY" && fromProcess.startsWith("pk_")) return fromProcess;
+    return fromProcess;
   }
 
-  // 2. Essai depuis les fichiers .env sur le disque
-  try {
-    const candidates = [
-      path.resolve(process.cwd(), ".env"),
-      path.resolve(process.cwd(), "cereals-house", ".env"),
-      "c:\\Users\\sammu\\Cereals House\\cereals-house\\.env",
-      "c:\\Users\\sammu\\Cereals House\\.env",
-    ];
-    for (const envPath of candidates) {
-      if (fs.existsSync(envPath)) {
-        const content = fs.readFileSync(envPath, "utf-8");
-        const match = content.match(new RegExp(`^${key}=(.*)$`, "m"));
-        if (match) {
-          const val = cleanEnvVal(match[1]);
-          if (key === "PAYSTACK_SECRET_KEY" && val.startsWith("sk_")) return val;
-          if (key === "PAYSTACK_PUBLIC_KEY" && val.startsWith("pk_")) return val;
-          if (val) return val;
-        }
-      }
-    }
-  } catch {
-    // ignore
-  }
-
-  // 3. Clés de test par défaut si non trouvées
   if (key === "PAYSTACK_SECRET_KEY") return DEFAULT_TEST_SECRET_KEY;
   if (key === "PAYSTACK_PUBLIC_KEY") return DEFAULT_TEST_PUBLIC_KEY;
   return "";
@@ -230,7 +203,15 @@ export function verifyPaystackWebhookSignature(
       .createHmac("sha512", secretKey)
       .update(rawBody)
       .digest("hex");
-    return hash === signature;
+
+    const hashBuf = Buffer.from(hash, "utf-8");
+    const sigBuf = Buffer.from(signature, "utf-8");
+
+    if (hashBuf.length !== sigBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(hashBuf, sigBuf);
   } catch (err) {
     console.error("[Paystack Webhook Signature Error]", err);
     return false;

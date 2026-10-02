@@ -132,11 +132,47 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--gold) 45%, transparent) var(--color-background);
+  }
+  ::selection {
+    background-color: var(--color-gold);
+    color: var(--color-gold-foreground);
+  }
+  input, textarea {
+    caret-color: var(--color-gold);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--gold) 35%, var(--border));
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold);
+  }
+
   html {
     scroll-behavior: smooth;
     overflow-x: clip;
     max-width: 100%;
+    font-size: 14.5px;
+  }
+  @media (min-width: 768px) {
+    html {
+      font-size: 15px;
+    }
   }
   body {
     background-color: var(--color-background);
@@ -145,6 +181,8 @@
     -webkit-font-smoothing: antialiased;
     overflow-x: clip;
     max-width: 100%;
+    font-size: 0.9375rem; /* 14px calibré */
+    line-height: 1.55;
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
@@ -320,7 +358,7 @@
     display: flex;
     width: max-content;
     will-change: transform;
-    animation: scrollHorizontalTrack 32s linear infinite;
+    animation: scrollHorizontalTrack 70s linear infinite;
   }
 
   .animate-cereal-marquee:hover,

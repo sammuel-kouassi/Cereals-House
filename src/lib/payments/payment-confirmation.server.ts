@@ -27,11 +27,10 @@ export async function verifyAndConfirmPayment(
     return { status: "paid" };
   }
 
-  // 1. Vérification GeniusPay
+  // 1. Vérification GeniusPay (Passerelle unique pour tous les règlements)
   if (
-    order.payment_method?.toLowerCase().includes("genius") ||
-    order.payment_reference?.startsWith("SANDBOX_") ||
-    order.payment_reference?.startsWith("GP_")
+    order.payment_reference ||
+    order.payment_method?.toLowerCase().includes("genius")
   ) {
     const reference = order.payment_reference;
     if (reference) {
@@ -65,7 +64,7 @@ export async function verifyAndConfirmPayment(
             }
 
             try {
-              const ownerEmail = process.env.SHOP_OWNER_EMAIL;
+              const ownerEmail = process.env.SHOP_OWNER_EMAIL || process.env.ADMIN_EMAIL || "lucettedossou@gmail.com";
               if (ownerEmail) {
                 const appUrl = getPublicAppUrl();
                 const emailContent = buildPaymentReceivedAdminEmail({

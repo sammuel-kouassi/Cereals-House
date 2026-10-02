@@ -141,17 +141,20 @@ export function ContactPage() {
           </Reveal>
 
           <Reveal delay={100}>
-            <h1 className="mt-4 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
-              Nous sommes là pour{" "}
+            <h1 className="mt-3 font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+              {t("contact.heroTitle", "Nous sommes là pour")}{" "}
               <span className="bg-gradient-to-r from-[#FDF0CD] via-[#E5BF5A] to-[#BF9024] bg-clip-text text-transparent">
-                vous aider
+                {t("contact.heroTitleGold", "vous aider")}
               </span>
             </h1>
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="mt-5 text-base sm:text-lg text-stone-300 font-light leading-relaxed max-w-2xl mx-auto">
-              Une question sur la préparation de nos farines, un conseil pour votre tout-petit ou un besoin en gros pour votre restaurant ? Notre équipe vous répond avec le sourire.
+            <p className="mt-3.5 text-xs sm:text-sm text-stone-300 font-light leading-relaxed max-w-xl mx-auto">
+              {t(
+                "contact.heroDesc",
+                "Une question sur la préparation de nos farines, un conseil pour votre tout-petit ou un besoin en gros pour votre restaurant ? Notre équipe vous répond avec le sourire.",
+              )}
             </p>
           </Reveal>
         </div>

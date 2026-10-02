@@ -22,9 +22,12 @@ export async function handlePaystackWebhook(request: Request): Promise<Response>
 
   // En production ou si configuré, validation de la signature
   const isSignatureValid = verifyPaystackWebhookSignature(rawBody, signature);
-  if (!isSignatureValid && process.env.NODE_ENV === "production") {
-    console.error("[Paystack Webhook] Signature invalide rejetée.");
-    return new Response("Invalid signature", { status: 401 });
+  if (!isSignatureValid) {
+    if (process.env.NODE_ENV === "production" || process.env.PAYSTACK_SECRET_KEY) {
+      console.error("[Paystack Webhook] Signature invalide rejetée.");
+      return new Response("Invalid signature", { status: 401 });
+    }
+    console.warn("[Paystack Webhook] Signature non validée (mode dev sans clé secrète).");
   }
 
   let eventData: any;

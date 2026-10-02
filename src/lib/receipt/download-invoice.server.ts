@@ -1,4 +1,5 @@
 import { query, queryOne } from "@/integrations/neon/db.server";
+import { getCurrentUser } from "@/integrations/neon/auth.server";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 
 export async function handleInvoicePdfDownload(orderIdOrNumber: string): Promise<Response> {
@@ -13,6 +14,25 @@ export async function handleInvoicePdfDownload(orderIdOrNumber: string): Promise
 
   if (!order) {
     return new Response("Facture introuvable", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+  }
+
+  // Contrôle d'accès : protection contre l'énumération par order_number
+  const user = await getCurrentUser();
+  const isAdmin = user?.role === "admin";
+  const isOwner = Boolean(user && order.user_id && user.id === order.user_id);
+
+  if (!isUuid && !isAdmin && !isOwner) {
+    return new Response("Accès non autorisé à cette facture.", {
+      status: 403,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  if (order.user_id && user && !isAdmin && !isOwner) {
+    return new Response("Accès non autorisé à cette facture.", {
+      status: 403,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
   }
 
   const country = await queryOne<any>(

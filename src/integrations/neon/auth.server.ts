@@ -3,8 +3,18 @@ import { SignJWT, jwtVerify } from "jose";
 import { getRequest } from "@tanstack/react-start/server";
 import { query, queryOne } from "./db.server";
 
-const JWT_SECRET_STRING = process.env.AUTH_SECRET || "cereals-house-neon-secret-key-2026-very-secure-jwt";
-const JWT_SECRET = new TextEncoder().encode(JWT_SECRET_STRING);
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET || process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "[Security Error] La variable d'environnement JWT_SECRET (ou AUTH_SECRET) est obligatoire en production."
+      );
+    }
+    return new TextEncoder().encode("dev-only-cereals-house-neon-secret-key-do-not-use-in-prod");
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export interface UserRecord {
   id: string;
@@ -35,7 +45,7 @@ export async function createSessionToken(user: { id: string; email: string; role
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 /**
@@ -43,7 +53,7 @@ export async function createSessionToken(user: { id: string; email: string; role
  */
 export async function verifySessionToken(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     if (!payload.sub || !payload.email) return null;
     return {
       userId: payload.sub as string,
@@ -170,7 +180,7 @@ export async function loginWithGoogleServer(input: {
   fullName?: string;
   avatarUrl?: string;
 }) {
-  let googleEmail = input.email?.trim()?.toLowerCase() || "";
+  let googleEmail = "";
   let googleName = input.fullName?.trim() || "";
   let googleAvatar = input.avatarUrl?.trim() || "";
 
@@ -180,7 +190,8 @@ export async function loginWithGoogleServer(input: {
       const resp = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(input.idToken)}`);
       if (resp.ok) {
         const tokenInfo = await resp.json();
-        if (tokenInfo.email) {
+        const isVerified = tokenInfo.email_verified === "true" || tokenInfo.email_verified === true;
+        if (tokenInfo.email && isVerified) {
           googleEmail = tokenInfo.email.toLowerCase();
           googleName = tokenInfo.name || googleName || tokenInfo.given_name || "";
           googleAvatar = tokenInfo.picture || googleAvatar || "";
@@ -192,7 +203,7 @@ export async function loginWithGoogleServer(input: {
   }
 
   // 2. Si un code d'autorisation OAuth est fourni, on échange contre des tokens
-  if (input.code && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  if (!googleEmail && input.code && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     try {
       const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
@@ -214,7 +225,8 @@ export async function loginWithGoogleServer(input: {
           });
           if (userinfoResp.ok) {
             const profile = await userinfoResp.json();
-            if (profile.email) {
+            const isVerified = profile.email_verified === true || profile.email_verified === "true" || profile.verified_email === true;
+            if (profile.email && isVerified) {
               googleEmail = profile.email.toLowerCase();
               googleName = profile.name || googleName;
               googleAvatar = profile.picture || googleAvatar;
@@ -228,7 +240,7 @@ export async function loginWithGoogleServer(input: {
   }
 
   if (!googleEmail) {
-    throw new Error("Impossible de récupérer l'adresse email depuis votre compte Google.");
+    throw new Error("Échec de la validation Google : token invalide ou email non vérifié.");
   }
 
   // 3. Rechercher ou créer l'utilisateur dans la base Neon

@@ -35,7 +35,7 @@ export function AboutPage() {
         "about.v1d",
         "Partenariats directs avec des coopératives paysannes d'Afrique de l'Ouest, garantissant une juste rémunération et un respect absolu des sols.",
       ),
-      tag: "Filière Équitable",
+      tag: t("about.v1tag", "Filière Équitable"),
     },
     {
       icon: Award,
@@ -44,7 +44,7 @@ export function AboutPage() {
         "about.v2d",
         "Mouture douce sur meule de pierre et précuisson à la vapeur pour préserver la totalité des micronutriments, fibres et vitamines naturelles.",
       ),
-      tag: "Meule de Pierre",
+      tag: t("about.v2tag", "Meule de Pierre"),
     },
     {
       icon: Heart,
@@ -53,7 +53,7 @@ export function AboutPage() {
         "about.v3d",
         "Des farines d'éveil saines enrichies au Moringa et Baobab bio, sans conservateurs ni sucres raffinés ajoutés, pour les tout-petits et toute la famille.",
       ),
-      tag: "100% Sans Additifs",
+      tag: t("about.v3tag", "100% Sans Additifs"),
     },
     {
       icon: PackageCheck,
@@ -62,15 +62,15 @@ export function AboutPage() {
         "about.v4d",
         "Conditionnement hermétique de pointe protégeant chaque grain de l'humidité et de l'oxydation pour une fraîcheur garantie 24 mois.",
       ),
-      tag: "Protection Étanche",
+      tag: t("about.v4tag", "Protection Étanche"),
     },
   ];
 
   const stats = [
-    { value: "100%", label: t("about.stat1Label", "Naturel & Sans Additif"), hint: "Zéro produit chimique" },
-    { value: "1 200+", label: t("about.stat2Label", "Familles Nourries"), hint: "Chaque semaine" },
-    { value: "8", label: t("about.stat3Label", "Pays Desservis en Express"), hint: "Afrique & Diaspora" },
-    { value: "24-48h", label: t("about.stat4Label", "Délai Moyen de Livraison"), hint: "Suivi en direct" },
+    { value: "100%", label: t("about.stat1Label", "Naturel & Sans Additif"), hint: t("about.stat1Hint", "Zéro produit chimique") },
+    { value: "1 200+", label: t("about.stat2Label", "Familles Nourries"), hint: t("about.stat2Hint", "Chaque semaine") },
+    { value: "8", label: t("about.stat3Label", "Pays Desservis en Express"), hint: t("about.stat3Hint", "Afrique & Diaspora") },
+    { value: "24-48h", label: t("about.stat4Label", "Délai Moyen de Livraison"), hint: t("about.stat4Hint", "Suivi en direct") },
   ];
 
   const timeline = [
@@ -82,7 +82,7 @@ export function AboutPage() {
         "about.tl1d",
         "Nos grains de mil doré, fonio royal et sorgho sont cultivés selon les méthodes traditionnelles au cœur des terroirs ouest-africains.",
       ),
-      detail: "Grains mûris au soleil",
+      detail: t("about.tl1Detail", "Grains mûris au soleil"),
     },
     {
       n: "02",
@@ -92,7 +92,7 @@ export function AboutPage() {
         "about.tl2d",
         "Dépoussiérage, lavage à l'eau claire et vannage minutieux pour garantir une pureté totale sans le moindre résidu de sable ni cailloux.",
       ),
-      detail: "Zéro impureté garanti",
+      detail: t("about.tl2Detail", "Zéro impureté garanti"),
     },
     {
       n: "03",
@@ -102,7 +102,7 @@ export function AboutPage() {
         "about.tl3d",
         "Transformation lente sur meule et cuisson vapeur artisanale pour une texture veloutée, digeste et un goût préservé.",
       ),
-      detail: "Prêt en 3 à 5 minutes",
+      detail: t("about.tl3Detail", "Prêt en 3 à 5 minutes"),
     },
     {
       n: "04",
@@ -112,7 +112,7 @@ export function AboutPage() {
         "about.tl4d",
         "Scellage hermétique en sachets barrières protecteurs, puis expédition rapide et suivie jusqu'à votre domicile.",
       ),
-      detail: "Fraîcheur intacte",
+      detail: t("about.tl4Detail", "Fraîcheur intacte"),
     },
   ];
 
@@ -135,17 +135,17 @@ export function AboutPage() {
 
           {/* Grand Titre */}
           <Reveal delay={120}>
-            <h1 className="mt-5 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15]">
-              L'amour du grain,{" "}
+            <h1 className="mt-3.5 font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+              {t("about.heroTitlePart1", "L'amour du grain,")}{" "}
               <span className="bg-gradient-to-r from-[#FDF0CD] via-[#E5BF5A] to-[#BF9024] bg-clip-text text-transparent">
-                l'art du goût authentique
+                {t("about.heroTitlePart2", "l'art du goût authentique")}
               </span>
             </h1>
           </Reveal>
 
           {/* Sous-titre descriptif */}
           <Reveal delay={240}>
-            <p className="mt-5 text-base sm:text-lg text-stone-300 font-light leading-relaxed max-w-3xl mx-auto">
+            <p className="mt-3.5 text-xs sm:text-sm text-stone-300 font-light leading-relaxed max-w-2xl mx-auto">
               {t(
                 "about.heroDesc",
                 "Nourrir sainement nos familles avec le meilleur des céréales d'ici, sans sable, sans conservateurs et sans perte de temps en cuisine.",
@@ -158,15 +158,15 @@ export function AboutPage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm text-stone-200">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
                 <Leaf className="h-4 w-4 text-gold" />
-                <span>100% Naturel & Sans additifs</span>
+                <span>{t("about.badgeNatural", "100% Naturel & Sans additifs")}</span>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
                 <Clock className="h-4 w-4 text-gold" />
-                <span>Précuit : prêt en 3 minutes</span>
+                <span>{t("about.badgePrecooked", "Précuit : prêt en 3 minutes")}</span>
               </div>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
                 <ShieldCheck className="h-4 w-4 text-gold" />
-                <span>Zéro sable garanti</span>
+                <span>{t("about.badgeSandFree", "Zéro sable garanti")}</span>
               </div>
             </div>
           </Reveal>
@@ -195,7 +195,7 @@ export function AboutPage() {
 
                 {/* Badge flottant en haut à droite */}
                 <div className="absolute top-4 right-4 rounded-full border border-gold/40 bg-black/75 px-3.5 py-1 text-xs font-semibold text-gold backdrop-blur-md shadow-md">
-                  Fondatrice & CEO
+                  {t("about.founderRole", "Fondatrice & CEO")}
                 </div>
 
                 {/* Encart descriptif inférieur translucide */}
@@ -205,7 +205,7 @@ export function AboutPage() {
                       DOSSOU Lucette
                     </div>
                     <div className="text-xs text-stone-300 font-light">
-                      Vision, Discipline & Goût du Terroir
+                      {t("about.founderVision", "Vision, Discipline & Goût du Terroir")}
                     </div>
                   </div>
                   <span className="shrink-0 rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold uppercase tracking-wider">
@@ -222,35 +222,44 @@ export function AboutPage() {
             <Reveal direction="right" delay={0}>
               <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-2">
                 <span className="h-px w-6 bg-gold" />
-                L’histoire de DOSSOU Lucette
+                {t("about.founderEyebrow", "L’histoire de DOSSOU Lucette")}
               </span>
             </Reveal>
 
             {/* Ligne 2 : Grand Titre */}
             <Reveal direction="right" delay={120}>
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary leading-tight">
-                Une histoire personnelle : de la quête de confiance à la naissance de Cereals House
+                {t("about.founderTitle", "Une histoire personnelle : de la quête de confiance à la naissance de Cereals House")}
               </h2>
             </Reveal>
 
             {/* Ligne 3 : Premier paragraphe - Déclic personnel */}
             <Reveal direction="right" delay={220}>
               <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Je m’appelle <strong>DOSSOU Lucette</strong>, fondatrice de Cereals House. L’histoire de Cereals House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.
+                {t(
+                  "about.storyP1",
+                  "Je m’appelle DOSSOU Lucette, fondatrice de Cereals House. L’histoire de Cereals House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.",
+                )}
               </p>
             </Reveal>
 
             {/* Ligne 4 : Deuxième paragraphe - Lancement du projet */}
             <Reveal direction="right" delay={320}>
               <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Cette expérience a été le déclic. Je me suis demandé : <em>si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ?</em> C’est ainsi que j’ai commencé à développer Cereals House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales.
+                {t(
+                  "about.storyP2",
+                  "Cette expérience a été le déclic. Je me suis demandé : si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ? C’est ainsi que j’ai commencé à développer Cereals House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales.",
+                )}
               </p>
             </Reveal>
 
             {/* Ligne 4bis : Ambition & Diaspora */}
             <Reveal direction="right" delay={400}>
               <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                Aujourd’hui, mon ambition va plus loin : faire découvrir et voyager nos céréales africaines, jusqu’à la diaspora, sans leur faire perdre leur âme.
+                {t(
+                  "about.storyP3",
+                  "Aujourd’hui, mon ambition va plus loin : faire découvrir et voyager nos céréales africaines, jusqu’à la diaspora, sans leur faire perdre leur âme.",
+                )}
               </p>
             </Reveal>
 
@@ -327,7 +336,7 @@ export function AboutPage() {
                   </div>
                   <div className="mt-6 pt-4 border-t border-border/60 flex items-center gap-1.5 text-[11px] font-semibold text-primary">
                     <CheckCircle2 className="h-3.5 w-3.5 text-gold" />
-                    <span>Contrôle qualité certifié</span>
+                    <span>{t("about.certifiedQuality", "Contrôle qualité certifié")}</span>
                   </div>
                 </div>
               </Reveal>
@@ -355,7 +364,7 @@ export function AboutPage() {
           </Reveal>
           <Reveal delay={180}>
             <p className="mt-3 text-sm text-muted-foreground">
-              Un savoir-faire artisanal combiné à des technologies modernes de nettoyage et de mouture.
+              {t("about.timelineSubtitle", "Un savoir-faire artisanal combiné à des technologies modernes de nettoyage et de mouture.")}
             </p>
           </Reveal>
         </div>
@@ -409,16 +418,16 @@ export function AboutPage() {
                 style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
                 className="text-base sm:text-lg md:text-[1.18rem] text-foreground/90 font-normal italic leading-relaxed tracking-normal max-w-2xl mx-auto"
               >
-                « Cereals House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »
+                {t("about.quoteText", "« Cereals House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »")}
               </p>
               <div className="pt-4 border-t border-border/60">
                 <div
                   style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
                   className="text-base sm:text-lg font-bold text-gold tracking-wide"
                 >
-                  DOSSOU Lucette
+                  {t("about.quoteAuthor", "DOSSOU Lucette")}
                 </div>
-                <div className="text-xs text-muted-foreground mt-0.5">Fondatrice & CEO de Cereals House</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{t("about.quoteRole", "Fondatrice & CEO de Cereals House")}</div>
               </div>
             </div>
           </div>
@@ -432,7 +441,7 @@ export function AboutPage() {
         <Reveal>
           <GoldCtaBanner
             variant="discovery"
-            eyebrow="Cuisine saine & gourmande"
+            eyebrow={t("about.ctaEyebrow", "Cuisine saine & gourmande")}
             title={t("about.ctaTitle", "Prêt(e) à redécouvrir le goût authentique du bon grain ?")}
             description={t(
               "about.ctaDesc",

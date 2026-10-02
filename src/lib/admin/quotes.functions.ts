@@ -8,6 +8,16 @@ import { getPublicAppUrl } from "@/lib/app-url.server";
 import { initializeGeniusPayTransaction } from "@/lib/payments/geniuspay.server";
 import { generateReceiptPdf } from "@/lib/receipt/generate-receipt.server";
 
+function escapeHtml(str: string | undefined | null): string {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 const submitQuoteSchema = z.object({
   type: z.string(),
   name: z.string().min(2),
@@ -52,7 +62,7 @@ export const submitQuoteRequestFn = createServerFn({ method: "POST" })
     );
 
     // 3. Envoyer un email à l'admin
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.SHOP_OWNER_EMAIL || "sammuel.kouassi2026@gmail.com";
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SHOP_OWNER_EMAIL || "lucettedossou@gmail.com";
     
     // On extrait juste l'adresse email si elle est formatée comme "Nom <email>"
     const toAddress = adminEmail.includes("<") ? adminEmail.match(/<([^>]+)>/)?.[1] || adminEmail : adminEmail;
@@ -60,16 +70,24 @@ export const submitQuoteRequestFn = createServerFn({ method: "POST" })
     const baseAppUrl = getPublicAppUrl();
     const adminUrl = `${baseAppUrl}/admin/quotes/${quote.id}`;
 
+    const safeName = escapeHtml(data.name);
+    const safeLocation = escapeHtml(data.location);
+    const safePhone = escapeHtml(data.phone);
+    const safeQuantity = escapeHtml(data.quantity);
+    const safeProducts = escapeHtml(data.products);
+    const safeCompany = escapeHtml(data.company);
+    const safeMessage = escapeHtml(data.message);
+
     const { subject, html } = buildQuoteRequestAdminEmail({
-      contactName: data.name,
-      companyName: data.company,
-      phone: data.phone,
+      contactName: safeName,
+      companyName: safeCompany,
+      phone: safePhone,
       email: data.email,
-      location: data.location,
+      location: safeLocation,
       type: data.type,
-      volumeEstimated: data.quantity,
-      productsRequested: data.products,
-      message: data.message,
+      volumeEstimated: safeQuantity,
+      productsRequested: safeProducts,
+      message: safeMessage,
       adminUrl,
     });
 
@@ -93,16 +111,16 @@ export const submitQuoteRequestFn = createServerFn({ method: "POST" })
               <div style="background: #FFF; padding: 24px; border-radius: 12px; border: 1px solid #EEE;">
                 <h2 style="color: #3D2817; margin-top: 0; font-size: 20px;">Demande de devis bien reçue ✓</h2>
                 <p style="color: #333; font-size: 14px; line-height: 1.6;">
-                  Bonjour <strong>${data.name}</strong>,<br/><br/>
-                  Nous avons bien reçu votre demande de devis pour <strong>${data.location}</strong>.
+                  Bonjour <strong>${safeName}</strong>,<br/><br/>
+                  Nous avons bien reçu votre demande de devis pour <strong>${safeLocation}</strong>.
                   Notre équipe commerciale étudie vos besoins avec attention et vous recontactera sous 24h avec une proposition tarifaire sur mesure.
                 </p>
                 <div style="margin: 16px 0; padding: 12px; background: #FDF6EC; border-radius: 8px; font-size: 13px; color: #555;">
                   <strong>Récapitulatif de votre demande :</strong><br/>
                   • Type : ${data.type === "wholesale" ? "Commande en gros" : data.type === "distributor" ? "Distribution" : "Projet spécifique"}<br/>
-                  • Téléphone : ${data.phone}<br/>
-                  ${data.quantity ? `• Volume estimé : ${data.quantity}<br/>` : ""}
-                  ${data.products ? `• Produits : ${data.products}<br/>` : ""}
+                  • Téléphone : ${safePhone}<br/>
+                  ${safeQuantity ? `• Volume estimé : ${safeQuantity}<br/>` : ""}
+                  ${safeProducts ? `• Produits : ${safeProducts}<br/>` : ""}
                 </div>
                 <p style="color: #666; font-size: 13px; line-height: 1.5;">
                   Pour toute urgence ou question complémentaire, vous pouvez nous joindre directement par téléphone au +225 05 84 63 72 19 ou en écrivant à <a href="mailto:contact@cereals-house.com" style="color: #3D2817; font-weight: bold;">contact@cereals-house.com</a>.

@@ -42,49 +42,49 @@ export function SiteFooter() {
   };
 
   return (
-    <footer className="mt-24 sm:mt-36 border-t border-stone-800/80 bg-[#12100E] text-stone-300 font-sans">
-      {/* ─── CONTENU PRINCIPAL AÉRÉ DU FOOTER ─── */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16">
-          {/* Colonne 1 : Marque & Présentation Institutionnelle (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            <Link to={getLocalizedPath("/")} className="inline-flex items-center gap-3.5 group">
+    <footer className="mt-8 sm:mt-10 border-t border-stone-800/70 bg-[#110F0D] text-stone-300 font-sans">
+      {/* ─── CONTENU DU FOOTER COMPACT & ÉLÉGANT ─── */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-7 pb-4 sm:pt-8 sm:pb-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          {/* Colonne 1 : Marque & Présentation (5 cols) */}
+          <div className="lg:col-span-5 space-y-2.5">
+            <Link to={getLocalizedPath("/")} className="inline-flex items-center gap-2.5 group">
               <img
                 src={logo}
                 alt="Cereals House"
-                className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-stone-700/80 group-hover:ring-amber-500/50 transition"
+                className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-stone-700/80 group-hover:ring-amber-500/50 transition"
               />
               <div>
-                <div className="font-display text-xl font-bold tracking-tight text-white">
+                <div className="font-display text-base font-bold tracking-tight text-white leading-tight">
                   Cereals <span className="text-gold font-serif italic">House</span>
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-stone-400 font-medium">
-                  Terroirs & Meunerie d'Afrique
+                <div className="text-[8.5px] uppercase tracking-[0.2em] text-stone-400 font-medium">
+                  {t("footer.subtitle", "Terroirs & Meunerie d'Afrique")}
                 </div>
               </div>
             </Link>
 
-            <p className="text-sm text-stone-400 leading-relaxed max-w-md font-light">
-              Maison meunière d'excellence dédiée à la valorisation des grains nobles d'Afrique de l'Ouest. Filières paysannes durables, traçabilité certifiée et transformation artisanale sans sable.
+            <p className="text-xs text-stone-400 leading-relaxed max-w-sm font-light">
+              {t("footer.missionStatement", "Maison meunière d'excellence dédiée à la valorisation des grains nobles d'Afrique de l'Ouest. Filières paysannes durables, traçabilité certifiée et transformation artisanale sans sable.")}
             </p>
 
-            {/* Coordonnées aérées */}
-            <div className="space-y-3 pt-2 text-xs sm:text-sm text-stone-400 font-light">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-amber-500/80 shrink-0 mt-0.5" />
+            {/* Coordonnées compactes */}
+            <div className="space-y-1 pt-0.5 text-xs text-stone-400 font-light">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-3.5 w-3.5 text-amber-500/80 shrink-0 mt-0.5" />
                 <span>9 Boulevard de France, Cocody Riviera, Abidjan, Côte d'Ivoire</span>
               </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <a
                   href="mailto:contact@cereals-house.com"
-                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
                   <Mail className="h-3.5 w-3.5 text-amber-500/80" />
                   <span>contact@cereals-house.com</span>
                 </a>
                 <a
                   href="tel:+2250584637219"
-                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 hover:text-white transition-colors"
                 >
                   <Phone className="h-3.5 w-3.5 text-amber-500/80" />
                   <span>(+225) 05 84 63 72 19</span>
@@ -93,14 +93,14 @@ export function SiteFooter() {
             </div>
 
             {/* Liens Réseaux Sociaux & WhatsApp */}
-            <div className="flex items-center gap-4 pt-3">
+            <div className="flex items-center gap-2.5 pt-0.5">
               <a
                 href="https://wa.me/2250584637219?text=Bonjour%20Cereals%20House,%20je%20souhaite%20des%20renseignements"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-stone-700/80 bg-stone-900/60 px-3.5 py-1.5 text-xs text-stone-300 hover:text-white hover:border-emerald-500/60 transition"
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-700/80 bg-stone-900/60 px-2.5 py-0.5 text-[11px] text-stone-300 hover:text-white hover:border-emerald-500/60 transition"
               >
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span>WhatsApp Pro</span>
                 <ArrowUpRight className="h-3 w-3 text-stone-500" />
               </a>
@@ -109,10 +109,10 @@ export function SiteFooter() {
                 href="https://www.facebook.com/share/1HjoGWMccN/?mibextid=wwXIfr"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-full border border-stone-800 bg-stone-900/40 text-stone-400 hover:text-white hover:border-stone-600 transition"
+                className="p-1 rounded-full border border-stone-800 bg-stone-900/40 text-stone-400 hover:text-white hover:border-stone-600 transition"
                 aria-label="Facebook"
               >
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
               </a>
@@ -121,10 +121,10 @@ export function SiteFooter() {
                 href="https://www.tiktok.com/@shopingcommerce?_r=1&_t=ZS-99eLiR2dTN6"
                 target="_blank"
                 rel="noreferrer"
-                className="p-2 rounded-full border border-stone-800 bg-stone-900/40 text-stone-400 hover:text-white hover:border-stone-600 transition"
+                className="p-1 rounded-full border border-stone-800 bg-stone-900/40 text-stone-400 hover:text-white hover:border-stone-600 transition"
                 aria-label="TikTok"
               >
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                <svg className="h-3.5 w-3.5 fill-current" viewBox="0 0 24 24">
                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
                 </svg>
               </a>
@@ -132,11 +132,11 @@ export function SiteFooter() {
           </div>
 
           {/* Colonne 2 : Navigation Maison & Savoir-Faire (2 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-bold tracking-wider text-stone-200 uppercase">
+          <div className="lg:col-span-2 space-y-2">
+            <h4 className="text-[11px] font-bold tracking-wider text-stone-200 uppercase">
               {t("footer.company", "Maison")}
             </h4>
-            <ul className="space-y-3 text-sm text-stone-400 font-light">
+            <ul className="space-y-1.5 text-xs text-stone-400 font-light">
               <li>
                 <Link to={getLocalizedPath("/")} className="hover:text-white transition-colors inline-block">
                   {t("nav.home", "Accueil")}
@@ -161,11 +161,11 @@ export function SiteFooter() {
           </div>
 
           {/* Colonne 3 : Boutique & Céréales (2 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-bold tracking-wider text-stone-200 uppercase">
+          <div className="lg:col-span-2 space-y-2">
+            <h4 className="text-[11px] font-bold tracking-wider text-stone-200 uppercase">
               {t("footer.shop", "Boutique")}
             </h4>
-            <ul className="space-y-3 text-sm text-stone-400 font-light">
+            <ul className="space-y-1.5 text-xs text-stone-400 font-light">
               <li>
                 <Link to={getLocalizedPath("/products")} className="hover:text-white transition-colors inline-block">
                   {t("footer.allProducts", "Toutes les céréales")}
@@ -173,17 +173,17 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link to={getLocalizedPath("/products")} className="hover:text-white transition-colors inline-block">
-                  Farines Bébé & Maman
+                  {t("footer.babyFlours", "Farines Bébé & Maman")}
                 </Link>
               </li>
               <li>
                 <Link to={getLocalizedPath("/products")} className="hover:text-white transition-colors inline-block">
-                  Fonio Royal Bio
+                  {t("footer.royalFonio", "Fonio Royal Bio")}
                 </Link>
               </li>
               <li>
                 <Link to={getLocalizedPath("/products")} className="hover:text-white transition-colors inline-block">
-                  Mil pour Dêguê
+                  {t("footer.milletDegue", "Mil pour Dêguê")}
                 </Link>
               </li>
               <li>
@@ -195,48 +195,48 @@ export function SiteFooter() {
           </div>
 
           {/* Colonne 4 : Newsletter & Suivi (3 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold tracking-wider text-stone-200 uppercase">
-              Restez informé
+          <div className="lg:col-span-3 space-y-2.5">
+            <h4 className="text-[11px] font-bold tracking-wider text-stone-200 uppercase">
+              {t("footer.stayInformed", "Restez informé")}
             </h4>
-            <p className="text-xs sm:text-sm text-stone-400 leading-relaxed font-light">
-              Recevez les annonces de récoltes fraîches et les offres privées de la Maison.
+            <p className="text-xs text-stone-400 leading-snug font-light">
+              {t("footer.stayInformedDesc", "Recevez les annonces de récoltes fraîches et les offres privées de la Maison.")}
             </p>
 
             {newsletterSubscribed ? (
-              <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium pt-2">
-                <Check className="h-4 w-4 shrink-0" />
-                <span>Merci pour votre inscription !</span>
+              <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium pt-1">
+                <Check className="h-3.5 w-3.5 shrink-0" />
+                <span>{t("footer.thankYouSubscribe", "Merci pour votre inscription !")}</span>
               </div>
             ) : (
-              <form onSubmit={handleNewsletterSubmit} className="space-y-3 pt-2">
-                <div className="flex flex-col gap-2.5">
+              <form onSubmit={handleNewsletterSubmit} className="space-y-2 pt-1">
+                <div className="flex flex-col gap-2">
                   <input
                     type="email"
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    placeholder="Votre adresse email"
-                    className="w-full rounded-xl border border-stone-700 bg-stone-900/90 px-4 py-2.5 text-xs sm:text-sm text-stone-100 placeholder-stone-500 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    placeholder={t("footer.newsletterPlaceholder", "Votre adresse email")}
+                    className="w-full rounded-lg border border-stone-700/80 bg-stone-900/90 px-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 py-2.5 px-4 text-xs sm:text-sm font-bold text-stone-950 transition-all cursor-pointer shadow-xs active:scale-98"
+                    className="w-full rounded-lg bg-amber-500 hover:bg-amber-600 py-2 px-3 text-xs font-semibold text-stone-950 transition-all cursor-pointer shadow-xs active:scale-98"
                   >
-                    S'inscrire à la lettre
+                    {t("footer.newsletterBtn", "S'inscrire à la lettre")}
                   </button>
                 </div>
-                <p className="text-[11px] text-stone-500 font-light">
-                  Aucun spam. Désabonnement à tout moment.
+                <p className="text-[10px] text-stone-500 font-light">
+                  {t("footer.noSpam", "Aucun spam. Désabonnement à tout moment.")}
                 </p>
               </form>
             )}
           </div>
         </div>
 
-        {/* ─── BARRE INFÉRIEURE AÉRÉE : COPYRIGHT, LANGUES & PAIEMENTS ─── */}
-        <div className="mt-16 pt-10 border-t border-stone-800/80 flex flex-col lg:flex-row items-center justify-between gap-6 text-xs text-stone-500">
+        {/* ─── BARRE INFÉRIEURE : COPYRIGHT, LANGUES & PAIEMENTS ─── */}
+        <div className="mt-6 pt-4 border-t border-stone-800/70 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-stone-500">
           {/* Mentions légales & Copyright */}
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-2 text-[11px] sm:text-xs text-stone-400 font-light">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 text-[11px] text-stone-400 font-light">
             <span>© {new Date().getFullYear()} Cereals House. {t("footer.rights", "Tous droits réservés.")}</span>
             <Link to={getLocalizedPath("/about")} className="hover:text-stone-200 transition-colors">
               {t("footer.privacy", "Confidentialité")}
@@ -245,15 +245,15 @@ export function SiteFooter() {
               {t("footer.terms", "Conditions Générales")}
             </Link>
             <Link to={getLocalizedPath("/about")} className="hover:text-stone-200 transition-colors">
-              Mentions Légales
+              {t("footer.legalNotice", "Mentions Légales")}
             </Link>
           </div>
 
           {/* Langue & Moyens de paiement */}
-          <div className="flex flex-wrap items-center justify-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             {/* Sélecteur de langue */}
-            <div className="flex items-center gap-2 border border-stone-800 rounded-lg px-3 py-1.5 bg-stone-900/60 text-xs text-stone-400">
-              <Globe className="h-3.5 w-3.5 text-stone-500" />
+            <div className="flex items-center gap-2 border border-stone-800 rounded-md px-2.5 py-1 bg-stone-900/60 text-[11px] text-stone-400">
+              <Globe className="h-3 w-3 text-stone-500" />
               <button
                 type="button"
                 onClick={() => switchLanguage("fr")}
@@ -276,11 +276,11 @@ export function SiteFooter() {
             </div>
 
             {/* Moyens de paiement */}
-            <div className="flex items-center gap-2" title="Paiements sécurisés par GeniusPay">
+            <div className="flex items-center gap-1.5" title="Paiements sécurisés par GeniusPay">
               {paymentLogos.map((p) => (
                 <div
                   key={p.name}
-                  className="flex h-6 w-9 items-center justify-center rounded-md bg-white p-0.5 opacity-85 hover:opacity-100 transition-opacity"
+                  className="flex h-5 w-8 items-center justify-center rounded bg-white p-0.5 opacity-80 hover:opacity-100 transition-opacity"
                   title={p.name}
                 >
                   <img

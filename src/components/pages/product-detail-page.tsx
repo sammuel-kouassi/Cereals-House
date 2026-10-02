@@ -202,15 +202,15 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 {product.category}
               </span>
             )}
-            <h1 className="mt-3 font-display text-3xl sm:text-5xl font-bold text-stone-950 dark:text-stone-100 leading-tight">
+            <h1 className="mt-2.5 font-display text-2xl sm:text-3xl lg:text-[2.2rem] font-bold text-stone-950 dark:text-stone-100 leading-snug">
               {product.name}
             </h1>
 
             {/* Note moyenne */}
-            <div className="mt-3 flex items-center gap-2.5">
+            <div className="mt-2.5 flex items-center gap-2">
               <div className="flex text-gold">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-gold" />
+                  <Star key={i} className="h-3.5 w-3.5 fill-gold" />
                 ))}
               </div>
               <span className="text-xs text-stone-500 font-medium">
@@ -219,8 +219,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             </div>
 
             {/* Prix */}
-            <div className="mt-5 flex items-baseline gap-2.5">
-              <span className="font-display text-3xl sm:text-4xl font-bold text-stone-950 dark:text-stone-100">
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="font-display text-2xl sm:text-3xl font-bold text-stone-950 dark:text-stone-100">
                 {formatPrice(unitPrice, currencySymbol)}
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
@@ -249,7 +249,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
                   className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
-                  aria-label="Diminuer"
+                  aria-label={t("common.decrease", "Diminuer")}
                 >
                   <Minus className="h-4 w-4" />
                 </button>
@@ -258,7 +258,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   type="button"
                   onClick={() => setQty((q) => q + 1)}
                   className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
-                  aria-label="Augmenter"
+                  aria-label={t("common.increase", "Augmenter")}
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -288,15 +288,15 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <div className="mt-8 pt-6 border-t border-border/60 space-y-2.5 text-xs text-muted-foreground">
               <div className="flex items-center gap-2.5">
                 <Check className="h-4 w-4 text-gold shrink-0" />
-                <span>Sélection rigoureuse auprès de coopératives et petits producteurs locaux</span>
+                <span>{t("product.reassurance1", "Sélection rigoureuse auprès de coopératives et petits producteurs locaux")}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Check className="h-4 w-4 text-gold shrink-0" />
-                <span>Emballage hermétique de haute qualité préservant saveur et fraîcheur</span>
+                <span>{t("product.reassurance2", "Emballage hermétique de haute qualité préservant saveur et fraîcheur")}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Check className="h-4 w-4 text-gold shrink-0" />
-                <span>Service client et assistance commande joignables 7j/7 sur WhatsApp</span>
+                <span>{t("product.reassurance3", "Service client et assistance commande joignables 7j/7 sur WhatsApp")}</span>
               </div>
             </div>
           </div>
@@ -350,7 +350,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <div className="space-y-6">
               <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
-                  {product.description || product.short_description || "Céréale saine récoltée par nos coopératives partenaires, triée sans sable ni cailloux."}
+                  {product.description || product.short_description || t("product.africanTerroirDesc", "Céréale saine récoltée par nos coopératives partenaires, triée sans sable ni cailloux.")}
                 </p>
               </div>
 
@@ -360,8 +360,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     <Leaf className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-primary">Terroir Africain</h4>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Culture raisonnée issue de producteurs partenaires d'Afrique de l'Ouest.</p>
+                    <h4 className="text-sm font-bold text-primary">{t("product.africanTerroir", "Terroir Africain")}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("product.africanTerroirDesc", "Culture raisonnée issue de producteurs partenaires d'Afrique de l'Ouest.")}</p>
                   </div>
                 </div>
 
@@ -370,8 +370,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     <ShieldCheck className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-primary">Zéro Sable ni Cailloux</h4>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Triple nettoyage mécanique et vannage artisanal garanti sans impuretés.</p>
+                    <h4 className="text-sm font-bold text-primary">{t("product.zeroSandGrit", "Zéro Sable ni Cailloux")}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("product.zeroSandGritDesc", "Triple nettoyage mécanique et vannage artisanal garanti sans impuretés.")}</p>
                   </div>
                 </div>
 
@@ -380,8 +380,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-primary">100% Pur & Naturel</h4>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Sans additif de synthèse, sans colorant et sans arôme artificiel.</p>
+                    <h4 className="text-sm font-bold text-primary">{t("product.allPureNatural", "100% Pur & Naturel")}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("product.allPureNaturalDesc", "Sans additif de synthèse, sans colorant et sans arôme artificiel.")}</p>
                   </div>
                 </div>
               </div>
@@ -393,33 +393,33 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <div className="space-y-6">
               <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gold">Ingrédients & Formule</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold">{t("product.ingredientsFormula", "Ingrédients & Formule")}</span>
                 </div>
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-                  {product.composition || "100% céréales locales pures sans conservateurs chimiques, riche en fibres solubles, glucides lents et minéraux essentiels."}
+                  {product.composition || t("product.defaultComposition", "100% céréales locales pures sans conservateurs chimiques, riche en fibres solubles, glucides lents et minéraux essentiels.")}
                 </p>
               </div>
 
               <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Glucides lents</span>
-                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Énergie diffuse</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 block">Satiété durable</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.slowCarbs", "Glucides lents")}</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.diffuseEnergy", "Énergie diffuse")}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.lastingSatiety", "Satiété durable")}</span>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Fibres végétales</span>
-                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Douceur</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 block">Digestion sereine</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.plantFibers", "Fibres végétales")}</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.gentleComfort", "Douceur")}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.peacefulDigestion", "Digestion sereine")}</span>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Micronutriments</span>
-                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">Fer & Zinc</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 block">Minéraux essentiels</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.micronutrients", "Micronutriments")}</span>
+                  <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.ironZinc", "Fer & Zinc")}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.essentialMinerals", "Minéraux essentiels")}</span>
                 </div>
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">Qualité</span>
-                  <span className="text-base sm:text-lg font-bold text-gold mt-1 block">100% Naturel</span>
-                  <span className="text-xs text-muted-foreground mt-0.5 block">Sans conservateurs</span>
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.qualityLabel", "Qualité")}</span>
+                  <span className="text-base sm:text-lg font-bold text-gold mt-1 block">{t("product.pureNaturalLabel", "100% Naturel")}</span>
+                  <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.noPreservatives", "Sans conservateurs")}</span>
                 </div>
               </div>
             </div>
@@ -430,7 +430,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             <div className="space-y-6">
               <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
-                  {product.benefits || "Idéal pour l'énergie quotidienne, la vitalité du foyer et la digestion douce chez les enfants comme chez les adultes."}
+                  {product.benefits || t("product.defaultBenefits", "Idéal pour l'énergie quotidienne, la vitalité du foyer et la digestion douce chez les enfants comme chez les adultes.")}
                 </p>
               </div>
 
@@ -440,8 +440,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     <Check className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-primary">Croissance & Vitalité Harmonique</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">Apport nutritionnel adapté pour soutenir les journées intenses et le développement sain.</p>
+                    <h4 className="text-sm font-bold text-primary">{t("product.growthVitality", "Croissance & Vitalité Harmonique")}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{t("product.growthVitalityDesc", "Apport nutritionnel adapté pour soutenir les journées intenses et le développement sain.")}</p>
                   </div>
                 </div>
 
@@ -450,8 +450,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     <Check className="h-4 w-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-primary">Confort Intestinal & Légèreté</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">Mouture extra-fine et farines douces convenant aux estomacs sensibles des tout-petits et adultes.</p>
+                    <h4 className="text-sm font-bold text-primary">{t("product.gutComfort", "Confort Intestinal & Légèreté")}</h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{t("product.gutComfortDesc", "Mouture extra-fine et farines douces convenant aux estomacs sensibles des tout-petits et adultes.")}</p>
                   </div>
                 </div>
               </div>
@@ -464,33 +464,33 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-2">
                   <ChefHat className="h-4 w-4 text-gold" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-gold">Conseil de Préparation</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gold">{t("product.prepTip", "Conseil de Préparation")}</span>
                 </div>
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-                  {product.preparation || "Cuisson rapide à la vapeur (5 min) ou en bouillie onctueuse avec un peu de lait frais, une touche de miel et une pincée de muscade."}
+                  {product.preparation || t("product.defaultPreparation", "Cuisson rapide à la vapeur (5 min) ou en bouillie onctueuse avec un peu de lait frais, une touche de miel et une pincée de muscade.")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">01</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 1</span>
-                  <h4 className="text-sm font-bold text-primary mt-1">Délayer à froid</h4>
-                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Mélanger la dose souhaitée avec un peu d'eau ou de lait tiède jusqu'à consistance lisse.</p>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step1Tag", "Étape 1")}</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">{t("product.step1Title", "Délayer à froid")}</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step1Desc", "Mélanger la dose souhaitée avec un peu d'eau ou de lait tiède jusqu'à consistance lisse.")}</p>
                 </div>
 
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">02</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 2</span>
-                  <h4 className="text-sm font-bold text-primary mt-1">Cuisson à feu doux</h4>
-                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Verser dans de l'eau frémissante et remuer continuellement pendant 5 à 8 minutes.</p>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step2Tag", "Étape 2")}</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">{t("product.step2Title", "Cuisson à feu doux")}</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step2Desc", "Verser dans de l'eau frémissante et remuer continuellement pendant 5 à 8 minutes.")}</p>
                 </div>
 
                 <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">03</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">Étape 3</span>
-                  <h4 className="text-sm font-bold text-primary mt-1">Sublimer & Déguster</h4>
-                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">Agrémenter selon vos envies : une cuillère de miel pur, cannelle ou lait végétal frais.</p>
+                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step3Tag", "Étape 3")}</span>
+                  <h4 className="text-sm font-bold text-primary mt-1">{t("product.step3Title", "Sublimer & Déguster")}</h4>
+                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step3Desc", "Agrémenter selon vos envies : une cuillère de miel pur, cannelle ou lait végétal frais.")}</p>
                 </div>
               </div>
             </div>
@@ -537,9 +537,9 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     onChange={(e) => setReviewRating(Number(e.target.value))}
                     className="rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground"
                   >
-                    <option value={5}>★★★★★ (5/5) : Délicieux</option>
-                    <option value={4}>★★★★☆ (4/5) : Très bon</option>
-                    <option value={3}>★★★☆☆ (3/5) : Bon</option>
+                    <option value={5}>★★★★★ (5/5) : {t("product.ratingDelicious", "Délicieux")}</option>
+                    <option value={4}>★★★★☆ (4/5) : {t("product.ratingVeryGood", "Très bon")}</option>
+                    <option value={3}>★★★☆☆ (3/5) : {t("product.ratingGood", "Bon")}</option>
                   </select>
                 </div>
                 <textarea

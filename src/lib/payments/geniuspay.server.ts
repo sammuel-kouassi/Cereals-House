@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
 import { query } from "@/integrations/neon/db.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 
@@ -20,27 +18,9 @@ function readEnvKey(key: string): string {
   const fromProcess = cleanEnvVal(process.env[key]);
   if (fromProcess) return fromProcess;
 
-  try {
-    const candidates = [
-      path.resolve(process.cwd(), ".env"),
-      path.resolve(process.cwd(), "cereals-house", ".env"),
-      "c:\\Users\\sammu\\Cereals House\\cereals-house\\.env",
-    ];
-    for (const envPath of candidates) {
-      if (fs.existsSync(envPath)) {
-        const content = fs.readFileSync(envPath, "utf-8");
-        const match = content.match(new RegExp(`^${key}=(.*)$`, "m"));
-        if (match) {
-          const val = cleanEnvVal(match[1]);
-          if (val) return val;
-        }
-      }
-    }
-  } catch {
-    // ignore
+  if (key === "GENIUSPAY_API_KEY" && process.env.NODE_ENV !== "production") {
+    return DEFAULT_SANDBOX_KEY;
   }
-
-  if (key === "GENIUSPAY_API_KEY") return DEFAULT_SANDBOX_KEY;
   if (key === "GENIUSPAY_API_URL") return DEFAULT_API_URL;
   return "";
 }
@@ -289,8 +269,22 @@ export function verifyGeniusPayWebhookSignature(
   timestamp: string | null,
 ): boolean {
   const webhookSecret = cleanEnvVal(readEnvKey("GENIUSPAY_WEBHOOK_SECRET"));
-  // Si aucun webhook secret n'est configuré en sandbox, on accepte temporairement les webhooks
-  if (!webhookSecret) return true;
+  const apiKey = getGeniusPayApiKey();
+  const isSandbox = !apiKey || apiKey.startsWith("sk_sandbox_") || process.env.GENIUSPAY_ENVIRONMENT === "sandbox";
+
+  if (!webhookSecret) {
+    if (isSandbox) {
+      console.warn("[GeniusPay Webhook Sandbox] Mode sandbox actif : webhook reçu sans GENIUSPAY_WEBHOOK_SECRET configuré (accepté pour tests).");
+      return true;
+    }
+    if (process.env.NODE_ENV === "production") {
+      console.error("[GeniusPay Webhook] GENIUSPAY_WEBHOOK_SECRET non configuré en production !");
+      return false;
+    }
+    console.warn("[GeniusPay Webhook Warning] Webhook reçu sans GENIUSPAY_WEBHOOK_SECRET configuré.");
+    return true;
+  }
+
   if (!signature) return false;
 
   try {
@@ -299,7 +293,15 @@ export function verifyGeniusPayWebhookSignature(
       .createHmac("sha256", webhookSecret)
       .update(message)
       .digest("hex");
-    return computed === signature;
+
+    const computedBuf = Buffer.from(computed, "utf-8");
+    const sigBuf = Buffer.from(signature, "utf-8");
+
+    if (computedBuf.length !== sigBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(computedBuf, sigBuf);
   } catch (err) {
     console.error("[GeniusPay Webhook Signature Error]", err);
     return false;

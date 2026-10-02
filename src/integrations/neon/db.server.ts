@@ -1,32 +1,15 @@
 import { neon, neonConfig, Pool } from "@neondatabase/serverless";
 
-import fs from "fs";
-import path from "path";
-
 // Active le pooling HTTP pour les environnements serverless
 neonConfig.fetchConnectionCache = true;
 
-// Fonction simple pour lire .env manuellement si process.env.DATABASE_URL est vide
-function getDbUrl() {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
-  if (process.env.NEON_DATABASE_URL) return process.env.NEON_DATABASE_URL;
-  try {
-    const envPath = path.resolve(process.cwd(), ".env");
-    if (fs.existsSync(envPath)) {
-      const content = fs.readFileSync(envPath, "utf-8");
-      const match = content.match(/^DATABASE_URL=(.*)$/m);
-      if (match) {
-        let val = match[1].trim();
-        if (val.startsWith('"') && val.endsWith('"')) {
-          val = val.slice(1, -1);
-        }
-        return val;
-      }
-    }
-  } catch (e) {
-    // ignore
+function getDbUrl(): string {
+  const url = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || "";
+  let s = url.trim();
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1).trim();
   }
-  return "";
+  return s;
 }
 
 const DATABASE_URL = getDbUrl();
@@ -57,14 +40,16 @@ export function getDbPool(): Pool {
  * Exécute une requête SQL avec paramètres sécurisés.
  */
 export async function query<T = any>(queryString: string, params: any[] = []): Promise<T[]> {
-  if (!DATABASE_URL || !sql) {
+  const currentUrl = getDbUrl();
+  const currentSql = currentUrl ? neon(currentUrl) : sql;
+  if (!currentUrl || !currentSql) {
     console.warn("[Neon DB] Simulation de requête (DATABASE_URL absente) :", queryString.slice(0, 80));
     return [];
   }
   try {
-    const result = typeof (sql as any).query === "function"
-      ? await (sql as any).query(queryString, params)
-      : await (sql as any)(queryString, params);
+    const result = typeof (currentSql as any).query === "function"
+      ? await (currentSql as any).query(queryString, params)
+      : await (currentSql as any)(queryString, params);
     return (result as unknown as T[]) ?? [];
   } catch (error) {
     console.error("[Neon DB Error]", error);

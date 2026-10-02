@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import heroLuxuryCereals from "@/assets/hero-luxury-cereals.jpg";
 import { listProductsFn, type ProductItem } from "@/lib/products/products.functions";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard, ProductCardSkeleton } from "@/components/product-card";
 import { ProductSearchBar } from "@/components/product-search-bar";
 import { useCountry } from "@/lib/country-context";
 import { Flag } from "@/components/flag";
@@ -107,14 +107,17 @@ export function ProductsPage() {
           <div className="lg:col-span-7 flex flex-col justify-center">
             <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/40 bg-gold/15 px-3.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-gold mb-4 shadow-xs">
               <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-              <span>Catalogue Officiel & Moutures d'Afrique</span>
+              <span>{t("products.catalogBadge", "Catalogue Officiel & Moutures d'Afrique")}</span>
             </div>
 
-            <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-stone-100 leading-[1.1]">
-              Farines & céréales <span className="font-editorial text-gradient-gold font-normal">d'exception</span>
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-100 leading-tight">
+              {t("products.titlePart1", "Farines & céréales")}{" "}
+              <span className="font-editorial text-gradient-gold font-normal">
+                {t("products.titlePart2", "d'exception")}
+              </span>
             </h1>
 
-            <p className="mt-4 text-xs sm:text-sm lg:text-base text-stone-300 max-w-xl leading-relaxed font-light">
+            <p className="mt-3 text-xs sm:text-sm text-stone-300 max-w-xl leading-relaxed font-light">
               {t(
                 "products.subtitle",
                 "Garanties 100% sans sable, mouture douce sur meule de pierre et scellées sous vide pour préserver chaque nutriment et arôme naturel.",
@@ -124,16 +127,16 @@ export function ProductsPage() {
             <div className="mt-7 flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs">
               <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-3.5 sm:px-4 py-1.5 text-stone-200 font-medium shadow-xs">
                 <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>100% Naturel & Sans additifs</span>
+                <span>{t("products.badgeNatural", "100% Naturel & Sans additifs")}</span>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-3.5 sm:px-4 py-1.5 text-stone-200 font-medium shadow-xs">
                 <ShieldCheck className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>Fraîcheur scellée sous vide</span>
+                <span>{t("products.badgeVacuum", "Fraîcheur scellée sous vide")}</span>
               </div>
               {country && (
                 <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3.5 sm:px-4 py-1.5 text-gold font-semibold shadow-xs">
                   <Flag code={country.code} className="h-3.5 w-5 rounded-[2px]" />
-                  <span>Livraison vers {country.name}</span>
+                  <span>{t("products.shippingToCountry", { country: country.name, defaultValue: `Livraison vers ${country.name}` })}</span>
                 </div>
               )}
             </div>
@@ -164,7 +167,7 @@ export function ProductsPage() {
                         <span className="ml-1 text-[11px] font-bold text-white">4.9 / 5</span>
                       </div>
                       <p className="text-[10px] text-stone-300 font-light mt-0.5">
-                        Sélection Meule de Pierre · Terroirs Nobles
+                        {t("products.selectionPureMilling", "Sélection Meule de Pierre · Terroirs Nobles")}
                       </p>
                     </div>
                   </div>
@@ -173,7 +176,7 @@ export function ProductsPage() {
                 <div className="pt-2.5 px-1.5 flex items-center justify-between text-[11px] text-stone-300 font-medium">
                   <span className="flex items-center gap-1.5">
                     <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-                    Filières paysannes ouest-africaines
+                    {t("products.westAfricanFarming", "Filières paysannes ouest-africaines")}
                   </span>
                   <span className="text-gold/90 font-semibold">Abidjan & UEMOA</span>
                 </div>
@@ -182,13 +185,13 @@ export function ProductsPage() {
               {/* Badge Flottant 1 (Haut Droite, flottement doux) */}
               <div className="animate-float-slow absolute -top-3 -right-2 sm:-right-3 rounded-xl border border-gold/50 bg-[#1E1610]/95 backdrop-blur-md px-3.5 py-1.5 shadow-xl flex items-center gap-2 text-xs font-bold text-stone-100">
                 <Sparkles className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>Mouture Meule Douce</span>
+                <span>{t("products.stoneMillingBadge", "Mouture Meule Douce")}</span>
               </div>
 
               {/* Badge Flottant 2 (Bas Gauche, flottement différé) */}
               <div className="animate-float-delayed absolute -bottom-3 -left-2 sm:-left-3 rounded-xl border border-gold/40 bg-[#1C140E]/95 backdrop-blur-md px-3.5 py-1.5 shadow-xl flex items-center gap-2 text-xs font-bold text-gold">
                 <ShieldCheck className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>Zéro Sable Garanti</span>
+                <span>{t("products.sandFreeBadge", "Zéro Sable Garanti")}</span>
               </div>
             </div>
           </div>
@@ -258,7 +261,7 @@ export function ProductsPage() {
                   className={`grid h-8 w-8 place-items-center rounded-lg transition cursor-pointer ${
                     viewMode === "grid" ? "bg-card text-gold shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title="Vue grille"
+                  title={t("products.viewGrid", "Vue grille")}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </button>
@@ -268,7 +271,7 @@ export function ProductsPage() {
                   className={`grid h-8 w-8 place-items-center rounded-lg transition cursor-pointer ${
                     viewMode === "list" ? "bg-card text-gold shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title="Vue liste"
+                  title={t("products.viewList", "Vue liste")}
                 >
                   <List className="h-4 w-4" />
                 </button>
@@ -304,14 +307,28 @@ export function ProductsPage() {
                 }}
                 className="text-xs text-muted-foreground hover:text-destructive underline ml-2 cursor-pointer"
               >
-                Réinitialiser tout
+                {t("products.resetAll", "Réinitialiser tout")}
               </button>
             </div>
           )}
         </div>
 
         {/* 4. Liste / Grille des Produits */}
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          viewMode === "grid" ? (
+            <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {[...Array(8)].map((_, i) => (
+                <ProductCardSkeleton key={i} layout="grid" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {[...Array(8)].map((_, i) => (
+                <ProductCardSkeleton key={i} layout="list" />
+              ))}
+            </div>
+          )
+        ) : filtered.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border bg-card/50 p-12 text-center">
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary text-muted-foreground mb-4">
               <Boxes className="h-8 w-8" />
@@ -320,7 +337,7 @@ export function ProductsPage() {
               {t("products.searchNoResults", "Aucun produit ne correspond à votre recherche")}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Essayez de modifier vos filtres ou de chercher un autre terme (ex : riz, fonio, mil, moringa...).
+              {t("products.searchNoResultsDesc", "Essayez de modifier vos filtres ou de chercher un autre terme (ex : riz, fonio, mil, moringa...).")}
             </p>
             <button
               type="button"
@@ -330,7 +347,7 @@ export function ProductsPage() {
               }}
               className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2 text-xs font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 transition cursor-pointer"
             >
-              Afficher toutes les céréales
+              {t("products.showAll", "Afficher toutes les céréales")}
             </button>
           </div>
         ) : viewMode === "grid" ? (

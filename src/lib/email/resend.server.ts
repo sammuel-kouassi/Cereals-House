@@ -10,7 +10,7 @@ export type EmailAttachment = {
 };
 
 export async function sendEmail(params: {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   attachments?: EmailAttachment[];
@@ -25,7 +25,11 @@ export async function sendEmail(params: {
     from = "Cereals House <contact@cereals-house.com>";
   }
 
-  console.log(`[email] 📤 Envoi en cours depuis "${from}" vers "${params.to}" — Sujet: "${params.subject}"`);
+  const recipients = Array.isArray(params.to)
+    ? params.to
+    : params.to.split(",").map((s) => s.trim()).filter(Boolean);
+
+  console.log(`[email] 📤 Envoi en cours depuis "${from}" vers "${recipients.join(', ')}" — Sujet: "${params.subject}"`);
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -36,7 +40,7 @@ export async function sendEmail(params: {
       },
       body: JSON.stringify({
         from,
-        to: [params.to],
+        to: recipients,
         subject: params.subject,
         html: params.html,
         attachments: params.attachments,

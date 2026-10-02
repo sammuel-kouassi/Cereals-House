@@ -311,14 +311,14 @@ export function CheckoutPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Ville ou Commune de destination (Côte d'Ivoire) *
+                  {t("checkout.cityLabel", "Ville ou Commune de destination *")}
                 </label>
                 <input
                   type="text"
                   required
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="ex : Abidjan (Cocody, Yopougon, Marcory...), Yamoussoukro, Bouaké..."
+                  placeholder={t("checkout.cityPlaceholder", "ex : Abidjan (Cocody, Yopougon, Marcory...), Yamoussoukro, Bouaké...")}
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
                 />
               </div>
@@ -369,9 +369,9 @@ export function CheckoutPage() {
                   </div>
                   <div>
                     <div className="text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                      <span>Paiement en ligne sécurisé GeniusPay</span>
+                      <span>{t("checkout.geniusPayTitle", "Paiement en ligne sécurisé GeniusPay")}</span>
                       <span className="rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
-                        Agréé
+                        {t("checkout.geniusPayCertified", "Agréé")}
                       </span>
                     </div>
                   </div>
@@ -461,7 +461,7 @@ export function CheckoutPage() {
               ) : (
                 <>
                   <Lock className="h-4 w-4" />
-                  <span>Procéder au paiement</span>
+                  <span>{t("checkout.confirm", "Procéder au paiement")}</span>
                 </>
               )}
             </button>
