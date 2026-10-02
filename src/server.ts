@@ -57,7 +57,7 @@ export default {
     try {
       // Callbacks CinetPay & Paystack, et téléchargement PDF direct
       const { pathname } = new URL(request.url);
-      if (pathname === "/api/geniuspay/webhook") {
+      if (pathname === "/api/geniuspay/webhook" || pathname === "/api/webhooks/geniuspay") {
         return await handleGeniusPayWebhook(request);
       }
       if (pathname === "/api/paystack/webhook") {
