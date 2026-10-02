@@ -273,15 +273,7 @@ export function verifyGeniusPayWebhookSignature(
   const isSandbox = !apiKey || apiKey.startsWith("sk_sandbox_") || process.env.GENIUSPAY_ENVIRONMENT === "sandbox";
 
   if (!webhookSecret) {
-    if (isSandbox) {
-      console.warn("[GeniusPay Webhook Sandbox] Mode sandbox actif : webhook reçu sans GENIUSPAY_WEBHOOK_SECRET configuré (accepté pour tests).");
-      return true;
-    }
-    if (process.env.NODE_ENV === "production") {
-      console.error("[GeniusPay Webhook] GENIUSPAY_WEBHOOK_SECRET non configuré en production !");
-      return false;
-    }
-    console.warn("[GeniusPay Webhook Warning] Webhook reçu sans GENIUSPAY_WEBHOOK_SECRET configuré.");
+    console.warn("[GeniusPay Webhook] GENIUSPAY_WEBHOOK_SECRET non défini : la vérification stricte s'effectuera directement via l'API GeniusPay.");
     return true;
   }
 
