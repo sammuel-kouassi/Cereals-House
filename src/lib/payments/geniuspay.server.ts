@@ -2,8 +2,7 @@ import crypto from "node:crypto";
 import { query } from "@/integrations/neon/db.server";
 import { getPublicAppUrl } from "@/lib/app-url.server";
 
-const DEFAULT_SANDBOX_KEY = "sk_sandbox_QfyTbAJjrVotxOhkoN8EL0aJ1Sy3GfqG";
-const DEFAULT_API_URL = "https://pay.genius.ci";
+const DEFAULT_API_URL = "https://geniuspay.ci";
 
 function cleanEnvVal(val: string | undefined | null): string {
   if (!val) return "";
@@ -17,17 +16,20 @@ function cleanEnvVal(val: string | undefined | null): string {
 function readEnvKey(key: string): string {
   const fromProcess = cleanEnvVal(process.env[key]);
   if (fromProcess) return fromProcess;
-
-  if (key === "GENIUSPAY_API_KEY" && process.env.NODE_ENV !== "production") {
-    return DEFAULT_SANDBOX_KEY;
-  }
   if (key === "GENIUSPAY_API_URL") return DEFAULT_API_URL;
   return "";
 }
 
+export function getGeniusPayPublicKey(): string {
+  return cleanEnvVal(readEnvKey("GENIUSPAY_PUBLIC_KEY")) || cleanEnvVal(readEnvKey("GENIUSPAY_API_KEY"));
+}
+
+export function getGeniusPaySecretKey(): string {
+  return cleanEnvVal(readEnvKey("GENIUSPAY_SECRET_KEY")) || cleanEnvVal(readEnvKey("GENIUSPAY_API_SECRET"));
+}
+
 export function getGeniusPayApiKey(): string {
-  const k = cleanEnvVal(readEnvKey("GENIUSPAY_API_KEY"));
-  return k || DEFAULT_SANDBOX_KEY;
+  return getGeniusPayPublicKey();
 }
 
 export function getGeniusPayApiUrl(): string {
@@ -36,8 +38,8 @@ export function getGeniusPayApiUrl(): string {
 }
 
 export function isGeniusPayConfigured(): boolean {
-  const key = getGeniusPayApiKey();
-  return !!key && (key.startsWith("sk_sandbox_") || key.startsWith("sk_live_"));
+  const key = getGeniusPayPublicKey();
+  return !!key && (key.startsWith("pk_") || key.startsWith("sk_"));
 }
 
 export type InitializeGeniusPayParams = {
@@ -68,12 +70,12 @@ export type InitializeGeniusPayResult = {
 export async function initializeGeniusPayTransaction(
   params: InitializeGeniusPayParams,
 ): Promise<InitializeGeniusPayResult> {
-  const { order, email, mmoProvider, channel } = params;
-  const apiKey = getGeniusPayApiKey();
+  const publicKey = getGeniusPayPublicKey();
+  const secretKey = getGeniusPaySecretKey();
   const apiUrl = getGeniusPayApiUrl();
 
-  if (!apiKey) {
-    throw new Error("Clé API GeniusPay manquante.");
+  if (!publicKey || !secretKey) {
+    throw new Error("Clés API GeniusPay (publique et secrète) manquantes.");
   }
 
   const returnBaseUrl = getPublicAppUrl();
@@ -155,8 +157,9 @@ export async function initializeGeniusPayTransaction(
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "X-API-Key": apiKey,
+      "X-API-Key": publicKey,
+      "X-API-Secret": secretKey,
+      Authorization: `Bearer ${publicKey}`,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -203,14 +206,15 @@ export async function initializeGeniusPayTransaction(
  * Vérifie le statut d'une transaction directement auprès de l'API GeniusPay
  */
 export async function verifyGeniusPayTransaction(reference: string) {
-  const apiKey = getGeniusPayApiKey();
+  const publicKey = getGeniusPayPublicKey();
+  const secretKey = getGeniusPaySecretKey();
   const apiUrl = getGeniusPayApiUrl();
 
-  if (!apiKey) {
+  if (!publicKey || !secretKey) {
     return {
       success: false,
       status: "failed" as const,
-      message: "Clé API GeniusPay manquante",
+      message: "Clés API GeniusPay manquantes",
     };
   }
 
@@ -219,8 +223,9 @@ export async function verifyGeniusPayTransaction(reference: string) {
     const res = await fetch(endpoint, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "X-API-Key": apiKey,
+        "X-API-Key": publicKey,
+        "X-API-Secret": secretKey,
+        Authorization: `Bearer ${publicKey}`,
         Accept: "application/json",
       },
     });
