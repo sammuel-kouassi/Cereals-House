@@ -108,7 +108,12 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               session.user.user_metadata?.picture ||
               "";
 
-            await signInWithGoogle({ email, fullName, avatarUrl });
+            await signInWithGoogle({
+              accessToken: session.access_token,
+              email,
+              fullName,
+              avatarUrl,
+            });
             toast.success(t("auth.signedInToast", `Connecté avec succès via Google (${email}) !`));
             router.navigate({ href: redirectUrl || getLocalizedPath("/"), replace: true });
           } catch (err) {
@@ -140,7 +145,12 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               session.user.user_metadata?.picture ||
               "";
 
-            await signInWithGoogle({ email, fullName, avatarUrl });
+            await signInWithGoogle({
+              accessToken: session.access_token,
+              email,
+              fullName,
+              avatarUrl,
+            });
             toast.success(t("auth.signedInToast", `Connecté avec succès via Google (${email}) !`));
             router.navigate({ href: redirectUrl || getLocalizedPath("/"), replace: true });
           }

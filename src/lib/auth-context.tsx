@@ -19,7 +19,7 @@ type Ctx = {
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (data: { email: string; password: string; fullName?: string; phone?: string; countryCode?: string }) => Promise<void>;
-  signInWithGoogle: (data: { idToken?: string; code?: string; redirectUri?: string; email?: string; fullName?: string; avatarUrl?: string }) => Promise<void>;
+  signInWithGoogle: (data: { idToken?: string; accessToken?: string; code?: string; redirectUri?: string; email?: string; fullName?: string; avatarUrl?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async (googleData: {
     idToken?: string;
+    accessToken?: string;
     code?: string;
     redirectUri?: string;
     email?: string;

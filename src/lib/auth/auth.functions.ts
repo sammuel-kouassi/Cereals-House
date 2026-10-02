@@ -29,6 +29,7 @@ export const signInFn = createServerFn({ method: "POST" })
 
 const googleAuthSchema = z.object({
   idToken: z.string().optional(),
+  accessToken: z.string().optional(),
   code: z.string().optional(),
   redirectUri: z.string().optional(),
   email: z.string().email().optional(),

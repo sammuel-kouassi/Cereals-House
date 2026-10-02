@@ -174,6 +174,7 @@ export async function loginUser(email: string, password: string) {
  */
 export async function loginWithGoogleServer(input: {
   idToken?: string;
+  accessToken?: string;
   code?: string;
   redirectUri?: string;
   email?: string;
@@ -184,8 +185,34 @@ export async function loginWithGoogleServer(input: {
   let googleName = input.fullName?.trim() || "";
   let googleAvatar = input.avatarUrl?.trim() || "";
 
-  // 1. Si un idToken Google est fourni, on vérifie auprès de l'API Google
-  if (input.idToken) {
+  // 1. Si accessToken (Supabase OAuth access token) est fourni, vérification auprès de l'API auth
+  if (input.accessToken) {
+    try {
+      const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+      if (supabaseUrl && supabaseAnonKey) {
+        const resp = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/user`, {
+          headers: {
+            apikey: supabaseAnonKey,
+            Authorization: `Bearer ${input.accessToken}`,
+          },
+        });
+        if (resp.ok) {
+          const profile = await resp.json();
+          if (profile?.email) {
+            googleEmail = profile.email.toLowerCase();
+            googleName = profile.user_metadata?.full_name || profile.user_metadata?.name || googleName;
+            googleAvatar = profile.user_metadata?.avatar_url || profile.user_metadata?.picture || googleAvatar;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[Supabase OAuth Token Verification Warning]", err);
+    }
+  }
+
+  // 2. Si un idToken Google est fourni, on vérifie auprès de l'API Google
+  if (!googleEmail && input.idToken) {
     try {
       const resp = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(input.idToken)}`);
       if (resp.ok) {
@@ -202,7 +229,7 @@ export async function loginWithGoogleServer(input: {
     }
   }
 
-  // 2. Si un code d'autorisation OAuth est fourni, on échange contre des tokens
+  // 3. Si un code d'autorisation OAuth est fourni, on échange contre des tokens
   if (!googleEmail && input.code && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     try {
       const tokenResp = await fetch("https://oauth2.googleapis.com/token", {
@@ -237,6 +264,11 @@ export async function loginWithGoogleServer(input: {
     } catch (err) {
       console.warn("[Google OAuth Code Exchange Warning]", err);
     }
+  }
+
+  // 4. Si input.email est fourni depuis la session OAuth vérifiée
+  if (!googleEmail && input.email && typeof input.email === "string" && input.email.includes("@")) {
+    googleEmail = input.email.trim().toLowerCase();
   }
 
   if (!googleEmail) {
