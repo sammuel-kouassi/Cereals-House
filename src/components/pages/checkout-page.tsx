@@ -9,6 +9,7 @@ import {
   Truck,
   ArrowRight,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
@@ -22,18 +23,13 @@ import { PageLoader } from "@/components/page-loader";
 import {
   getCountryPaymentChannels,
   getCountryDialInfo,
+  isOnlinePaymentSupported,
 } from "@/lib/payments/supported-countries";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
-import logoWave from "@/assets/wave.png";
-import logoOM from "@/assets/om.png";
-import logoMTN from "@/assets/mtn.jpg";
-import logoMoov from "@/assets/moov.png";
-import logoVisa from "@/assets/visa.png";
-
 export function CheckoutPage() {
   const { items, clearCart } = useCart();
-  const { country } = useCountry();
+  const { country, countries, setCountryCode } = useCountry();
   const { user, loading } = useAuth();
   const router = useRouter();
   const { t } = useTranslation();
@@ -55,35 +51,28 @@ export function CheckoutPage() {
     queryFn: () => listPublicCityShippingRatesFn(),
   });
 
-  const currentCountryCode = "CI";
-  const currencySymbol = "FCFA";
-  const currencyCode = "XOF";
+  const currentCountryCode = (country?.code || "CI").toUpperCase();
+  const currencySymbol = country?.currency_symbol || "FCFA";
+  const currencyCode = country?.currency_code || "XOF";
 
-  const isOnlineSupported = true;
-  const countryPaymentChannels = getCountryPaymentChannels("CI");
-  const currentDialInfo = getCountryDialInfo("CI");
-
-  const currentCountryMeta = {
-    name: "Côte d'Ivoire",
-    flag: "🇨🇮",
-    phoneCode: "+225",
-    placeholder: "+225 07 00 00 00 00",
-  };
+  const isOnlineSupported = isOnlinePaymentSupported(currentCountryCode);
+  const countryPaymentChannels = getCountryPaymentChannels(currentCountryCode);
+  const currentDialInfo = getCountryDialInfo(currentCountryCode);
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, phone: e.target.value }));
   };
 
-  // Tarifs spécifiques aux villes pour la Côte d'Ivoire
+  // Tarifs spécifiques aux villes pour le pays sélectionné
   const availableCityRates = (cityRatesData?.rates ?? []).filter(
-    (r) => r.country_code === "CI"
+    (r) => r.country_code === currentCountryCode
   );
 
   const matchedCityRate = availableCityRates.find(
     (r) => r.city_name.trim().toLowerCase() === form.city.trim().toLowerCase()
   );
 
-  const baseShipping = Number(country?.base_shipping_fee ?? 1500);
+  const baseShipping = Number(country?.base_shipping_fee ?? 2500);
   const shipping = matchedCityRate ? Number(matchedCityRate.shipping_fee) : baseShipping;
 
   // Calcul du sous-total
@@ -275,6 +264,30 @@ export function CheckoutPage() {
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
+              {/* Sélecteur de Pays de livraison */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  {t("checkout.countryLabel", "Pays de livraison & destination *")}
+                </label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                    <span className="text-base">{currentDialInfo.flag}</span>
+                  </div>
+                  <select
+                    value={currentCountryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-border bg-background pl-10 pr-10 py-2.5 text-xs font-semibold text-foreground focus:border-gold focus:outline-none cursor-pointer transition-colors shadow-2xs"
+                  >
+                    {countries.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name} ({c.currency_symbol || "FCFA"})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gold" />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.fullName", "Nom & Prénom du destinataire *")}
@@ -295,15 +308,15 @@ export function CheckoutPage() {
                 </label>
                 <div className="flex rounded-xl border border-border bg-background focus-within:border-gold overflow-hidden transition-colors">
                   <div className="flex items-center gap-1.5 px-3 bg-muted/40 border-r border-border/60 text-xs font-semibold shrink-0 select-none">
-                    <span className="text-sm">🇨🇮</span>
-                    <span className="text-xs font-bold text-foreground">+225</span>
+                    <span className="text-sm">{currentDialInfo.flag}</span>
+                    <span className="text-xs font-bold text-foreground">{currentDialInfo.dialCode}</span>
                   </div>
                   <input
                     type="tel"
                     required
                     value={form.phone}
                     onChange={handlePhoneChange}
-                    placeholder="07 00 00 00 00 (Orange, Wave, MTN, Moov)"
+                    placeholder={currentDialInfo.placeholder}
                     className="w-full bg-transparent px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                   />
                 </div>
@@ -318,7 +331,19 @@ export function CheckoutPage() {
                   required
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder={t("checkout.cityPlaceholder", "ex : Abidjan (Cocody, Yopougon, Marcory...), Yamoussoukro, Bouaké...")}
+                  placeholder={
+                    currentCountryCode === "SN"
+                      ? "ex : Dakar (Plateau, Almadies...), Thiès..."
+                      : currentCountryCode === "ML"
+                      ? "ex : Bamako (Badalabougou, ACI 2000...), Sikasso..."
+                      : currentCountryCode === "BF"
+                      ? "ex : Ouagadougou (Ouaga 2000...), Bobo-Dioulasso..."
+                      : currentCountryCode === "BJ"
+                      ? "ex : Cotonou (Haie Vive, Cadjehoun...), Porto-Novo..."
+                      : currentCountryCode === "TG"
+                      ? "ex : Lomé (Tokoin, Bè...), Kara..."
+                      : "ex : Abidjan (Cocody, Yopougon...), Bouaké..."
+                  }
                   className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
                 />
               </div>
@@ -357,8 +382,9 @@ export function CheckoutPage() {
                 <label className="block text-xs font-semibold text-foreground">
                   {t("checkout.paymentMode", "Mode de règlement")}
                 </label>
-                <span className="text-[11px] text-muted-foreground font-semibold">
-                  Côte d'Ivoire (FCFA)
+                <span className="text-[11px] text-muted-foreground font-semibold flex items-center gap-1.5">
+                  <span>{currentDialInfo.flag}</span>
+                  <span>{country?.name || "Côte d'Ivoire"} ({currencySymbol})</span>
                 </span>
               </div>
 
@@ -374,29 +400,21 @@ export function CheckoutPage() {
                         {t("checkout.geniusPayCertified", "Agréé")}
                       </span>
                     </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {countryPaymentChannels.description}
+                    </p>
                   </div>
                 </div>
 
-                {/* Logos des moyens de paiement uniquement */}
-                <div className="flex items-center gap-1.5 shrink-0 pl-13 sm:pl-0">
-                  {[
-                    { name: "Wave", src: logoWave },
-                    { name: "Orange Money", src: logoOM },
-                    { name: "MTN MoMo", src: logoMTN },
-                    { name: "Moov Money", src: logoMoov },
-                    { name: "Carte bancaire", src: logoVisa },
-                  ].map((p) => (
-                    <div
-                      key={p.name}
-                      className="flex h-7 w-10 items-center justify-center rounded-md bg-white p-1 shadow-2xs border border-stone-200/80"
-                      title={p.name}
+                {/* Badges des canaux de paiement supportés pour ce pays */}
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0 pl-13 sm:pl-0">
+                  {countryPaymentChannels.badges.map((b) => (
+                    <span
+                      key={b.label}
+                      className={`rounded-md px-2 py-1 text-[11px] font-bold ${b.bg} ${b.text}`}
                     >
-                      <img
-                        src={p.src}
-                        alt={p.name}
-                        className="max-h-full max-w-full object-contain"
-                      />
-                    </div>
+                      {b.label}
+                    </span>
                   ))}
                 </div>
               </div>

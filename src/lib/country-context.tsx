@@ -1,5 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { listCountriesFn, type CountryItem } from "@/lib/products/products.functions";
+import {
+  isOnlinePaymentSupported,
+  ONLINE_PAYMENT_SUPPORTED_COUNTRIES,
+} from "@/lib/payments/supported-countries";
 import i18n from "@/lib/i18n";
 
 export type Country = CountryItem;
@@ -46,37 +50,94 @@ type Ctx = {
 const CountryContext = createContext<Ctx | null>(null);
 const STORAGE_KEY = "ch_country";
 
+const FALLBACK_COUNTRIES: CountryItem[] = [
+  {
+    code: "CI",
+    name: "Côte d'Ivoire",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 1500,
+    flag_emoji: "🇨🇮",
+    is_active: true,
+    sort_order: 1,
+  },
+  {
+    code: "SN",
+    name: "Sénégal",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 2000,
+    flag_emoji: "🇸🇳",
+    is_active: true,
+    sort_order: 2,
+  },
+  {
+    code: "ML",
+    name: "Mali",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 2500,
+    flag_emoji: "🇲🇱",
+    is_active: true,
+    sort_order: 3,
+  },
+  {
+    code: "BF",
+    name: "Burkina Faso",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 2500,
+    flag_emoji: "🇧🇫",
+    is_active: true,
+    sort_order: 4,
+  },
+  {
+    code: "BJ",
+    name: "Bénin",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 2500,
+    flag_emoji: "🇧🇯",
+    is_active: true,
+    sort_order: 5,
+  },
+  {
+    code: "TG",
+    name: "Togo",
+    currency_code: "XOF",
+    currency_symbol: "FCFA",
+    base_shipping_fee: 2500,
+    flag_emoji: "🇹🇬",
+    is_active: true,
+    sort_order: 6,
+  },
+];
+
 export function CountryProvider({ children }: { children: ReactNode }) {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [code, setCode] = useState<string>("CI");
+  const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
+  const [code, setCode] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && isOnlinePaymentSupported(saved)) {
+        return saved.toUpperCase();
+      }
+    }
+    return "CI";
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Actif uniquement pour la Côte d'Ivoire (autres pays masqués pour le paiement)
-    setCode("CI");
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, "CI");
-    }
-
     listCountriesFn()
       .then((data) => {
-        const ciList = (data ?? []).filter((c) => c.code === "CI");
-        setCountries(
-          ciList.length > 0
-            ? ciList
-            : [
-                {
-                  code: "CI",
-                  name: "Côte d'Ivoire",
-                  currency_code: "XOF",
-                  currency_symbol: "FCFA",
-                  base_shipping_fee: 1500,
-                  flag_emoji: "🇨🇮",
-                  is_active: true,
-                  sort_order: 1,
-                },
-              ]
+        // Filtre les pays supportés pour la boutique client (CI, SN, ML, BF, BJ, TG)
+        const supportedList = (data ?? []).filter((c) =>
+          isOnlinePaymentSupported(c.code)
         );
+        if (supportedList.length > 0) {
+          // Trie selon sort_order
+          supportedList.sort((a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99));
+          setCountries(supportedList);
+        }
       })
       .catch((err) => {
         console.error("[CountryProvider load error]", err);
@@ -86,15 +147,21 @@ export function CountryProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  const setCountryCode = (_c: string) => {
-    // Verrouillé sur la Côte d'Ivoire
-    setCode("CI");
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, "CI");
+  const setCountryCode = (newCode: string) => {
+    const upper = newCode.toUpperCase().trim();
+    if (isOnlinePaymentSupported(upper)) {
+      setCode(upper);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, upper);
+      }
     }
   };
 
-  const country = countries.find((c) => c.code === "CI") ?? countries[0] ?? null;
+  const country =
+    countries.find((c) => c.code === code) ??
+    countries.find((c) => c.code === "CI") ??
+    countries[0] ??
+    null;
 
   return (
     <CountryContext.Provider value={{ countries, country, setCountryCode, loading }}>

@@ -10,6 +10,11 @@
 
 export const ONLINE_PAYMENT_SUPPORTED_COUNTRIES = [
   "CI",
+  "SN",
+  "ML",
+  "BF",
+  "BJ",
+  "TG",
 ] as const;
 
 export type OnlinePaymentSupportedCountry =
@@ -19,7 +24,8 @@ export function isOnlinePaymentSupported(
   code: string | undefined | null,
 ): boolean {
   if (!code) return false;
-  return code.toUpperCase().trim() === "CI";
+  const upper = code.toUpperCase().trim();
+  return (ONLINE_PAYMENT_SUPPORTED_COUNTRIES as readonly string[]).includes(upper);
 }
 
 export type CountryPaymentOperator = {
@@ -56,7 +62,7 @@ export type CountryDialInfo = {
   example: string;
 };
 
-// Paiement actif uniquement pour la Côte d'Ivoire (autres pays masqués pour le moment)
+// Configuration des pays supportés (Côte d'Ivoire, Sénégal, Mali, Burkina Faso, Bénin, Togo)
 export const COUNTRY_DIAL_DATA: Record<string, CountryDialInfo> = {
   CI: {
     code: "CI",
@@ -66,17 +72,66 @@ export const COUNTRY_DIAL_DATA: Record<string, CountryDialInfo> = {
     placeholder: "07 00 00 00 00",
     example: "+225 07 12 34 56 78",
   },
+  SN: {
+    code: "SN",
+    name: "Sénégal",
+    flag: "🇸🇳",
+    dialCode: "+221",
+    placeholder: "77 000 00 00",
+    example: "+221 77 123 45 67",
+  },
+  ML: {
+    code: "ML",
+    name: "Mali",
+    flag: "🇲🇱",
+    dialCode: "+223",
+    placeholder: "70 00 00 00",
+    example: "+223 70 12 34 56",
+  },
+  BF: {
+    code: "BF",
+    name: "Burkina Faso",
+    flag: "🇧🇫",
+    dialCode: "+226",
+    placeholder: "70 00 00 00",
+    example: "+226 70 12 34 56",
+  },
+  BJ: {
+    code: "BJ",
+    name: "Bénin",
+    flag: "🇧🇯",
+    dialCode: "+229",
+    placeholder: "97 00 00 00",
+    example: "+229 97 12 34 56",
+  },
+  TG: {
+    code: "TG",
+    name: "Togo",
+    flag: "🇹🇬",
+    dialCode: "+228",
+    placeholder: "90 00 00 00",
+    example: "+228 90 12 34 56",
+  },
 };
 
 /**
- * Détecte le pays (verrouillé sur la Côte d'Ivoire pour le moment)
+ * Détecte le pays d'après l'indicatif téléphonique
  */
-export function detectCountryFromPhone(_rawPhone?: string | null): string {
+export function detectCountryFromPhone(rawPhone?: string | null): string {
+  if (!rawPhone) return "CI";
+  const cleaned = rawPhone.replace(/[\s\-\(\)]/g, "");
+  if (cleaned.startsWith("+221") || cleaned.startsWith("00221")) return "SN";
+  if (cleaned.startsWith("+223") || cleaned.startsWith("00223")) return "ML";
+  if (cleaned.startsWith("+226") || cleaned.startsWith("00226")) return "BF";
+  if (cleaned.startsWith("+229") || cleaned.startsWith("00229")) return "BJ";
+  if (cleaned.startsWith("+228") || cleaned.startsWith("00228")) return "TG";
+  if (cleaned.startsWith("+225") || cleaned.startsWith("00225")) return "CI";
   return "CI";
 }
 
-export function getCountryDialInfo(_countryCode?: string | null): CountryDialInfo {
-  return COUNTRY_DIAL_DATA.CI;
+export function getCountryDialInfo(countryCode?: string | null): CountryDialInfo {
+  const code = (countryCode || "CI").toUpperCase().trim();
+  return COUNTRY_DIAL_DATA[code] || COUNTRY_DIAL_DATA.CI;
 }
 
 export function getCountryPaymentChannels(countryCode?: string | null): CountryPaymentChannels {
@@ -539,13 +594,21 @@ export function getCountryPaymentChannels(countryCode?: string | null): CountryP
 }
 
 // Alias de rétro-compatibilité
-export const CINETPAY_SUPPORTED_COUNTRIES = ["CI"] as const;
+export const CINETPAY_SUPPORTED_COUNTRIES = [
+  "CI",
+  "SN",
+  "ML",
+  "BF",
+  "BJ",
+  "TG",
+] as const;
 export type CinetPaySupportedCountry = (typeof CINETPAY_SUPPORTED_COUNTRIES)[number];
 export function isCinetPaySupportedCountry(
   code: string | undefined | null,
 ): boolean {
   if (!code) return false;
-  return code.toUpperCase().trim() === "CI";
+  const upper = code.toUpperCase().trim();
+  return (CINETPAY_SUPPORTED_COUNTRIES as readonly string[]).includes(upper);
 }
 
 
