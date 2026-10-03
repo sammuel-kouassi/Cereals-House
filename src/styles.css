@@ -28,10 +28,10 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
 
-  --font-display: "Outfit", "Playfair Display", ui-serif, Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
-  --font-times: "Times New Roman", Times, "Playfair Display", Georgia, serif;
+  --font-display: "Times New Roman", Times, "Tinos", Georgia, "Playfair Display", serif;
+  --font-sans: "Times New Roman", Times, "Tinos", Georgia, "Plus Jakarta Sans", serif;
+  --font-serif: "Times New Roman", Times, "Tinos", Georgia, "Playfair Display", serif;
+  --font-times: "Times New Roman", Times, "Tinos", Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -56,54 +56,54 @@
   --color-gold-foreground: var(--gold-foreground);
   --color-cream: var(--cream);
 
-  --shadow-soft: 0 4px 20px -8px color-mix(in oklab, var(--primary) 25%, transparent);
-  --shadow-gold: 0 8px 30px -10px color-mix(in oklab, var(--gold) 45%, transparent);
+  --shadow-soft: 0 4px 20px -8px color-mix(in oklab, var(--primary) 20%, transparent);
+  --shadow-gold: 0 8px 30px -10px color-mix(in oklab, var(--gold) 40%, transparent);
 }
 
 :root {
   --radius: 0.75rem;
 
-  /* Brand palette pulled from the logo */
-  --background: oklch(0.97 0.025 80);          /* warm cream */
-  --foreground: oklch(0.22 0.04 50);           /* deep brown */
+  /* Palette lumineuse, claire et prestigieuse Cereals House */
+  --background: oklch(0.988 0.010 85);          /* Blanc lin ivoire éclatant et pur */
+  --foreground: oklch(0.18 0.035 45);           /* Brun cacao profond, net et contrasté */
 
-  --card: oklch(0.99 0.012 80);
-  --card-foreground: oklch(0.22 0.04 50);
+  --card: oklch(1 0 0);                         /* Fond blanc pur pour détacher nettement les cartes */
+  --card-foreground: oklch(0.18 0.035 45);
 
-  --popover: oklch(0.99 0.012 80);
-  --popover-foreground: oklch(0.22 0.04 50);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.035 45);
 
-  --primary: oklch(0.30 0.055 45);             /* dark roasted brown */
-  --primary-foreground: oklch(0.97 0.025 80);
+  --primary: oklch(0.24 0.050 45);             /* Brun meunier noble torréfié, ultra-lisible */
+  --primary-foreground: oklch(0.99 0.005 85);
 
-  --secondary: oklch(0.93 0.04 80);            /* light cream */
-  --secondary-foreground: oklch(0.30 0.055 45);
+  --secondary: oklch(0.955 0.020 80);          /* Écru soyeux subtil */
+  --secondary-foreground: oklch(0.24 0.050 45);
 
-  --muted: oklch(0.94 0.025 80);
-  --muted-foreground: oklch(0.45 0.04 55);
+  --muted: oklch(0.962 0.012 85);              /* Fond neutre clair et aéré */
+  --muted-foreground: oklch(0.40 0.035 55);    /* Texte secondaire précis et contrasté */
 
-  --accent: oklch(0.72 0.13 75);               /* warm gold */
-  --accent-foreground: oklch(0.22 0.04 50);
+  --accent: oklch(0.70 0.140 75);              /* Or miel chaleureux */
+  --accent-foreground: oklch(0.18 0.035 45);
 
-  --gold: oklch(0.72 0.13 75);                 /* signature gold */
-  --gold-foreground: oklch(0.22 0.04 50);
-  --cream: oklch(0.97 0.025 80);
+  --gold: oklch(0.68 0.145 75);                /* Or signature rayonnant */
+  --gold-foreground: oklch(0.18 0.035 45);
+  --cream: oklch(0.985 0.010 85);
 
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
 
-  --border: oklch(0.88 0.025 75);
-  --input: oklch(0.88 0.025 75);
-  --ring: oklch(0.72 0.13 75);
+  --border: oklch(0.89 0.020 75);              /* Délimitations nettes et fines */
+  --input: oklch(0.89 0.020 75);
+  --ring: oklch(0.68 0.145 75);
 
-  --sidebar: oklch(0.97 0.025 80);
-  --sidebar-foreground: oklch(0.22 0.04 50);
-  --sidebar-primary: oklch(0.30 0.055 45);
-  --sidebar-primary-foreground: oklch(0.97 0.025 80);
-  --sidebar-accent: oklch(0.93 0.04 80);
-  --sidebar-accent-foreground: oklch(0.30 0.055 45);
-  --sidebar-border: oklch(0.88 0.025 75);
-  --sidebar-ring: oklch(0.72 0.13 75);
+  --sidebar: oklch(0.988 0.010 85);
+  --sidebar-foreground: oklch(0.18 0.035 45);
+  --sidebar-primary: oklch(0.24 0.050 45);
+  --sidebar-primary-foreground: oklch(0.99 0.005 85);
+  --sidebar-accent: oklch(0.955 0.020 80);
+  --sidebar-accent-foreground: oklch(0.24 0.050 45);
+  --sidebar-border: oklch(0.89 0.020 75);
+  --sidebar-ring: oklch(0.68 0.145 75);
 }
 
 .dark {
@@ -177,17 +177,20 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-sans);
+    font-family: var(--font-times);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     overflow-x: clip;
     max-width: 100%;
-    font-size: 0.9375rem; /* 14px calibré */
-    line-height: 1.55;
+    font-size: 0.95rem; /* calibré pour une lecture claire, prestigieuse et aérée */
+    line-height: 1.62;
   }
-  h1, h2, h3, h4 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.012em;
     text-wrap: balance;
+    font-weight: 700;
   }
   p {
     text-wrap: pretty;
@@ -200,6 +203,7 @@
 
 @layer utilities {
   .font-display { font-family: var(--font-display); }
+  .font-times { font-family: var(--font-times); }
   .text-gradient-gold {
     background: linear-gradient(135deg, oklch(0.78 0.14 75), oklch(0.62 0.15 60));
     -webkit-background-clip: text;

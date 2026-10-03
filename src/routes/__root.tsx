@@ -146,7 +146,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora.",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400;1,700&display=swap",
+      },
+      { rel: "stylesheet", href: appCss },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
