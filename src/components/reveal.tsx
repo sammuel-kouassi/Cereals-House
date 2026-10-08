@@ -32,6 +32,8 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Seuil à 0 + marge basse : se déclenche dès que l'élément entre réellement
+    // dans l'écran, même s'il est plus haut que le viewport (cartes longues sur mobile).
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -39,7 +41,7 @@ export function Reveal({
           io.disconnect();
         }
       },
-      { threshold: 0.15 },
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -49,7 +51,7 @@ export function Reveal({
     <div
       ref={ref}
       style={{ transitionDelay: visible ? `${delay}ms` : "0ms" }}
-      className={`transition-all duration-700 ease-out motion-reduce:transition-none ${
+      className={`transition-[opacity,translate,transform] duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
         visible ? "translate-x-0 translate-y-0 opacity-100" : `${OFFSET[direction]} opacity-0`
       } ${className}`}
     >

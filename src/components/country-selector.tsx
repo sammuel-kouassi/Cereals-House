@@ -3,7 +3,14 @@ import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Flag } from "@/components/flag";
 
-export function CountrySelector({ className = "" }: { className?: string }) {
+export function CountrySelector({
+  className = "",
+  compact = false,
+}: {
+  className?: string;
+  /** Masque le nom du pays sous 1280px (header desktop compact) */
+  compact?: boolean;
+}) {
   const { country, countries, setCountryCode } = useCountry();
   const { t } = useTranslation();
 
@@ -12,15 +19,17 @@ export function CountrySelector({ className = "" }: { className?: string }) {
   return (
     <div className={`relative inline-flex items-center ${className}`}>
       <label
-        className="group relative flex items-center gap-2 rounded-full border border-gold/40 bg-gold/5 px-3 py-1.5 text-xs font-semibold text-foreground/90 transition-all duration-200 hover:border-gold hover:bg-gold/15 hover:shadow-xs cursor-pointer select-none"
+        className="group relative flex items-center gap-2 rounded-full border border-stone-300 px-3 py-1.5 text-xs text-foreground/90 transition-colors duration-200 hover:border-stone-500 dark:border-stone-700 cursor-pointer select-none"
         title={t("common.chooseCountry", "Choisir le pays de livraison")}
       >
         <Flag code={country.code} className="h-3.5 w-5 rounded-[2px] object-cover shadow-2xs" />
-        <span className="font-semibold text-foreground tracking-tight">{country.name}</span>
-        <span className="rounded-full bg-gold/20 px-1.5 py-0.5 text-[10px] font-bold text-gold">
+        <span className={`text-foreground ${compact ? "hidden xl:inline" : ""}`}>
+          {country.name}
+        </span>
+        <span className="text-[11px] text-stone-500">
           {country.currency_symbol || "FCFA"}
         </span>
-        <ChevronDown className="h-3.5 w-3.5 text-gold/75 transition-transform duration-200 group-hover:text-gold" />
+        <ChevronDown className="h-3.5 w-3.5 text-stone-500" />
 
         {/* Sélecteur natif invisible qui couvre l'ensemble pour un UX tactile et desktop parfait */}
         <select

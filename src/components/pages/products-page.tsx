@@ -10,15 +10,10 @@ import {
   List,
   SlidersHorizontal,
   X,
-  Sparkles,
   ArrowUpDown,
   Boxes,
   ArrowRight,
-  ShieldCheck,
-  Leaf,
-  Star,
 } from "lucide-react";
-import heroLuxuryCereals from "@/assets/hero-luxury-cereals.jpg";
 import { listProductsFn, type ProductItem } from "@/lib/products/products.functions";
 import { ProductCard, ProductCardSkeleton } from "@/components/product-card";
 import { ProductSearchBar } from "@/components/product-search-bar";
@@ -95,126 +90,50 @@ export function ProductsPage() {
   const hasActiveFilters = audience !== "all" || query.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-10">
-      {/* 1. Header Écrin Terroir & Épicerie Fine */}
-      <div className="group relative overflow-hidden rounded-[2.25rem] sm:rounded-[2.75rem] border border-gold/35 border-animated-fine bg-gradient-to-br from-[#1C140E] via-[#241912] to-[#18110B] p-7 sm:p-10 lg:p-12 text-white shadow-2xl">
-        {/* Halos lumineux d'ambiance */}
-        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/15 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity duration-700" />
-        <div className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-amber-700/15 blur-3xl opacity-50" />
-
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-          {/* Colonne Gauche : Titre, Slogan & Badges (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 self-start rounded-full border border-gold/40 bg-gold/15 px-3.5 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-gold mb-4 shadow-xs">
-              <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-              <span>{t("products.catalogBadge", "Catalogue Officiel & Moutures d'Afrique")}</span>
-            </div>
-
-            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-stone-100 leading-tight">
-              {t("products.titlePart1", "Farines & céréales")}{" "}
-              <span className="font-editorial text-gradient-gold font-normal">
-                {t("products.titlePart2", "d'exception")}
-              </span>
-            </h1>
-
-            <p className="mt-3 text-xs sm:text-sm text-stone-300 max-w-xl leading-relaxed font-light">
-              {t(
-                "products.subtitle",
-                "Garanties 100% sans sable, mouture douce sur meule de pierre et scellées sous vide pour préserver chaque nutriment et arôme naturel.",
-              )}
-            </p>
-
-            <div className="mt-7 flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs">
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-3.5 sm:px-4 py-1.5 text-stone-200 font-medium shadow-xs">
-                <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>{t("products.badgeNatural", "100% Naturel & Sans additifs")}</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 backdrop-blur-md px-3.5 sm:px-4 py-1.5 text-stone-200 font-medium shadow-xs">
-                <ShieldCheck className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>{t("products.badgeVacuum", "Fraîcheur scellée sous vide")}</span>
-              </div>
-              {country && (
-                <div className="flex items-center gap-2 rounded-full border border-gold/40 bg-gold/15 px-3.5 sm:px-4 py-1.5 text-gold font-semibold shadow-xs">
-                  <Flag code={country.code} className="h-3.5 w-5 rounded-[2px]" />
-                  <span>{t("products.shippingToCountry", { country: country.name, defaultValue: `Livraison vers ${country.name}` })}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Colonne Droite : Composition Visuelle Stylée & Flottante (5 cols) */}
-          <div className="lg:col-span-5 relative w-full flex items-center justify-center pt-2 lg:pt-0">
-            <div className="relative w-full max-w-sm my-2">
-              {/* Carte Principale Vitrine Meunerie */}
-              <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-stone-900/80 backdrop-blur-md p-3 shadow-2xl transition-transform duration-500 hover:scale-[1.02]">
-                <div className="relative h-48 sm:h-52 w-full overflow-hidden rounded-xl">
-                  <img
-                    src={heroLuxuryCereals}
-                    alt="Moutures et Céréales d'Exception Cereals House"
-                    className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-                  {/* Overlay bas d'image : étoiles & pureté */}
-                  <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white">
-                    <div>
-                      <div className="flex items-center gap-1 text-gold text-xs">
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                        <span className="ml-1 text-[11px] font-bold text-white">4.9 / 5</span>
-                      </div>
-                      <p className="text-[10px] text-stone-300 font-light mt-0.5">
-                        {t("products.selectionPureMilling", "Sélection Meule de Pierre · Terroirs Nobles")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2.5 px-1.5 flex items-center justify-between text-[11px] text-stone-300 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Leaf className="h-3.5 w-3.5 text-gold shrink-0" />
-                    {t("products.westAfricanFarming", "Filières paysannes ouest-africaines")}
-                  </span>
-                  <span className="text-gold/90 font-semibold">Abidjan & UEMOA</span>
-                </div>
-              </div>
-
-              {/* Badge Flottant 1 (Haut Droite, flottement doux) */}
-              <div className="animate-float-slow absolute -top-3 -right-2 sm:-right-3 rounded-xl border border-gold/50 bg-[#1E1610]/95 backdrop-blur-md px-3.5 py-1.5 shadow-xl flex items-center gap-2 text-xs font-bold text-stone-100">
-                <Sparkles className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>{t("products.stoneMillingBadge", "Mouture Meule Douce")}</span>
-              </div>
-
-              {/* Badge Flottant 2 (Bas Gauche, flottement différé) */}
-              <div className="animate-float-delayed absolute -bottom-3 -left-2 sm:-left-3 rounded-xl border border-gold/40 bg-[#1C140E]/95 backdrop-blur-md px-3.5 py-1.5 shadow-xl flex items-center gap-2 text-xs font-bold text-gold">
-                <ShieldCheck className="h-3.5 w-3.5 text-gold shrink-0" />
-                <span>{t("products.sandFreeBadge", "Zéro Sable Garanti")}</span>
-              </div>
-            </div>
-          </div>
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+      {/* En-tête de page éditorial */}
+      <header className="grid gap-6 border-b border-stone-200 pb-8 pt-4 dark:border-stone-800 lg:grid-cols-12 lg:items-end lg:gap-10">
+        <div className="lg:col-span-7">
+          <p className="text-sm italic text-amber-800 dark:text-gold">
+            {t("products.catalogBadge", "Catalogue officiel · Céréales d'Afrique")}
+          </p>
+          <h1 className="mt-3 font-display text-[2.2rem] font-normal leading-[1.08] tracking-[-0.015em] text-stone-950 dark:text-stone-50 sm:text-5xl">
+            {t("products.titlePart1", "Farines & céréales")}{" "}
+            <em className="text-amber-800 dark:text-gold">{t("products.titlePart2", "d'exception")}</em>
+          </h1>
         </div>
-      </div>
+        <div className="lg:col-span-5">
+          <p className="text-[0.95rem] leading-relaxed text-stone-600 dark:text-stone-400">
+            {t(
+              "products.subtitle",
+              "Sélectionnées avec soin auprès de producteurs locaux, conditionnées dans le respect des standards les plus exigeants.",
+            )}
+          </p>
+          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-stone-700 dark:text-stone-300">
+            <li>{t("products.badgeNatural", "100% Naturel & Sans additifs")}</li>
+            <li>{t("products.sandFreeBadge", "Zéro Sable Garanti")}</li>
+            {country && (
+              <li className="flex items-center gap-2">
+                <Flag code={country.code} className="h-3 w-4 rounded-[2px]" />
+                {t("products.shippingToCountry", { country: country.name, defaultValue: `Livraison vers ${country.name}` })}
+              </li>
+            )}
+          </ul>
+        </div>
+      </header>
 
-      {/* 2. Barre de Recherche Flottante */}
-      <div className="max-w-2xl mx-auto -mt-6 relative z-20">
-        <ProductSearchBar
-          value={query}
-          onChange={setQuery}
-          suggestions={suggestions}
-          className="shadow-xl"
-        />
+      {/* Recherche */}
+      <div className="relative z-20 max-w-2xl">
+        <ProductSearchBar value={query} onChange={setQuery} suggestions={suggestions} />
       </div>
 
       {/* 4. Zone de Contrôles : Public + Tri + Bascule Vue */}
       <div className="space-y-6 pt-1">
         <div className="flex flex-col gap-4">
-          <div className="flex w-full flex-wrap items-center justify-between gap-4 rounded-2xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-3 backdrop-blur shadow-xs">
+          <div className="flex w-full flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-4 dark:border-stone-800">
             {/* Filtre Public Cible */}
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="mr-1 text-xs font-bold uppercase tracking-wider text-stone-400 hidden sm:inline">
+              <span className="mr-1 hidden text-sm italic text-stone-500 sm:inline">
                 {t("products.filterAudience", "Public")} :
               </span>
               {audienceChips.map((chip) => {
@@ -225,13 +144,13 @@ export function ProductsPage() {
                     key={chip.key}
                     type="button"
                     onClick={() => setAudience(chip.key)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200 cursor-pointer ${
                       active
-                        ? "bg-[#1C140E] text-gold dark:bg-gold dark:text-stone-950 shadow-xs font-bold"
-                        : "bg-stone-100 dark:bg-stone-800/60 text-stone-600 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white"
+                        ? "border-[#2c1b11] bg-[#2c1b11] text-stone-50 dark:border-gold dark:bg-gold dark:text-stone-950"
+                        : "border-stone-300 text-stone-700 hover:border-stone-500 dark:border-stone-700 dark:text-stone-300"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5 text-gold" /> {chip.label}
+                    <Icon className="h-3.5 w-3.5" strokeWidth={1.75} /> {chip.label}
                   </button>
                 );
               })}
@@ -240,11 +159,11 @@ export function ProductsPage() {
             <div className="flex items-center gap-3 ml-auto">
               {/* Tri */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ArrowUpDown className="h-3.5 w-3.5 text-gold" />
+                <ArrowUpDown className="h-3.5 w-3.5" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground focus:border-gold focus:outline-none cursor-pointer"
+                  className="rounded-full border border-stone-300 bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-stone-500 focus:outline-none dark:border-stone-700 cursor-pointer"
                 >
                   <option value="name">{t("products.sortName", "Nom (A-Z)")}</option>
                   <option value="price-asc">{t("products.sortPriceAsc", "Prix : Croissant")}</option>
@@ -259,7 +178,7 @@ export function ProductsPage() {
                   type="button"
                   onClick={() => setViewMode("grid")}
                   className={`grid h-8 w-8 place-items-center rounded-lg transition cursor-pointer ${
-                    viewMode === "grid" ? "bg-card text-gold shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
+                    viewMode === "grid" ? "bg-card text-stone-950 dark:text-stone-50 shadow-xs" : "text-muted-foreground hover:text-foreground"
                   }`}
                   title={t("products.viewGrid", "Vue grille")}
                 >
@@ -269,7 +188,7 @@ export function ProductsPage() {
                   type="button"
                   onClick={() => setViewMode("list")}
                   className={`grid h-8 w-8 place-items-center rounded-lg transition cursor-pointer ${
-                    viewMode === "list" ? "bg-card text-gold shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
+                    viewMode === "list" ? "bg-card text-stone-950 dark:text-stone-50 shadow-xs" : "text-muted-foreground hover:text-foreground"
                   }`}
                   title={t("products.viewList", "Vue liste")}
                 >

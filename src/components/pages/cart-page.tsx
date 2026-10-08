@@ -56,7 +56,7 @@ export function CartPage() {
         </p>
         <Link
           to={getLocalizedPath("/products")}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] motion-safe:animate-[fade-in_0.5s_ease-out_both]"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition-all duration-300 hover:bg-gold/90 motion-safe:animate-[fade-in_0.5s_ease-out_both]"
           style={{ animationDelay: "200ms" }}
         >
           {t("cart.seeShop", "Voir la boutique")} <ArrowRight className="h-4 w-4" />
@@ -76,10 +76,9 @@ export function CartPage() {
             <li
               key={it.productId}
               style={{ animationDelay: `${idx * 60}ms` }}
-              className="group relative flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/30 hover:shadow-soft motion-safe:animate-[fade-in_0.5s_ease-out_both]"
+              className="group relative flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:border-gold/30 hover:shadow-soft motion-safe:animate-[fade-in_0.5s_ease-out_both]"
             >
-              <span className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100" />
-              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-secondary">
                 <img
                   src={it.image}
                   alt={it.name}
@@ -182,7 +181,7 @@ export function CartPage() {
           </dl>
           <Link
             to={getLocalizedPath("/checkout")}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)]"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-gold-foreground transition-all duration-300 hover:bg-gold/90"
           >
             {t("cart.checkout", "Passer la commande")}{" "}
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -192,7 +191,7 @@ export function CartPage() {
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-6 py-3 text-sm font-semibold text-[#128C4A] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#25D366]/20 dark:text-[#25D366]"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-6 py-3 text-sm font-semibold text-[#128C4A] transition-all duration-300 hover:bg-[#25D366]/20 dark:text-[#25D366]"
           >
             <MessageCircle className="h-4 w-4" /> {t("cart.orderViaWhatsapp", "Commander via WhatsApp")}
           </a>

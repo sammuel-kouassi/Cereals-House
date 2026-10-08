@@ -107,7 +107,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
   return (
     <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
       <div className="text-center">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gold">
+        <span className="text-sm italic text-amber-800 dark:text-gold">
           Facture professionnelle
         </span>
         <h1 className="mt-2 font-display text-3xl font-bold text-primary">{order.orderNumber}</h1>
@@ -167,7 +167,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
         </div>
       ) : (
         <div className="mt-6 space-y-4">
-          <div className="rounded-2xl border border-gold/30 bg-card/70 backdrop-blur-md p-6 shadow-xl space-y-4">
+          <div className="rounded-2xl border border-stone-200 bg-card p-6 dark:border-stone-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-gold" />

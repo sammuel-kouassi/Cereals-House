@@ -83,7 +83,7 @@ export function OrdersPage() {
         <Link
           to={getLocalizedPath("/auth")}
           search={{ redirect: getLocalizedPath("/orders") }}
-          className="mt-6 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90 cursor-pointer"
+          className="mt-6 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition hover:bg-gold/90 cursor-pointer"
         >
           {t("nav.signIn", "Se connecter")}
         </Link>
@@ -94,7 +94,7 @@ export function OrdersPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="border-b border-border pb-6">
-        <span className="text-xs font-semibold uppercase tracking-widest text-gold">Espace Client</span>
+        <span className="text-sm italic text-amber-800 dark:text-gold">Espace Client</span>
         <h1 className="mt-1 font-display text-3xl font-bold text-primary sm:text-4xl">
           {t("orders.title", "Mes Commandes")}
         </h1>
@@ -122,7 +122,7 @@ export function OrdersPage() {
           </p>
           <Link
             to={getLocalizedPath("/products")}
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 transition cursor-pointer"
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground hover:bg-gold/90 transition cursor-pointer"
           >
             {t("orders.discover", "Découvrir nos céréales")}
           </Link>

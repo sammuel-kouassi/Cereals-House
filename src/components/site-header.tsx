@@ -33,9 +33,18 @@ export function SiteHeader() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 15);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 15);
+      // Barre de progression de lecture : mise à jour directe du style, sans re-render
+      if (progressRef.current) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+        progressRef.current.style.transform = `scaleX(${ratio})`;
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -70,7 +79,7 @@ export function SiteHeader() {
   ] as const;
 
   const iconBtn =
-    "relative flex h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 items-center justify-center rounded-full text-foreground/80 transition-all duration-300 ease-out hover:scale-105 hover:bg-gold/15 hover:text-gold active:scale-95 cursor-pointer border border-transparent hover:border-gold/30 shadow-2xs";
+    "relative flex h-10 w-10 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full text-stone-700 dark:text-stone-300 transition-colors duration-200 hover:bg-stone-900/5 hover:text-stone-950 dark:hover:bg-white/5 dark:hover:text-stone-50 cursor-pointer";
 
   return (
     <>
@@ -79,71 +88,68 @@ export function SiteHeader() {
           scrolled ? "py-1.5 sm:py-2" : "py-2 sm:py-2.5"
         }`}
       >
-        {/* ─── CAPSULE FLOTTANTE ULTRA-PRO (Glassmorphism & Rayon Spéculaire) ─── */}
+        {/* Barre de progression de lecture */}
         <div
-          className={`relative mx-auto flex items-center justify-between gap-2.5 sm:gap-4 pl-3.5 sm:pl-5 pr-4 sm:pr-6 rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] island-specular max-w-7xl ${
+          ref={progressRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 h-[2px] w-full origin-left bg-gold"
+          style={{ transform: "scaleX(0)" }}
+        />
+        {/* Barre de navigation */}
+        <div
+          className={`relative mx-auto flex max-w-7xl items-center justify-between gap-2.5 rounded-full border pl-3.5 pr-3 transition-[height,box-shadow,background-color] duration-300 sm:gap-4 sm:pl-5 sm:pr-4 ${
             scrolled
-              ? "h-13 sm:h-14 bg-[#FAF7F2]/90 dark:bg-[#140F0A]/92 border border-gold/45 header-gold-glow backdrop-blur-2xl"
-              : "h-14 sm:h-[58px] bg-[#FAF7F2]/80 dark:bg-[#140F0A]/85 border border-gold/30 shadow-[0_8px_30px_-10px_rgba(20,15,10,0.08)] backdrop-blur-xl"
+              ? "h-13 sm:h-14 border-stone-200 bg-[#fbf8f3]/95 shadow-[0_6px_24px_-12px_rgba(44,27,17,0.18)] backdrop-blur-md dark:border-stone-800 dark:bg-[#140F0A]/95"
+              : "h-14 sm:h-[58px] border-stone-200/80 bg-[#fbf8f3]/90 backdrop-blur-md dark:border-stone-800 dark:bg-[#140F0A]/90"
           }`}
         >
-          {/* Rayon lumineux spéculaire supérieur (masqué dans sa propre couche pill) */}
-          <div className="pointer-events-none absolute inset-0 rounded-full overflow-hidden">
-            <div className="absolute top-0 left-12 right-12 h-[1.5px] bg-gradient-to-r from-transparent via-gold/70 to-transparent" />
-          </div>
-
           {/* Logo & Identité Prestige */}
           <Link
             to={getLocalizedPath("/")}
             className="group flex shrink-0 items-center gap-2 sm:gap-2.5 cursor-pointer"
           >
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-gold/50 to-amber-600/20 opacity-0 blur-xs transition-opacity duration-300 group-hover:opacity-100" />
-              <img
-                src={logo}
-                alt="Cereals House"
-                className="relative h-8 w-8 sm:h-8.5 sm:w-8.5 shrink-0 rounded-full object-cover ring-1.5 ring-gold/45 shadow-xs transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-105 group-hover:ring-gold"
-              />
-            </div>
+            <img
+              src={logo}
+              alt="Cereals House"
+              className="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-stone-300 sm:h-9 sm:w-9 dark:ring-stone-700"
+            />
             <div className="whitespace-nowrap leading-tight">
-              <div className="font-display text-sm sm:text-base font-bold text-stone-950 dark:text-stone-100 tracking-tight transition-colors duration-200 group-hover:text-gold">
-                Cereals <span className="text-gold font-serif italic">House</span>
+              <div className="font-display text-base text-stone-950 sm:text-lg dark:text-stone-50">
+                Cereals <em className="text-amber-800 dark:text-gold">House</em>
               </div>
-              <div className="hidden sm:flex items-center gap-1.5 text-[9.5px] uppercase tracking-[0.2em] text-stone-500 font-semibold">
-                <span>{t("header.tagline", "Terroirs d'Afrique")}</span>
+              <div className="hidden text-xs italic text-stone-500 sm:block">
+                {t("header.tagline", "Terroirs d'Afrique")}
               </div>
             </div>
           </Link>
 
           {/* Navigation desktop avec pastille active tactile & fluide */}
-          <nav className="hidden shrink-0 items-center gap-1 lg:flex xl:gap-2 mx-auto px-2">
+          <nav className="hidden shrink-0 items-center gap-0.5 lg:flex xl:gap-2 mx-auto px-1 xl:px-2" aria-label="Navigation principale">
             {nav.map((n) => (
               <Link
                 key={n.to}
                 to={getLocalizedPath(n.to)}
                 activeOptions={{ exact: n.to === "/" }}
-                className="group relative whitespace-nowrap px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.16em] text-stone-700 dark:text-stone-300 transition-all duration-300 hover:text-stone-950 dark:hover:text-gold hover:bg-black/[0.04] dark:hover:bg-white/[0.06] [&.active]:bg-gradient-to-r [&.active]:from-gold/20 [&.active]:to-amber-500/10 [&.active]:border [&.active]:border-gold/40 [&.active]:text-amber-950 dark:[&.active]:text-gold [&.active]:shadow-2xs cursor-pointer"
+                className="relative whitespace-nowrap px-2.5 py-2 text-[0.95rem] text-stone-600 transition-colors duration-200 hover:text-stone-950 xl:px-3.5 dark:text-stone-400 dark:hover:text-stone-50 [&.active]:text-stone-950 dark:[&.active]:text-stone-50 [&.active]:underline [&.active]:decoration-gold [&.active]:decoration-[1.5px] [&.active]:underline-offset-[6px] cursor-pointer"
                 activeProps={{ className: "active" }}
               >
-                <span>{n.label}</span>
-                {/* Micro point indicateur actif en bas */}
-                <span className="pointer-events-none absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-gold opacity-0 transition-opacity duration-300 [.active_&]:opacity-100 shadow-[0_0_6px_#c89d42]" />
+                {n.label}
               </Link>
             ))}
           </nav>
 
           {/* Actions & Contrôles Rapides */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 xl:gap-2.5">
             {/* Bouton Recherche Instantanée Capsule */}
             <button
               type="button"
               onClick={() => setSearchModalOpen(true)}
-              className="hidden md:flex items-center gap-2 rounded-full border border-stone-300/70 dark:border-stone-700/70 bg-white/60 dark:bg-white/5 px-2.5 py-1.5 sm:px-3 text-xs text-stone-600 dark:text-stone-300 transition-all duration-300 hover:border-gold/60 hover:bg-white dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-100 hover:scale-[1.02] cursor-pointer shadow-2xs backdrop-blur-sm"
+              className="hidden md:flex items-center gap-2 rounded-full border border-stone-300 px-3 py-1.5 text-xs text-stone-600 transition-colors duration-200 hover:border-stone-500 hover:text-stone-900 dark:border-stone-700 dark:text-stone-300 dark:hover:text-stone-100 cursor-pointer"
               title="Rechercher (Cmd+K)"
             >
-              <Search className="h-3.5 w-3.5 text-gold shrink-0" />
+              <Search className="h-3.5 w-3.5 shrink-0" />
               <span className="hidden 2xl:inline">{t("header.search", "Rechercher...")}</span>
-              <kbd className="rounded-md border border-stone-300/80 dark:border-stone-700 bg-stone-100/90 dark:bg-stone-800/90 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-stone-500 dark:text-stone-400 shadow-2xs">
+              <kbd className="rounded border border-stone-300 px-1.5 py-0.5 font-sans text-[10px] text-stone-500 dark:border-stone-700 dark:text-stone-400">
                 ⌘K
               </kbd>
             </button>
@@ -159,7 +165,7 @@ export function SiteHeader() {
 
             {/* Sélecteur de Pays & Devise */}
             <div className="hidden sm:flex items-center">
-              <CountrySelector />
+              <CountrySelector compact />
             </div>
 
             {/* Menu Utilisateur Intégré avec Avatar interactif */}
@@ -168,15 +174,15 @@ export function SiteHeader() {
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen((o) => !o)}
-                  className="flex items-center gap-1.5 rounded-full border border-gold/45 bg-gold/10 p-1 pr-2.5 text-xs font-medium text-foreground transition-all duration-300 hover:border-gold hover:bg-gold/20 hover:scale-[1.03] active:scale-95 cursor-pointer shadow-xs"
+                  className="flex items-center gap-1.5 rounded-full border border-stone-300 p-1 pr-2.5 text-xs text-foreground transition-colors duration-200 hover:border-stone-500 dark:border-stone-700 cursor-pointer"
                   title="Mon Compte"
                   aria-expanded={userDropdownOpen}
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold/25 text-xs font-bold text-amber-950 dark:text-gold border border-gold/40 shadow-2xs">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-xs text-stone-50 dark:bg-gold dark:text-stone-950">
                     {getInitial()}
                   </span>
                   <ChevronDown
-                    className={`h-3.5 w-3.5 text-gold transition-transform duration-300 ${
+                    className={`h-3.5 w-3.5 text-stone-500 transition-transform duration-300 ${
                       userDropdownOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -184,9 +190,9 @@ export function SiteHeader() {
 
                 {/* Dropdown Menu Utilisateur */}
                 {userDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-gold/30 bg-background/98 p-2 text-foreground shadow-2xl backdrop-blur-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-150 z-50">
+                  <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-stone-200 bg-background p-2 text-foreground shadow-[0_12px_32px_-12px_rgba(44,27,17,0.25)] dark:border-stone-800 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-150">
                     <div className="flex items-center gap-3 border-b border-border/60 p-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/20 text-sm font-bold text-gold border border-gold/40">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-sm text-stone-50 dark:bg-gold dark:text-stone-950">
                         {getInitial()}
                       </span>
                       <div className="overflow-hidden">
@@ -254,17 +260,17 @@ export function SiteHeader() {
               id="site-cart-icon"
               type="button"
               onClick={() => setCartDrawerOpen(true)}
-              className="group/cart relative flex shrink-0 items-center gap-2 rounded-full border border-gold/45 bg-gradient-to-r from-gold/15 via-amber-500/10 to-gold/15 hover:border-gold hover:from-gold/25 hover:to-gold/25 px-3 py-1.5 sm:px-3.5 sm:py-2 text-stone-900 dark:text-stone-100 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-[1.03] active:scale-95 cursor-pointer shadow-xs hover:shadow-[0_0_20px_rgba(200,157,66,0.3)]"
+              className="relative flex h-10 shrink-0 items-center gap-2 rounded-full bg-[#2c1b11] px-3.5 text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] sm:h-9 dark:bg-gold dark:text-stone-950 dark:hover:bg-gold/90 cursor-pointer"
               aria-label={t("nav.cart", "Panier")}
             >
-              <ShoppingBag className="h-4 w-4 text-amber-900 dark:text-gold shrink-0 transition-transform duration-300 group-hover/cart:-rotate-6" />
-              <span className="hidden sm:inline text-xs font-bold tracking-tight">
+              <ShoppingBag className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+              <span className="hidden text-sm sm:inline lg:hidden xl:inline">
                 {t("nav.cart", "Panier")}
               </span>
               {totalItems > 0 && (
                 <span
                   key={totalItems}
-                  className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-gold via-amber-400 to-amber-600 px-1.5 text-[10px] font-black text-stone-950 shadow-xs ring-1 ring-white/30 motion-safe:animate-in motion-safe:zoom-in-75 motion-safe:duration-200"
+                  className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-gold px-1.5 text-[11px] tabular-nums text-stone-950 dark:bg-[#2c1b11] dark:text-gold motion-safe:animate-in motion-safe:zoom-in-90 motion-safe:duration-200"
                 >
                   {totalItems}
                 </span>
@@ -277,15 +283,16 @@ export function SiteHeader() {
               onClick={() => setMobileMenuOpen((o) => !o)}
               className={`${iconBtn} lg:hidden`}
               aria-label={t("nav.menu", "Menu")}
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5 text-gold" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
         {/* Menu Navigation Mobile avec fond verre fumé */}
         {mobileMenuOpen && (
-          <div className="mt-2 mx-auto max-w-lg rounded-3xl border border-gold/30 bg-background/98 backdrop-blur-2xl p-4 shadow-2xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 motion-safe:duration-200 lg:hidden">
+          <div className="mx-auto mt-2 max-w-lg rounded-2xl border border-stone-200 bg-background p-3 shadow-[0_16px_40px_-16px_rgba(44,27,17,0.3)] dark:border-stone-800 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-200 lg:hidden">
             <nav className="flex flex-col gap-1">
               {nav.map((n) => (
                 <Link
@@ -293,11 +300,11 @@ export function SiteHeader() {
                   to={getLocalizedPath(n.to)}
                   activeOptions={{ exact: n.to === "/" }}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200 hover:bg-secondary hover:text-gold flex items-center justify-between [&.active]:text-gold [&.active]:bg-gold/10"
+                  className="flex items-center justify-between rounded-lg px-4 py-3 font-display text-lg text-stone-800 transition-colors duration-200 hover:bg-stone-900/5 dark:text-stone-200 [&.active]:text-amber-800 dark:[&.active]:text-gold"
                   activeProps={{ className: "active" }}
                 >
                   <span>{n.label}</span>
-                  <span className="text-xs text-gold">→</span>
+                  <span aria-hidden="true" className="text-sm text-stone-400">→</span>
                 </Link>
               ))}
 
@@ -349,7 +356,7 @@ export function SiteHeader() {
                   to={getLocalizedPath("/auth")}
                   search={{ redirect: getLocalizedPath("/") }}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gold via-amber-400 to-gold py-3.5 text-sm font-bold text-[#14110F] shadow-gold"
+                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] py-3.5 text-sm text-stone-50 dark:bg-gold dark:text-stone-950"
                 >
                   <User className="h-4 w-4" /> {t("nav.signIn", "Se connecter / S'inscrire")}
                 </Link>

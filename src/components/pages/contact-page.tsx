@@ -13,8 +13,7 @@ import {
   Clock,
   HelpCircle,
   ChevronDown,
-  CheckCircle2,
-} from "lucide-react";
+  CheckCircle2, Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Reveal } from "@/components/reveal";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
@@ -30,11 +29,11 @@ export function ContactPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const cardBase =
-    "group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-gold/50 hover:shadow-lg";
+    "group flex h-full flex-col justify-between border-t border-stone-900/80 pt-5 transition-colors duration-300 dark:border-stone-300/60";
   const topLine =
-    "absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-gold via-gold/70 to-transparent transition-transform duration-500 ease-out group-hover:scale-x-100";
+    "hidden";
   const iconWrap =
-    "grid h-12 w-12 place-items-center rounded-2xl bg-gold/15 text-gold border border-gold/25 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3";
+    "text-amber-800 dark:text-gold";
 
   const channels = [
     {
@@ -87,7 +86,7 @@ export function ContactPage() {
     },
     {
       q: "Proposez-vous des tarifs dégressifs pour les commandes en gros (B2B) ?",
-      a: "Absolument. Nous fournissons restaurants, crèches, boulangeries et supermarchés en sacs de 25kg et 50kg avec des tarifs avantageux. Remplissez le formulaire de devis ci-dessous pour une offre immédiate.",
+      a: "Oui. Dès 20 paquets, restaurants, crèches, boulangeries et revendeurs bénéficient de nos tarifs professionnels. Des conditionnements en vrac sont disponibles sur demande : remplissez le formulaire de devis ci-dessous.",
     },
     {
       q: "Comment sont conditionnées vos farines et céréales ?",
@@ -131,26 +130,18 @@ export function ContactPage() {
   return (
     <div className="bg-background text-foreground min-h-screen">
       {/* 1. Hero Sombre & Prestigieux */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#2D1A0E] via-[#3F2513] to-[#22130A] text-stone-100 py-16 sm:py-24 border-b border-gold/40">
+      <section className="bg-[#1a110b] py-20 text-stone-100 sm:py-24">
 
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gold backdrop-blur-md">
-              <span>{t("contact.eyebrow", "À votre écoute")}</span>
-            </div>
-          </Reveal>
-
           <Reveal delay={100}>
-            <h1 className="mt-3 font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="font-display text-[2.3rem] font-normal leading-[1.08] tracking-[-0.015em] text-stone-50 sm:text-5xl">
               {t("contact.heroTitle", "Nous sommes là pour")}{" "}
-              <span className="bg-gradient-to-r from-[#FDF0CD] via-[#E5BF5A] to-[#BF9024] bg-clip-text text-transparent">
-                {t("contact.heroTitleGold", "vous aider")}
-              </span>
+              <em className="text-gold">{t("contact.heroTitleGold", "vous aider")}</em>
             </h1>
           </Reveal>
 
           <Reveal delay={180}>
-            <p className="mt-3.5 text-xs sm:text-sm text-stone-300 font-light leading-relaxed max-w-xl mx-auto">
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-stone-300">
               {t(
                 "contact.heroDesc",
                 "Une question sur la préparation de nos farines, un conseil pour votre tout-petit ou un besoin en gros pour votre restaurant ? Notre équipe vous répond avec le sourire.",
@@ -161,8 +152,8 @@ export function ContactPage() {
       </section>
 
       {/* 2. Cartes Canaux de Contact */}
-      <section className="mx-auto max-w-7xl px-4 -mt-8 sm:-mt-10 relative z-20 sm:px-6 lg:px-8">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+        <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {channels.map((ch, idx) => (
             <Reveal key={ch.title} delay={idx * 60}>
               <a
@@ -175,20 +166,20 @@ export function ContactPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className={iconWrap}>
-                      <ch.icon className="h-6 w-6" />
+                      <ch.icon className="h-5 w-5" strokeWidth={1.5} />
                     </div>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-secondary/80 px-2.5 py-0.5 text-[10px] font-semibold text-primary">
+                    <span className="text-xs italic text-stone-500">
                       {ch.badge}
                     </span>
                   </div>
-                  <h3 className="font-display text-lg font-bold text-primary transition-colors group-hover:text-gold">
+                  <h3 className="font-display text-xl text-stone-950 dark:text-stone-50">
                     {ch.title}
                   </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{ch.hours}</p>
+                  <p className="mt-1 text-sm text-stone-600 dark:text-stone-400">{ch.hours}</p>
                 </div>
-                <div className="mt-6 flex items-center justify-between border-t border-border/80 pt-4">
-                  <span className="text-xs font-bold text-gold truncate">{ch.value}</span>
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gold" />
+                <div className="mt-5 flex items-center justify-between gap-3">
+                  <span className="truncate text-sm text-amber-900 underline decoration-amber-900/30 underline-offset-4 group-hover:decoration-amber-900 dark:text-gold">{ch.value}</span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-stone-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </div>
               </a>
             </Reveal>
@@ -202,58 +193,48 @@ export function ContactPage() {
           {/* Colonne Explicative B2B */}
           <div className="lg:col-span-5 space-y-6">
             <Reveal>
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-1.5">
-                <Boxes className="h-3.5 w-3.5" /> {t("contact.b2bEyebrow", "Espace Professionnel & Vrac")}
-              </span>
-              <h2 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary">
+              <h2 className="font-display text-[1.9rem] font-normal leading-[1.12] text-stone-950 dark:text-stone-50 sm:text-[2.4rem]">
                 {t("contact.b2bTitle", "Demande de Devis Grossiste / B2B")}
               </h2>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              <p className="mt-4 text-[0.95rem] leading-relaxed text-stone-600 dark:text-stone-400">
                 {t("contact.b2bDesc", "Vous êtes restaurateur, crèche, revendeur ou transformateur ? Obtenez une proposition commerciale adaptée à vos volumes en moins de 24h.")}
               </p>
 
               {/* Avantages B2B */}
               <div className="space-y-3.5 pt-4">
                 {[
-                  t("contact.b2bAdvantage1", "Tarifs dégressifs dès 25kg"),
-                  t("contact.b2bAdvantage2", "Traçabilité & Certificats sanitaires"),
+                  t("contact.b2bAdvantage1", "Tarifs professionnels dès 20 paquets"),
+                  t("contact.b2bAdvantage2", "Qualité et traçabilité des produits"),
                   t("contact.b2bAdvantage3", "Conditionnements pros renforcés"),
-                  t("contact.b2bAdvantage4", "Livraison palette ou colis express"),
+                  t("contact.b2bAdvantage4", "Livraison palette ou colis"),
                 ].map((adv) => (
-                  <div key={adv} className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-gold shrink-0" />
+                  <div key={adv} className="flex items-center gap-2.5 text-sm text-stone-800 dark:text-stone-200">
+                    <Check className="h-4 w-4 shrink-0 text-amber-800 dark:text-gold" />
                     <span>{adv}</span>
                   </div>
                 ))}
               </div>
 
               {/* Encadré d'Assistance */}
-              <div className="rounded-2xl border border-border bg-secondary/30 p-5 mt-6">
-                <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-gold/15 text-gold">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-primary">Service Commercial Réactif</h4>
-                    <p className="text-[11px] text-muted-foreground">Traitement direct sous 24h ouvrées.</p>
-                  </div>
-                </div>
-              </div>
+              <p className="mt-6 flex items-center gap-2 border-t border-stone-200 pt-5 text-sm italic text-stone-500 dark:border-stone-800">
+                <Clock className="h-4 w-4" strokeWidth={1.5} />
+                Service commercial : traitement sous 24h ouvrées.
+              </p>
             </Reveal>
           </div>
 
           {/* Formulaire */}
           <div className="lg:col-span-7">
             <Reveal delay={100}>
-              <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-6 sm:p-10 shadow-lg space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6 rounded-2xl border border-stone-200 bg-card p-6 dark:border-stone-800 sm:p-10">
                 {/* Type de demande */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  <label className="mb-2 block text-sm text-stone-800 dark:text-stone-200">
                     {t("contact.formType", "Type de projet *")}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {[
-                      { id: "wholesale", label: t("contact.formTypeWholesale", "Achat en gros (25kg - 500kg+)") },
+                      { id: "wholesale", label: t("contact.formTypeWholesale", "Achat en gros (dès 20 paquets)") },
                       { id: "distributor", label: t("contact.formTypeDistributor", "Distribution & Revente locale") },
                       { id: "both", label: t("contact.formTypeBoth", "Autre projet sur-mesure") },
                     ].map((tOpt) => (
@@ -261,10 +242,10 @@ export function ContactPage() {
                         key={tOpt.id}
                         type="button"
                         onClick={() => setForm({ ...form, type: tOpt.id })}
-                        className={`rounded-xl border p-3 text-left text-xs font-semibold transition cursor-pointer ${
+                        className={`rounded-lg border p-3 text-left text-sm transition-colors cursor-pointer ${
                           form.type === tOpt.id
-                            ? "border-gold bg-gold/10 text-gold font-bold shadow-xs"
-                            : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            ? "border-[#2c1b11] bg-[#2c1b11] text-stone-50 dark:border-gold dark:bg-gold dark:text-stone-950"
+                            : "border-stone-300 text-stone-700 hover:border-stone-500 dark:border-stone-700 dark:text-stone-300"
                         }`}
                       >
                         {tOpt.label}
@@ -275,7 +256,7 @@ export function ContactPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formContactName", "Votre Nom complet *")}
                     </label>
                     <input
@@ -284,12 +265,12 @@ export function ContactPage() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder="ex : Marie Koné"
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formCompany", "Nom de l'établissement / structure")}
                     </label>
                     <input
@@ -297,12 +278,12 @@ export function ContactPage() {
                       value={form.company}
                       onChange={(e) => setForm({ ...form, company: e.target.value })}
                       placeholder="ex : Crèche Les Petits Anges / Restaurant"
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formPhone", "Numéro de téléphone / WhatsApp *")}
                     </label>
                     <input
@@ -311,12 +292,12 @@ export function ContactPage() {
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
                       placeholder="ex : +225 07 00 00 00 00"
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formEmail", "Adresse email professionnelle")}
                     </label>
                     <input
@@ -324,14 +305,14 @@ export function ContactPage() {
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="contact@etablissement.com"
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formLocation", "Ville et Pays de livraison *")}
                     </label>
                     <input
@@ -340,12 +321,12 @@ export function ContactPage() {
                       value={form.location}
                       onChange={(e) => setForm({ ...form, location: e.target.value })}
                       placeholder={t("contact.formLocationPlaceholder", "ex : Abidjan, Côte d'Ivoire")}
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1.5">
+                    <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                       {t("contact.formQuantity", "Volume estimé")}
                     </label>
                     <input
@@ -353,13 +334,13 @@ export function ContactPage() {
                       value={form.quantity}
                       onChange={(e) => setForm({ ...form, quantity: e.target.value })}
                       placeholder={t("contact.formQuantityPlaceholder", "ex : 100 kg / mois")}
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                      className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                     {t("contact.formProducts", "Céréales & Farines recherchées")}
                   </label>
                   <input
@@ -367,12 +348,12 @@ export function ContactPage() {
                     value={form.products}
                     onChange={(e) => setForm({ ...form, products: e.target.value })}
                     placeholder={t("contact.formProductsPlaceholder", "ex : Fonio, Farine Bébé Mix, Mil...")}
-                    className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                    className="w-full rounded-lg border border-stone-300 bg-background px-4 py-3 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1.5">
+                  <label className="mb-1.5 block text-sm text-stone-800 dark:text-stone-200">
                     {t("contact.formMessage", "Détails complémentaires")}
                   </label>
                   <textarea
@@ -380,7 +361,7 @@ export function ContactPage() {
                     value={form.message}
                     onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder={t("contact.formMessagePlaceholder", "Indiquez vos besoins spécifiques...")}
-                    className="w-full rounded-xl border border-border bg-background p-4 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                    className="w-full rounded-lg border border-stone-300 bg-background p-4 text-base text-foreground placeholder:text-stone-400 transition-colors focus:border-stone-700 focus:outline-none dark:border-stone-700 sm:text-sm"
                   />
                 </div>
 
@@ -388,12 +369,12 @@ export function ContactPage() {
                   <button
                     type="submit"
                     disabled={mutation.isPending}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gold py-3.5 text-xs sm:text-sm font-bold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[#2c1b11] py-3.5 text-sm text-stone-50 transition-colors hover:bg-[#442a1d] disabled:opacity-50 dark:bg-gold dark:text-stone-950"
                   >
                     <Send className="h-4 w-4" />
                     <span>{mutation.isPending ? "Envoi en cours..." : t("contact.formSubmitNew", "Envoyer ma demande de devis")}</span>
                   </button>
-                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  <p className="mt-3 text-center text-xs text-stone-500">
                     {t("contact.formSubmitNoteNew", "Notre équipe commerciale sera notifiée immédiatement et reviendra vers vous avec une proposition.")}
                   </p>
                 </div>
@@ -404,44 +385,42 @@ export function ContactPage() {
       </section>
 
       {/* 4. FAQ Accordéon */}
-      <section className="border-t border-border/80 bg-secondary/30 py-20">
+      <section className="border-t border-stone-200 bg-[#f6f0e6] py-20 dark:border-stone-800 dark:bg-stone-900/40">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="text-center mb-12">
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-1.5">
-                <HelpCircle className="h-3.5 w-3.5" /> {t("contact.faqEyebrow", "Foire Aux Questions")}
-              </span>
-              <h2 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary">
+            <div className="mb-10">
+              <h2 className="font-display text-[1.9rem] font-normal leading-tight text-stone-950 dark:text-stone-50 sm:text-[2.4rem]">
                 {t("contact.faqTitle", "Questions fréquentes")}
               </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-3 text-[0.95rem] text-stone-600 dark:text-stone-400">
                 {t("contact.faqDesc", "Trouvez des réponses claires sur nos commandes, livraisons et modes de paiement.")}
               </p>
             </div>
           </Reveal>
 
-          <div className="space-y-4">
+          <div className="border-t border-stone-300 dark:border-stone-700">
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
                 <Reveal key={faq.q} delay={idx * 50}>
-                  <div className="overflow-hidden rounded-2xl border border-border bg-card transition-colors duration-200 hover:border-gold/40">
+                  <div className="border-b border-stone-300 dark:border-stone-700">
                     <button
                       type="button"
                       onClick={() => setOpenFaq(isOpen ? null : idx)}
-                      className="flex w-full items-center justify-between p-5 sm:p-6 text-left cursor-pointer"
+                      className="flex w-full cursor-pointer items-center justify-between gap-4 py-5 text-left"
+                      aria-expanded={isOpen}
                     >
-                      <span className="font-display text-sm sm:text-base font-bold text-primary">
+                      <span className="font-display text-lg text-stone-950 dark:text-stone-50">
                         {faq.q}
                       </span>
                       <ChevronDown
-                        className={`h-4 w-4 text-gold transition-transform duration-300 ${
+                        className={`h-4 w-4 shrink-0 text-stone-500 transition-transform duration-300 ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
                     </button>
                     {isOpen && (
-                      <div className="border-t border-border/60 bg-secondary/20 p-5 sm:p-6 text-xs sm:text-sm text-muted-foreground leading-relaxed motion-safe:animate-[fade-in_0.2s_ease-out]">
+                      <div className="max-w-prose pb-6 text-[0.95rem] leading-relaxed text-stone-600 dark:text-stone-400 motion-safe:animate-[fade-in_0.2s_ease-out]">
                         {faq.a}
                       </div>
                     )}

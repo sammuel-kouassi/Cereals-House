@@ -20,7 +20,7 @@ export const OFFICIAL_HUBS: DeliveryLocationInfo[] = [
     distanceKm: 0,
     deliveryTime: "Sous 2h à 4h chrono",
     deliveryFee: "1 500 FCFA (Offert dès 25 000 F)",
-    shippingType: "Meunerie Centrale & Coursier Dédié",
+    shippingType: "Siège d'Abidjan & Coursier Dédié",
     isHub: true,
   },
   {
@@ -29,7 +29,7 @@ export const OFFICIAL_HUBS: DeliveryLocationInfo[] = [
     address: "Plateau & Almadies, Dakar, Sénégal",
     coords: [14.7167, -17.4677],
     distanceKm: 1820,
-    deliveryTime: "24h - 48h express",
+    deliveryTime: "24h - 48h",
     deliveryFee: "4 500 FCFA",
     shippingType: "Hub Terroirs & Thiakry",
     isHub: true,
@@ -40,7 +40,7 @@ export const OFFICIAL_HUBS: DeliveryLocationInfo[] = [
     address: "ACI 2000 & Badalabougou, Bamako, Mali",
     coords: [12.6392, -8.0029],
     distanceKm: 920,
-    deliveryTime: "24h - 48h express",
+    deliveryTime: "24h - 48h",
     deliveryFee: "4 500 FCFA",
     shippingType: "Hub Mil Perlé & Fonio Sahel",
     isHub: true,
@@ -51,7 +51,7 @@ export const OFFICIAL_HUBS: DeliveryLocationInfo[] = [
     address: "Ouaga 2000, Ouagadougou, Burkina Faso",
     coords: [12.3714, -1.5197],
     distanceKm: 830,
-    deliveryTime: "24h - 48h express",
+    deliveryTime: "24h - 48h",
     deliveryFee: "4 500 FCFA",
     shippingType: "Hub Sorgho & Céréales Sèches",
     isHub: true,
@@ -159,7 +159,7 @@ export function calculateDistanceKm(
   return Math.round(R * c);
 }
 
-// Calcul dynamique des frais et délais selon la distance depuis la Meunerie Centrale d'Abidjan
+// Calcul dynamique des frais et délais selon la distance depuis le siège d'Abidjan
 export function computeDeliveryInfo(
   name: string,
   address: string,
@@ -187,7 +187,7 @@ export function computeDeliveryInfo(
       distanceKm: distance,
       deliveryTime: "24h chrono (J+1)",
       deliveryFee: "2 500 FCFA",
-      shippingType: "Liaison express interurbaine",
+      shippingType: "Liaison interurbaine",
       isHub,
     };
   } else if (distance <= 2800) {
@@ -209,7 +209,7 @@ export function computeDeliveryInfo(
       distanceKm: distance,
       deliveryTime: "3 à 5 jours ouvrés",
       deliveryFee: "Dès 12 500 FCFA (tarif export)",
-      shippingType: "Fret aérien express (DHL / Colissimo)",
+      shippingType: "Fret aérien (DHL / Colissimo)",
       isHub,
     };
   }

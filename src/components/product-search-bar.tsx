@@ -112,7 +112,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
         className={cn(
           "group flex items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-sm transition-all",
           focused
-            ? "border-gold shadow-gold ring-2 ring-gold/20"
+            ? "border-stone-500"
             : "border-border hover:border-gold/40",
         )}
       >
@@ -152,7 +152,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
         <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-xl motion-safe:animate-[fade-in_0.15s_ease-out]">
           {filteredSuggestions.length > 0 && (
             <div className="px-2 py-2">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs italic text-muted-foreground">
                 <Sparkles className="h-3 w-3 text-gold" /> {t("products.searchSuggestions")}
               </div>
               <ul>
@@ -178,7 +178,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
           {history.length > 0 && (
             <div className={cn("px-2 py-2", filteredSuggestions.length > 0 && "border-t border-border")}>
               <div className="flex items-center justify-between px-3 py-1.5">
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="flex items-center gap-1.5 text-xs italic text-muted-foreground">
                   <Clock className="h-3 w-3" /> {t("products.searchRecent")}
                 </div>
                 <button

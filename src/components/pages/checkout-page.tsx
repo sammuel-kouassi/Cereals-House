@@ -105,7 +105,7 @@ export function CheckoutPage() {
         <Link
           to={getLocalizedPath("/auth")}
           search={{ redirect: getLocalizedPath("/checkout") }}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 text-sm font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 text-sm font-semibold text-gold-foreground transition hover:bg-gold/90"
         >
           {t("checkout.signIn", "Se connecter / S'inscrire")} <ArrowRight className="h-4 w-4" />
         </Link>
@@ -202,9 +202,8 @@ export function CheckoutPage() {
     return (
       <div className="flex min-h-[75vh] flex-col items-center justify-center gap-6 px-4 text-center">
         <div className="relative">
-          <div className="absolute -inset-6 rounded-full bg-gold/25 blur-2xl animate-pulse" />
-          <div className="relative grid h-24 w-24 place-items-center rounded-3xl border-2 border-gold/40 bg-card shadow-gold">
-            <Lock className="h-10 w-10 text-gold animate-pulse" />
+          <div className="relative grid h-24 w-24 place-items-center rounded-2xl border border-stone-200 bg-card">
+            <Lock className="h-10 w-10 text-gold" strokeWidth={1.5} />
           </div>
         </div>
         <div className="space-y-3 max-w-md">
@@ -232,8 +231,8 @@ export function CheckoutPage() {
       <div className="border-b border-border/80 pb-6 mb-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-gold">
-              <Sparkles className="h-3.5 w-3.5" /> {t("checkout.stepEyebrow", "Étape Finale")}
+            <div className="inline-flex items-center gap-2 text-sm italic text-amber-800 dark:text-gold">
+              {t("checkout.stepEyebrow", "Étape Finale")}
             </div>
             <h1 className="mt-1 font-display text-2xl sm:text-4xl font-bold text-primary tracking-tight">
               {t("checkout.title", "Finaliser votre commande")}
@@ -469,7 +468,7 @@ export function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-gold transition-all duration-200 hover:bg-gold/90 hover:-translate-y-0.5 cursor-pointer disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gold py-4 text-sm font-bold text-gold-foreground transition-all duration-200 hover:bg-gold/90 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <>

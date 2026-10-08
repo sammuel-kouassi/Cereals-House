@@ -153,7 +153,7 @@ export function OrderDetailPage({ id }: { id: string }) {
         </p>
         <Link
           to={getLocalizedPath("/orders")}
-          className="mt-6 inline-flex rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold"
+          className="mt-6 inline-flex rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground"
         >
           {t("orderDetail.myOrders", "Mes commandes")}
         </Link>
@@ -230,11 +230,11 @@ export function OrderDetailPage({ id }: { id: string }) {
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-300 mt-0.5">
-                <Clock className="h-5 w-5 animate-pulse" />
+                <Clock className="h-5 w-5" />
               </div>
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                   Demande d'annulation en cours d'examen par l'administrateur
                 </div>
                 <h3 className="font-display text-base font-bold text-primary">
@@ -359,7 +359,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                   <div
                     className={`grid h-12 w-12 place-items-center rounded-2xl transition ${
                       isDone
-                        ? "bg-gold text-gold-foreground shadow-gold font-bold"
+                        ? "bg-gold text-gold-foreground font-bold"
                         : "bg-secondary text-muted-foreground"
                     }`}
                   >

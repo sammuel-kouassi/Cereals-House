@@ -144,6 +144,14 @@
   input, textarea {
     caret-color: var(--color-gold);
   }
+  /* iOS zoome sur les champs < 16px : on garantit 16px minimum sur mobile */
+  @media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: max(16px, 1em);
+    }
+  }
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
@@ -165,9 +173,12 @@
 
   html {
     scroll-behavior: smooth;
+    /* Les ancres ne passent plus sous le header flottant */
+    scroll-padding-top: 96px;
     overflow-x: clip;
     max-width: 100%;
     font-size: 14.5px;
+    -webkit-tap-highlight-color: transparent;
   }
   @media (min-width: 768px) {
     html {
@@ -204,11 +215,9 @@
 @layer utilities {
   .font-display { font-family: var(--font-display); }
   .font-times { font-family: var(--font-times); }
+  /* Ancien texte en dégradé : désormais une couleur pleine (plus sobre, plus lisible) */
   .text-gradient-gold {
-    background: linear-gradient(135deg, oklch(0.78 0.14 75), oklch(0.62 0.15 60));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--color-gold);
   }
   .bg-grain {
     background-image: radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--foreground) 6%, transparent) 1px, transparent 0);
@@ -264,17 +273,14 @@
   }
 
   .card-atelier {
-    border-radius: 1.75rem;
-    border: 1px solid color-mix(in oklab, var(--gold) 22%, var(--border));
-    background: color-mix(in oklab, var(--card) 92%, transparent);
-    box-shadow: 0 4px 20px -8px color-mix(in oklab, var(--primary) 12%, transparent);
-    transition: all 450ms cubic-bezier(0.32, 0.72, 0, 1);
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    transition: border-color 300ms ease;
   }
 
   .card-atelier:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in oklab, var(--gold) 55%, transparent);
-    box-shadow: 0 16px 36px -12px color-mix(in oklab, var(--primary) 22%, transparent);
+    border-color: color-mix(in oklab, var(--foreground) 30%, var(--border));
   }
 
   .island-pill {
@@ -296,8 +302,9 @@
     }
   }
 
+  /* Bordure fixe et discrète (l’ancien scintillement animé a été retiré) */
   .border-animated-fine {
-    animation: fineBorderShimmer 4.5s ease-in-out infinite;
+    border-color: color-mix(in oklab, var(--gold) 30%, transparent);
   }
 
   @keyframes floatSlow {
@@ -318,12 +325,10 @@
     }
   }
 
-  .animate-float-slow {
-    animation: floatSlow 4.2s ease-in-out infinite;
-  }
-
+  /* Flottement décoratif désactivé : les éléments restent posés */
+  .animate-float-slow,
   .animate-float-delayed {
-    animation: floatDelayed 5s ease-in-out infinite 1.4s;
+    animation: none;
   }
 
   /* Rayon spéculaire & lustre ultra-haute fidélité pour le header flottant */
@@ -339,13 +344,7 @@
 
   /* Lueur d'ambiance dorée pour le header en scroll */
   .header-gold-glow {
-    box-shadow: 0 20px 45px -15px rgba(28, 20, 14, 0.12),
-                0 0 25px -4px rgba(200, 157, 66, 0.18);
-  }
-
-  .dark .header-gold-glow {
-    box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6),
-                0 0 30px -4px rgba(200, 157, 66, 0.25);
+    box-shadow: 0 6px 24px -12px rgba(44, 27, 17, 0.18);
   }
 
   /* Défilement horizontal automatique et fluide pour les céréales */
@@ -368,6 +367,43 @@
   .animate-cereal-marquee:hover,
   .animate-cereal-marquee:focus-within {
     animation-play-state: paused;
+  }
+
+  /* Carrousel tactile horizontal (mobile) sans barre de défilement visible */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Entrée douce du contenu à chaque changement de page */
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .animate-page-enter {
+    animation: pageEnter 500ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+}
+
+/* Accessibilité : on coupe les animations décoratives si l'utilisateur le demande */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 

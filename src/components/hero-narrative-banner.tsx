@@ -49,7 +49,7 @@ export function HeroNarrativeBanner() {
       titleLine2: t("heroNarrative.slide2.titleLine2", "LE PACK VITALITÉ"),
       subtitle: t(
         "heroNarrative.slide2.subtitle",
-        "Farines complètes prêtes en 3 minutes pour bébés dès 6 mois, enfants et adultes. Une onctuosité authentique et parfumée pour bien démarrer chaque journée.",
+        "Farines complètes prêtes en quelques minutes pour toute la famille (âge et utilisation précisés sur chaque produit). Une onctuosité authentique pour bien démarrer la journée.",
       ),
       image: heroCerealesMixtesPack,
       ctaText: t("heroNarrative.slide2.cta", "Commander en pack"),
@@ -75,7 +75,7 @@ export function HeroNarrativeBanner() {
       titleLine2: t("heroNarrative.slide4.titleLine2", "PRÊTES EN 3 MINUTES"),
       subtitle: t(
         "heroNarrative.slide4.subtitle",
-        "100% naturel, sans additifs chimiques ni conservateurs. Une mouture douce qui préserve toutes les vitamines, le fer et les minéraux essentiels.",
+        "100% naturel, sans additifs chimiques ni conservateurs. Une mouture soigneuse qui préserve au mieux les qualités naturelles des céréales.",
       ),
       image: heroCerealesMixtesSingle,
       ctaText: t("heroNarrative.slide4.cta", "Voir nos farines"),
@@ -83,12 +83,12 @@ export function HeroNarrativeBanner() {
     },
     {
       id: "maison-cereales",
-      eyebrow: t("heroNarrative.slide5.eyebrow", "Épicerie Meunière & Boutique"),
+      eyebrow: t("heroNarrative.slide5.eyebrow", "Épicerie Fine & Boutique"),
       titleLine1: t("heroNarrative.slide5.titleLine1", "MAISON CÉRÉALES"),
       titleLine2: t("heroNarrative.slide5.titleLine2", "L'EXCELLENCE BIO"),
       subtitle: t(
         "heroNarrative.slide5.subtitle",
-        "Du grain brut sélectionné jusqu'au conditionnement hermétique d'excellence. Visitez notre univers meunier et profitez d'une fraîcheur garantie.",
+        "Du grain sélectionné jusqu'au conditionnement hermétique. Découvrez notre univers et profitez de produits préparés avec soin.",
       ),
       image: heroMaisonCerealesBoutique,
       ctaText: t("heroNarrative.slide5.cta", "Explorer la boutique"),
@@ -135,7 +135,7 @@ export function HeroNarrativeBanner() {
 
   return (
     <section
-      className="relative w-full min-h-[480px] sm:min-h-[540px] lg:min-h-[590px] overflow-hidden bg-gradient-to-b from-[#18110B] via-[#1E150E] to-[#160F0A] text-white flex items-center"
+      className="relative w-full min-h-[480px] sm:min-h-[540px] lg:min-h-[590px] overflow-hidden bg-[#18110B] text-white flex items-center"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -149,16 +149,13 @@ export function HeroNarrativeBanner() {
               isActive ? "opacity-100 z-0" : "opacity-0 z-[-1]"
             }`}
           >
-            {/* Lueur chaude dorée et réconfortante derrière le produit */}
-            <div className="absolute right-[12%] top-1/2 -translate-y-1/2 w-[300px] sm:w-[440px] h-[300px] sm:h-[440px] rounded-full bg-gradient-to-tr from-[#D97706]/20 via-[#F59E0B]/15 to-transparent blur-[90px] pointer-events-none" />
-
             {/* Image nette intégrée sans cadre ni bordure */}
             <div className="absolute inset-y-0 right-0 w-full sm:w-4/5 md:w-3/5 lg:w-3/5 h-full flex items-center justify-end overflow-hidden">
               <img
                 src={slide.image}
                 alt={`${slide.titleLine1} ${slide.titleLine2}`}
                 className={`h-full w-full object-cover object-center lg:object-right transition-transform duration-[7000ms] ease-out select-none ${
-                  isActive ? "scale-105" : "scale-100"
+                  isActive ? "scale-[1.03]" : "scale-100"
                 }`}
                 style={{
                   maskImage:
@@ -193,20 +190,13 @@ export function HeroNarrativeBanner() {
       <div className="relative z-10 mx-auto max-w-7xl w-full px-5 sm:px-8 lg:px-12 py-6 sm:py-8 lg:py-10 flex flex-col justify-between min-h-[460px] sm:min-h-[510px] lg:min-h-[560px] pointer-events-none">
         {/* Colonne Gauche : Surtitre, Titre, Description, Actions */}
         <div className="my-auto max-w-xl lg:max-w-xl pointer-events-auto">
-          {/* Surtitre accentué en or ambré chaud */}
-          <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-[0.2em] text-[#F59E0B] font-bold mb-2 sm:mb-2.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
-            <span>{current.eyebrow}</span>
-          </div>
-
-          {/* Titre Principal proportionné et net */}
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-[2.65rem] font-black uppercase tracking-tight text-white leading-[1.08] drop-shadow-[0_4px_20px_rgba(0,0,0,0.85)]">
+          {/* Titre : capitales romaines, graisse normale — sobre et lisible */}
+          <h1 className="font-display text-[1.9rem] font-normal uppercase leading-[1.08] tracking-[0.01em] text-stone-50 sm:text-4xl md:text-[2.6rem] lg:text-[3.1rem]">
             <span className="block">{current.titleLine1}</span>
-            <span className="block text-amber-100/95 mt-1">{current.titleLine2}</span>
+            <span className="mt-1 block text-gold">{current.titleLine2}</span>
           </h1>
 
-          {/* Description claire et chaleureuse */}
-          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-stone-200/90 font-normal leading-relaxed max-w-md drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+          <p className="mt-5 max-w-md text-sm leading-relaxed text-stone-300 sm:text-base">
             {current.subtitle}
           </p>
 
@@ -214,43 +204,35 @@ export function HeroNarrativeBanner() {
           <div className="mt-6 sm:mt-7 flex flex-wrap items-center gap-3 sm:gap-5">
             <Link
               to={getLocalizedPath(current.ctaLink)}
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D97706] to-[#B45309] hover:from-[#B45309] hover:to-[#92400E] px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white shadow-[0_8px_20px_rgba(217,119,6,0.3)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm text-stone-950 transition-colors duration-300 hover:bg-[#d8b25f] cursor-pointer"
             >
               <span>{current.ctaText}</span>
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
             </Link>
 
             <Link
               to={getLocalizedPath("/products")}
-              className="inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-stone-300 hover:text-amber-200 transition-colors duration-200 cursor-pointer py-2.5 px-2 hover:translate-x-1"
+              className="inline-flex items-center justify-center gap-1.5 py-2.5 px-1 text-sm text-stone-200 underline decoration-stone-200/30 underline-offset-4 transition-colors duration-200 hover:decoration-stone-200 cursor-pointer"
             >
               <span>{t("heroNarrative.viewShop", "Voir la boutique")}</span>
-              <span className="text-xs">→</span>
-            </Link>
+              </Link>
           </div>
 
           {/* 4. RANGÉE DE VIGNETTES PRODUITS COMPACTES ET ÉLÉGANTES */}
-          <div className="mt-6 sm:mt-8 pt-1">
+          <div className="mt-8 sm:mt-10">
             <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto pb-1 scrollbar-none">
               {slides.map((slide, idx) => {
                 const isThumbActive = idx === activeIdx;
                 return (
                   <div key={slide.id} className="relative flex flex-col items-center shrink-0">
-                    {/* Indicateur triangulaire fin */}
-                    <div
-                      className={`w-0 h-0 border-x-[4px] border-x-transparent border-t-[5px] border-t-[#F59E0B] mb-1 transition-all duration-300 ${
-                        isThumbActive ? "opacity-100 scale-100" : "opacity-0 scale-75"
-                      }`}
-                    />
-
                     {/* Miniature compacte & chic */}
                     <button
                       type="button"
                       onClick={() => goToSlide(idx)}
-                      className={`relative h-10 w-10 sm:h-12 sm:w-12 md:h-13 md:w-13 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 focus:outline-none ${
+                      className={`relative h-11 w-11 sm:h-12 sm:w-12 rounded-md overflow-hidden cursor-pointer transition-opacity duration-300 ${
                         isThumbActive
-                          ? "border-2 border-[#F59E0B] ring-2 ring-[#F59E0B]/30 scale-105 shadow-lg"
-                          : "border border-amber-200/20 opacity-60 hover:opacity-95 hover:border-amber-400/50 hover:scale-102"
+                          ? "opacity-100 outline outline-1 outline-offset-2 outline-gold"
+                          : "opacity-45 hover:opacity-80"
                       }`}
                       title={`${slide.titleLine1} - ${slide.titleLine2}`}
                       aria-label={`Afficher ${slide.titleLine1}`}
@@ -260,7 +242,6 @@ export function HeroNarrativeBanner() {
                         alt={slide.titleLine1}
                         className="h-full w-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#160F0A]/60 to-transparent" />
                     </button>
                   </div>
                 );
@@ -274,7 +255,7 @@ export function HeroNarrativeBanner() {
           <button
             type="button"
             onClick={prevSlide}
-            className="h-10 w-10 rounded-full border border-amber-500/30 bg-[#251810]/70 backdrop-blur-md text-amber-100 flex items-center justify-center transition-all duration-200 hover:bg-[#F59E0B] hover:text-stone-950 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+            className="h-10 w-10 rounded-full border border-stone-50/25 text-stone-100 flex items-center justify-center transition-colors duration-200 hover:border-stone-50/70 cursor-pointer"
             title="Précédent"
             aria-label="Diapositive précédente"
           >
@@ -284,7 +265,7 @@ export function HeroNarrativeBanner() {
           <button
             type="button"
             onClick={nextSlide}
-            className="h-10 w-10 rounded-full border border-amber-500/30 bg-[#251810]/70 backdrop-blur-md text-amber-100 flex items-center justify-center transition-all duration-200 hover:bg-[#F59E0B] hover:text-stone-950 hover:scale-105 active:scale-95 cursor-pointer shadow-md"
+            className="h-10 w-10 rounded-full border border-stone-50/25 text-stone-100 flex items-center justify-center transition-colors duration-200 hover:border-stone-50/70 cursor-pointer"
             title="Suivant"
             aria-label="Diapositive suivante"
           >
@@ -292,7 +273,7 @@ export function HeroNarrativeBanner() {
           </button>
 
           {isPaused && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#251810]/80 border border-amber-500/30 text-[11px] text-amber-300 backdrop-blur-md">
+            <span className="inline-flex items-center gap-1.5 px-2 text-xs italic text-stone-400">
               <Pause className="h-3 w-3" />
               <span>Pause</span>
             </span>

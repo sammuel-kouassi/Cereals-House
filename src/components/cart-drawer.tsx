@@ -91,7 +91,7 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
               <Link
                 to={getLocalizedPath("/products")}
                 onClick={onClose}
-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold transition hover:bg-gold/90 hover:-translate-y-0.5"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground transition hover:bg-gold/90"
               >
                 {t("cart.discoverProducts", "Explorer la boutique")} <ArrowRight className="h-3.5 w-3.5" />
               </Link>

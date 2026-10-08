@@ -16,13 +16,13 @@ colors:
   accent: "#c89d42"
 typography:
   display:
-    fontFamily: "Outfit, Playfair Display, Georgia, serif"
-    fontWeight: 700
-    letterSpacing: "-0.02em"
-  body:
-    fontFamily: "Plus Jakarta Sans, system-ui, sans-serif"
+    fontFamily: "Times New Roman, Times, Tinos, Georgia, serif"
     fontWeight: 400
-    lineHeight: 1.55
+    letterSpacing: "-0.015em"
+  body:
+    fontFamily: "Times New Roman, Times, Tinos, Georgia, serif"
+    fontWeight: 400
+    lineHeight: 1.62
 rounded:
   sm: "8px"
   md: "12px"
@@ -51,29 +51,32 @@ Cereals House incarne le renouveau gastronomique et nutritionnel des céréales 
 
 ## Typography
 
-- **Titres & Display** : `Outfit` combiné à la distinction éditoriale de `Playfair Display`. Approche calibrée à `-0.02em` pour une tenue typographique ferme et élégante.
-- **Corps de texte & Données** : `Plus Jakarta Sans`. Clarté suisse pour les fiches produits, valeurs nutritionnelles, récapitulatifs de commandes et factures.
+- **Police unique : Times New Roman** (repli Tinos via Google Fonts, puis Georgia). Choix de marque assumé : ton éditorial d’épicerie fine.
+- **Titres** : graisse normale (400), grandes tailles, `-0.015em`. La hiérarchie vient de la taille, pas du gras. Une partie du titre peut passer en *italique* or/ambre (`<em>`) pour l’accent.
+- **Étiquettes secondaires** (catégorie, public, mentions) : italique. Pas de capitales espacées.
+- **Corps** : 15–17px, interlignage 1.6–1.75, mesure max ~65ch.
 
 ## Layout
 
 - Structure aérée avec respiration généreuse (`py-16` à `py-24`).
 - Grilles asymétriques pour les fiches céréales (mise en valeur des grains bruts, du procédé de tamisage sans sable et des conseils de préparation).
-- Navigation flottante type îlot ("island-pill") avec verre dépoli et reflets spéculaires.
+- Navigation flottante en pilule, fond crème quasi opaque, filet fin ; lien actif souligné d’un trait or.
+- En-têtes de section : composant `SectionHeading` (titre à gauche, texte/action à droite, filet en dessous).
 
 ## Elevation & Depth
 
-- Ombres douces teintées d'ambre (`--shadow-gold`) et de brun (`--shadow-soft`).
-- Absence de fausses ombres dures ou de dégradés agressifs.
-- Cartes d'atelier ("card-atelier") aux coins subtilement arrondis (16–24px) avec micro-lueur au survol.
+- Profondeur par filets et aplats (crème `#f6f0e6`, brun `#2c1b11`), presque jamais par l’ombre.
+- Ombre uniquement pour ce qui flotte (menus, header au défilement) : décalée, douce, teintée brun.
+- Pas de halos lumineux, de verre dépoli décoratif, de bordures animées ni d’éléments flottants.
 
 ## Shapes
 
-- Rayons de courbure organiques : `12px` pour les contrôles, `16px–24px` pour les cartes, `full` pour les pilules de navigation et boutons d'appel à l'action.
-- Bords animés ("border-animated-fine") pour les bannières de promesse et garanties qualité.
+- Rayons : `12px` cartes produits, `16px` panneaux, `full` pour boutons et petits contrôles.
 
 ## Components
 
-- **Bouton Primaire** : Fond or chaud, texte brun foncé contrasté, micro-effet de pression `scale(0.985)`.
+- **Bouton principal** : aplat brun `#2c1b11`, texte crème (sur fond sombre : aplat or, texte brun). Pas de dégradé, pas d’agrandissement au survol.
+- **Lien texte** : souligné fin, flèche → qui glisse légèrement au survol.
 - **Fiches Produits** : Photographies nettes des farines et céréales, badge d'origine, sélection dynamique des pays et prix.
 - **Règlement GeniusPay** : Intégration claire des logos officiels Mobile Money et cartes bancaires.
 
@@ -86,5 +89,6 @@ Cereals House incarne le renouveau gastronomique et nutritionnel des céréales 
 
 ### Don'ts
 - Ne pas utiliser de dégradés fluo criards.
-- Ne pas ajouter de kickers ou d'eyebrows artificiels au-dessus des titres.
+- Ne pas ajouter de kickers ou d'eyebrows (pastilles) au-dessus des titres.
+- Pas de texte en dégradé, d’emoji en guise d’icône, de faux indicateurs « en direct » qui clignotent, ni de notes/étoiles non issues d’avis réels.
 - Ne pas utiliser de maquettes génériques d'e-commerce sans rapport avec l'Afrique de l'Ouest.

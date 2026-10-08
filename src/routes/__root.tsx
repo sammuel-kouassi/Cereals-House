@@ -6,10 +6,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Toaster } from "sonner";
 import { Compass, RotateCw, Home as HomeIcon } from "lucide-react";
@@ -128,14 +129,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora. Paiement sécurisé par Mobile Money et carte.",
+          "Céréales et produits d'Afrique de l'Ouest : mil, fonio, sorgho et farines soigneusement triés, sans sable ni conservateurs. Livraison suivie en Afrique de l'Ouest et diaspora. Paiement sécurisé par Mobile Money et carte.",
       },
       { name: "author", content: "Cereals House" },
       { property: "og:title", content: "Cereals House : Céréales & farines d'Afrique de l'Ouest" },
       {
         property: "og:description",
         content:
-          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora.",
+          "Céréales et produits d'Afrique de l'Ouest soigneusement triés, sans sable ni conservateurs. Livraison suivie en Afrique de l'Ouest et diaspora.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -143,7 +144,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "twitter:description",
         content:
-          "Farines d'éveil pour bébé, mil perlé propre, fonio royal et sorgho sans sable ni conservateurs. Livraison rapide en Afrique de l'Ouest et diaspora.",
+          "Céréales et produits d'Afrique de l'Ouest soigneusement triés, sans sable ni conservateurs. Livraison suivie en Afrique de l'Ouest et diaspora.",
       },
     ],
     links: [
@@ -184,6 +185,13 @@ function HtmlShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { t } = useTranslation();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Pas d'animation au premier chargement (préserve le LCP), seulement lors des navigations
+  const initialPathname = useRef(pathname);
+  const hasNavigated = useRef(false);
+  if (pathname !== initialPathname.current) hasNavigated.current = true;
+  const animatePage = hasNavigated.current;
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -191,9 +199,18 @@ function RootComponent() {
         <CountryProvider>
           <CartProvider>
             <div className="flex min-h-dvh flex-col">
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-gold focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-gold-foreground"
+              >
+                {t("common.skipToContent", "Aller au contenu")}
+              </a>
               <SiteHeader />
-              <main className="flex-1">
-                <Outlet />
+              <main id="main-content" className="flex-1">
+                {/* Clé sur le chemin : fondu d'entrée à chaque changement de page */}
+                <div key={pathname} className={animatePage ? "animate-page-enter" : undefined}>
+                  <Outlet />
+                </div>
               </main>
               <SiteFooter />
             </div>

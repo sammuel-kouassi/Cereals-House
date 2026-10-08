@@ -217,10 +217,9 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
   return (
     <div className="relative min-h-[calc(100vh-4rem)] pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       {/* Halo d'ambiance doré subtil en arrière-plan */}
-      <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl opacity-50" />
 
       {/* ─── CONTENEUR PRINCIPAL HAUTE FIDÉLITÉ (Card-Atelier Designer) ─── */}
-      <div className="relative w-full max-w-5xl xl:max-w-6xl rounded-3xl sm:rounded-[2.5rem] border border-stone-200/90 bg-white shadow-2xl shadow-stone-900/10 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
+      <div className="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl border border-stone-200 bg-white shadow-[0_24px_60px_-30px_rgba(44,27,17,0.25)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
         {/* ============================================================== */}
         {/* COLONNE GAUCHE : FORMULAIRE PRO & ÉPURÉ (7 Cols sur desktop) */}
         {/* ============================================================== */}
@@ -467,11 +466,11 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full group relative overflow-hidden flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-500 py-3.5 px-6 text-xs sm:text-sm font-bold text-stone-950 shadow-md shadow-amber-500/20 hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-300 active:scale-[0.99] cursor-pointer disabled:opacity-50 mt-2"
+                className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[#2c1b11] px-6 py-3.5 text-sm text-stone-50 transition-colors duration-300 hover:bg-[#442a1d] disabled:opacity-50"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin text-stone-950" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     <span>{t("common.loading", "Vérification en cours…")}</span>
                   </>
                 ) : (
@@ -532,12 +531,12 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
 
           {/* Pastilles en haut */}
           <div className="relative z-10 p-6 xl:p-8 flex items-center justify-between">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-stone-950/60 backdrop-blur-md px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-300 shadow-md">
+            <div className="inline-flex items-center gap-2 text-sm italic text-amber-200">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>{t("auth.panelEyebrow", "Maison Cereals House")}</span>
+              <span>{t("auth.panelEyebrow", "Cereals House")}</span>
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-stone-950/60 backdrop-blur-md px-3 py-1 text-xs font-semibold text-amber-300 shadow-md">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/25 px-3 py-1 text-xs text-stone-100">
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
               <span>4.9 / 5</span>
             </div>
@@ -545,7 +544,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
 
           {/* Cartouche sobre et moderne au bas */}
           <div className="relative z-10 p-6 xl:p-8">
-            <div className="rounded-2xl border border-white/20 bg-stone-950/75 backdrop-blur-md p-5 text-white shadow-xl space-y-2">
+            <div className="rounded-xl border-t border-white/20 pt-5 text-white space-y-2">
               <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
                 {t("auth.panelTitlePart1", "L'Excellence des Terroirs")}{" "}
                 <span className="font-editorial text-amber-400 font-normal">
@@ -561,7 +560,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                   <BadgeCheck className="h-4 w-4" />
                   <span>{t("auth.badgeSandFree", "Zéro sable garanti")}</span>
                 </span>
-                <span className="text-stone-300 font-light">{t("auth.badgeStoneMilled", "Mouture meule de pierre")}</span>
+                <span className="text-stone-300 font-light">{t("auth.badgeStoneMilled", "Mouture soignée")}</span>
               </div>
             </div>
           </div>

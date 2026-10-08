@@ -127,7 +127,7 @@ export const submitQuoteRequestFn = createServerFn({ method: "POST" })
                 </p>
               </div>
               <div style="text-align: center; margin-top: 16px; font-size: 11px; color: #999;">
-                Cereals House • Meunerie & Terroirs d'Afrique • contact@cereals-house.com
+                Cereals House • Terroirs & Céréales d'Afrique • contact@cereals-house.com
               </div>
             </div>
           `,

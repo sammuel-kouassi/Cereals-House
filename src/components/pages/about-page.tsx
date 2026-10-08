@@ -21,7 +21,7 @@ import storyImage from "@/assets/hero_cereales_mixtes_pack.jpg";
 import founderImage from "@/assets/lucette-dossou-ceo.jpg";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 import { GoldCtaBanner } from "@/components/ui/gold-cta-banner";
-import { CerealMotifBackground } from "@/components/ui/cereal-motif-background";
+import { SectionHeading } from "@/components/section-heading";
 
 export function AboutPage() {
   const { t } = useTranslation();
@@ -39,12 +39,12 @@ export function AboutPage() {
     },
     {
       icon: Award,
-      title: t("about.v2t", "Meunerie Traditionnelle"),
+      title: t("about.v2t", "Savoir-Faire & Transformation"),
       desc: t(
         "about.v2d",
-        "Mouture douce sur meule de pierre et précuisson à la vapeur pour préserver la totalité des micronutriments, fibres et vitamines naturelles.",
+        "Une mouture soigneuse qui permet de préserver au mieux les qualités naturelles des céréales. Certaines références sont précuites pour gagner du temps en cuisine.",
       ),
-      tag: t("about.v2tag", "Meule de Pierre"),
+      tag: t("about.v2tag", "Mouture soignée"),
     },
     {
       icon: Heart,
@@ -69,7 +69,7 @@ export function AboutPage() {
   const stats = [
     { value: "100%", label: t("about.stat1Label", "Naturel & Sans Additif"), hint: t("about.stat1Hint", "Zéro produit chimique") },
     { value: "1 200+", label: t("about.stat2Label", "Familles Nourries"), hint: t("about.stat2Hint", "Chaque semaine") },
-    { value: "8", label: t("about.stat3Label", "Pays Desservis en Express"), hint: t("about.stat3Hint", "Afrique & Diaspora") },
+    { value: "8", label: t("about.stat3Label", "Pays Desservis"), hint: t("about.stat3Hint", "Afrique & Diaspora") },
     { value: "24-48h", label: t("about.stat4Label", "Délai Moyen de Livraison"), hint: t("about.stat4Hint", "Suivi en direct") },
   ];
 
@@ -87,20 +87,20 @@ export function AboutPage() {
     {
       n: "02",
       icon: ShieldCheck,
-      title: t("about.tl2t", "Tri Rigoureux & Contrôle Pureté"),
+      title: t("about.tl2t", "Tri Rigoureux & Contrôle Qualité"),
       desc: t(
         "about.tl2d",
-        "Dépoussiérage, lavage à l'eau claire et vannage minutieux pour garantir une pureté totale sans le moindre résidu de sable ni cailloux.",
+        "Dépoussiérage, nettoyage et tri minutieux pour des céréales propres, sans sable ni cailloux.",
       ),
-      detail: t("about.tl2Detail", "Zéro impureté garanti"),
+      detail: t("about.tl2Detail", "Sans sable ni cailloux"),
     },
     {
       n: "03",
       icon: Wheat,
-      title: t("about.tl3t", "Mouture Meule & Cuisson Douce"),
+      title: t("about.tl3t", "Mouture & Préparation Soignées"),
       desc: t(
         "about.tl3d",
-        "Transformation lente sur meule et cuisson vapeur artisanale pour une texture veloutée, digeste et un goût préservé.",
+        "Une transformation soigneuse pour une texture agréable et des préparations faciles au quotidien.",
       ),
       detail: t("about.tl3Detail", "Prêt en 3 à 5 minutes"),
     },
@@ -117,227 +117,118 @@ export function AboutPage() {
   ];
 
   return (
-    <div className="bg-background text-foreground min-h-screen">
-      {/* ============================================================ */}
-      {/* 1. HERO ÉDITORIAL & TERROIR AFRICAIN                         */}
-      {/* ============================================================ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1C120C] via-[#2A1A11] to-[#120A06] text-stone-100 py-20 sm:py-28 border-b border-gold/30">
-        <CerealMotifBackground variant="hero" showLargeSheaf={true} className="opacity-20" />
-
-        <div className="relative z-10 mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-          {/* Badge Chapeau */}
-          <Reveal delay={0}>
-            <div className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-gold backdrop-blur-md shadow-xs">
-              <Sparkles className="h-3.5 w-3.5 text-gold" />
-              <span>{t("about.eyebrow", "Notre Histoire & Nos Terroirs")}</span>
-            </div>
-          </Reveal>
-
-          {/* Grand Titre */}
-          <Reveal delay={120}>
-            <h1 className="mt-3.5 font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+    <div className="min-h-screen bg-background text-foreground">
+      {/* 1. Ouverture */}
+      <section className="bg-[#1a110b] text-stone-100">
+        <div className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-28 lg:px-8">
+          <Reveal>
+            <h1 className="font-display text-[2.3rem] font-normal leading-[1.08] tracking-[-0.015em] text-stone-50 sm:text-5xl lg:text-[3.6rem]">
               {t("about.heroTitlePart1", "L'amour du grain,")}{" "}
-              <span className="bg-gradient-to-r from-[#FDF0CD] via-[#E5BF5A] to-[#BF9024] bg-clip-text text-transparent">
-                {t("about.heroTitlePart2", "l'art du goût authentique")}
-              </span>
+              <em className="text-gold">{t("about.heroTitlePart2", "l'art du goût authentique")}</em>
             </h1>
           </Reveal>
-
-          {/* Sous-titre descriptif */}
-          <Reveal delay={240}>
-            <p className="mt-3.5 text-xs sm:text-sm text-stone-300 font-light leading-relaxed max-w-2xl mx-auto">
+          <Reveal delay={120}>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-stone-300 sm:text-lg">
               {t(
                 "about.heroDesc",
                 "Nourrir sainement nos familles avec le meilleur des céréales d'ici, sans sable, sans conservateurs et sans perte de temps en cuisine.",
               )}
             </p>
           </Reveal>
-
-          {/* 3 Garanties clés en pilules transparentes */}
-          <Reveal delay={360}>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm text-stone-200">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
-                <Leaf className="h-4 w-4 text-gold" />
-                <span>{t("about.badgeNatural", "100% Naturel & Sans additifs")}</span>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
-                <Clock className="h-4 w-4 text-gold" />
-                <span>{t("about.badgePrecooked", "Précuit : prêt en 3 minutes")}</span>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur-md px-4 py-2 shadow-xs">
-                <ShieldCheck className="h-4 w-4 text-gold" />
-                <span>{t("about.badgeSandFree", "Zéro sable garanti")}</span>
-              </div>
-            </div>
+          <Reveal delay={220}>
+            <ul className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-stone-300">
+              {[
+                t("about.badgeNatural", "100% Naturel & Sans additifs"),
+                t("about.badgePrecooked", "Préparation rapide en cuisine"),
+                t("about.badgeSandFree", "Zéro sable garanti"),
+              ].map((label) => (
+                <li key={label} className="flex items-center gap-2">
+                  <Check className="h-4 w-4 text-gold" />
+                  {label}
+                </li>
+              ))}
+            </ul>
           </Reveal>
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 2. AUX ORIGINES DU PROJET : NOUVELLE IMAGE & TEXTES ANIMÉS  */}
-      {/* ============================================================ */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:py-24 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-12">
-          {/* Colonne Image Fondatrice avec effet vitrine de prestige */}
-          <div className="lg:col-span-6">
-            <Reveal direction="left" delay={50}>
-              <div className="group relative overflow-hidden rounded-3xl border border-gold/35 bg-card shadow-2xl transition-all duration-500 hover:border-gold/60">
-                <div className="aspect-[4/5] sm:aspect-[3/4] lg:aspect-[4/5] w-full overflow-hidden bg-stone-900">
+      {/* 2. L'histoire de la fondatrice */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+        <div className="grid items-start gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-5">
+            <Reveal>
+              <figure>
+                <div className="aspect-[4/5] w-full overflow-hidden rounded-2xl bg-stone-200">
                   <img
                     src={founderImage}
                     alt="DOSSOU Lucette - Fondatrice et CEO de Cereals House"
-                    className="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="h-full w-full object-cover object-top"
                   />
                 </div>
-
-                {/* Voile dégradé doux pour le badge inférieur */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
-
-                {/* Badge flottant en haut à droite */}
-                <div className="absolute top-4 right-4 rounded-full border border-gold/40 bg-black/75 px-3.5 py-1 text-xs font-semibold text-gold backdrop-blur-md shadow-md">
-                  {t("about.founderRole", "Fondatrice & CEO")}
-                </div>
-
-                {/* Encart descriptif inférieur translucide */}
-                <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl border border-white/15 bg-black/70 p-4 backdrop-blur-md shadow-lg">
-                  <div className="space-y-0.5">
-                    <div className="text-sm text-white font-bold tracking-tight">
-                      DOSSOU Lucette
-                    </div>
-                    <div className="text-xs text-stone-300 font-light">
-                      {t("about.founderVision", "Vision, Discipline & Goût du Terroir")}
-                    </div>
-                  </div>
-                  <span className="shrink-0 rounded-full border border-gold/40 bg-gold/15 px-3 py-1 text-[11px] font-bold text-gold uppercase tracking-wider">
-                    Cereals House
-                  </span>
-                </div>
-              </div>
+                <figcaption className="mt-4 flex items-baseline justify-between gap-4 border-b border-stone-200 pb-4 dark:border-stone-800">
+                  <span className="font-display text-lg text-stone-950 dark:text-stone-50">DOSSOU Lucette</span>
+                  <span className="text-sm italic text-stone-500">{t("about.founderRole", "Fondatrice & CEO")}</span>
+                </figcaption>
+              </figure>
             </Reveal>
           </div>
 
-          {/* Colonne Textes avec apparitions échelonnées au scroll */}
-          <div className="lg:col-span-6 space-y-6">
-            {/* Ligne 1 : Chapeau */}
-            <Reveal direction="right" delay={0}>
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-2">
-                <span className="h-px w-6 bg-gold" />
+          <div className="space-y-6 lg:col-span-7 lg:pt-4">
+            <Reveal>
+              <p className="text-sm italic text-amber-800 dark:text-gold">
                 {t("about.founderEyebrow", "L’histoire de DOSSOU Lucette")}
-              </span>
-            </Reveal>
-
-            {/* Ligne 2 : Grand Titre */}
-            <Reveal direction="right" delay={120}>
-              <h2 className="font-display text-3xl sm:text-4xl font-bold text-primary leading-tight">
+              </p>
+              <h2 className="mt-3 font-display text-[1.9rem] font-normal leading-[1.15] text-stone-950 dark:text-stone-50 sm:text-[2.4rem]">
                 {t("about.founderTitle", "Une histoire personnelle : de la quête de confiance à la naissance de Cereals House")}
               </h2>
             </Reveal>
 
-            {/* Ligne 3 : Premier paragraphe - Déclic personnel */}
-            <Reveal direction="right" delay={220}>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                {t(
-                  "about.storyP1",
-                  "Je m’appelle DOSSOU Lucette, fondatrice de Cereals House. L’histoire de Cereals House est avant tout une histoire personnelle. À l’université, une période de stress m’a fait perdre énormément de poids. Malgré mes efforts, je n’arrivais pas à retrouver les kilogrammes perdus. C’est alors que ma mère m’a transmis une recette de céréales qui m’a permis de reprendre rapidement du poids et, surtout, de retrouver progressivement confiance en moi.",
-                )}
-              </p>
+            <Reveal delay={100}>
+              <div className="max-w-prose space-y-5 text-base leading-[1.75] text-stone-700 dark:text-stone-300 sm:text-[1.05rem]">
+                <p>{t("about.storyP1")}</p>
+                <p>{t("about.storyP2")}</p>
+                <p>{t("about.storyP3")}</p>
+              </div>
             </Reveal>
 
-            {/* Ligne 4 : Deuxième paragraphe - Lancement du projet */}
-            <Reveal direction="right" delay={320}>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                {t(
-                  "about.storyP2",
-                  "Cette expérience a été le déclic. Je me suis demandé : si cette recette a pu m’aider, pourquoi ne pourrait-elle pas aider d’autres personnes ? C’est ainsi que j’ai commencé à développer Cereals House, avec l’envie d’accompagner celles et ceux qui souhaitent reprendre du poids après une période difficile, tout en valorisant la simplicité et l’authenticité de nos céréales.",
-                )}
-              </p>
-            </Reveal>
-
-            {/* Ligne 4bis : Ambition & Diaspora */}
-            <Reveal direction="right" delay={400}>
-              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
-                {t(
-                  "about.storyP3",
-                  "Aujourd’hui, mon ambition va plus loin : faire découvrir et voyager nos céréales africaines, jusqu’à la diaspora, sans leur faire perdre leur âme.",
-                )}
-              </p>
-            </Reveal>
-
-            {/* Ligne 5 : Chiffres Clés animés */}
-            <Reveal direction="right" delay={480}>
-              <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-border/80">
+            <Reveal delay={160}>
+              <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 border-t border-stone-200 pt-8 dark:border-stone-800 sm:grid-cols-4">
                 {stats.map((s) => (
-                  <div
-                    key={s.label}
-                    className="rounded-2xl border border-border/70 bg-card/60 backdrop-blur-sm p-4 text-center shadow-xs transition hover:border-gold/40"
-                  >
-                    <div className="font-display text-2xl sm:text-3xl font-bold text-gold">{s.value}</div>
-                    <div className="mt-1 text-[11px] font-semibold text-primary">
-                      {s.label}
-                    </div>
-                    <div className="mt-0.5 text-[10px] text-muted-foreground">{s.hint}</div>
+                  <div key={s.label}>
+                    <dt className="text-sm text-stone-600 dark:text-stone-400">{s.label}</dt>
+                    <dd className="mt-1 font-display text-3xl text-stone-950 dark:text-stone-50">{s.value}</dd>
+                    <dd className="text-xs italic text-stone-500">{s.hint}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 3. NOS 4 ENGAGEMENTS QUALITÉ : CARTES INTERACTIVES ÉLÉGANTES  */}
-      {/* ============================================================ */}
-      <section className="border-y border-border/80 bg-secondary/30 py-20">
+      {/* 3. Engagements */}
+      <section className="border-y border-stone-200 bg-[#f6f0e6] py-20 dark:border-stone-800 dark:bg-stone-900/40 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* En-tête de section */}
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <Reveal delay={0}>
-              <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-2">
-                <span className="h-px w-4 bg-gold" />
-                {t("about.commitmentsEyebrow", "Nos Engagements Inaltérables")}
-                <span className="h-px w-4 bg-gold" />
-              </span>
-            </Reveal>
-            <Reveal delay={100}>
-              <h2 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary">
-                {t("about.commitmentsTitle", "Ce qui fait la différence Cereals House")}
-              </h2>
-            </Reveal>
-            <Reveal delay={180}>
-              <p className="mt-3 text-sm text-muted-foreground">
-                {t(
-                  "about.commitmentsDesc",
-                  "Chaque paquet de farine et chaque bocal de céréales répond à un cahier des charges d'excellence sans compromis.",
-                )}
-              </p>
-            </Reveal>
-          </div>
+          <Reveal>
+            <SectionHeading
+              title={t("about.commitmentsTitle", "Ce qui fait la différence Cereals House")}
+              description={t(
+                "about.commitmentsDesc",
+                "Chaque paquet de farine et chaque bocal de céréales répond à un cahier des charges d'excellence sans compromis.",
+              )}
+            />
+          </Reveal>
 
-          {/* Grille de 4 cartes animées */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((v, idx) => (
-              <Reveal key={v.title} delay={idx * 90}>
-                <div className="group relative flex flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/50 hover:shadow-xl h-full">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gold/15 text-gold border border-gold/25 transition-transform duration-300 group-hover:scale-110">
-                        <v.icon className="h-6 w-6" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gold bg-gold/10 px-2.5 py-1 rounded-full border border-gold/20">
-                        {v.tag}
-                      </span>
-                    </div>
-                    <h3 className="font-display text-lg font-bold text-primary transition-colors duration-200 group-hover:text-gold">
-                      {v.title}
-                    </h3>
-                    <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      {v.desc}
-                    </p>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-border/60 flex items-center gap-1.5 text-[11px] font-semibold text-primary">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-gold" />
-                    <span>{t("about.certifiedQuality", "Contrôle qualité certifié")}</span>
-                  </div>
+              <Reveal key={v.title} delay={idx * 80}>
+                <div className="flex h-full flex-col">
+                  <v.icon className="h-6 w-6 text-amber-800 dark:text-gold" strokeWidth={1.5} />
+                  <h3 className="mt-5 font-display text-xl text-stone-950 dark:text-stone-50">{v.title}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-stone-600 dark:text-stone-400">{v.desc}</p>
+                  <p className="mt-5 border-t border-stone-300/70 pt-3 text-sm italic text-stone-500 dark:border-stone-700">
+                    {v.tag}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -345,99 +236,61 @@ export function AboutPage() {
         </div>
       </section>
 
-      {/* ============================================================ */}
-      {/* 4. LE CHEMIN DU GRAIN : 4 ÉTAPES NUMÉROTÉES                   */}
-      {/* ============================================================ */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:py-24 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <Reveal delay={0}>
-            <span className="text-xs font-semibold uppercase tracking-widest text-gold inline-flex items-center gap-2">
-              <span className="h-px w-4 bg-gold" />
-              {t("about.timelineEyebrow", "De la Terre à l'Assiette")}
-              <span className="h-px w-4 bg-gold" />
-            </span>
-          </Reveal>
-          <Reveal delay={100}>
-            <h2 className="mt-2 font-display text-3xl sm:text-4xl font-bold text-primary">
-              {t("about.timelineTitle", "L'Itinéraire d'un Grain d'Excellence")}
-            </h2>
-          </Reveal>
-          <Reveal delay={180}>
-            <p className="mt-3 text-sm text-muted-foreground">
-              {t("about.timelineSubtitle", "Un savoir-faire artisanal combiné à des technologies modernes de nettoyage et de mouture.")}
-            </p>
-          </Reveal>
-        </div>
+      {/* 4. Le chemin du grain (étapes ordonnées) */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
+        <Reveal>
+          <SectionHeading
+            title={t("about.timelineTitle", "L'Itinéraire d'un Grain d'Excellence")}
+            description={t(
+              "about.timelineSubtitle",
+              "Un savoir-faire artisanal combiné à des méthodes modernes de tri et de transformation.",
+            )}
+          />
+        </Reveal>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-12 grid gap-x-10 gap-y-12 md:grid-cols-2 lg:grid-cols-4">
           {timeline.map((step, idx) => (
-            <Reveal key={step.n} delay={idx * 100}>
-              <div className="relative flex flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:border-gold/50 hover:shadow-lg h-full group">
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gold/15 font-display text-lg font-bold text-gold border border-gold/30">
-                      {step.n}
-                    </span>
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary/80 text-primary border border-border/80">
-                      <step.icon className="h-5 w-5 text-gold" />
-                    </div>
-                  </div>
-                  <h3 className="font-display text-base font-bold text-primary group-hover:text-gold transition-colors">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    {step.desc}
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span className="font-medium text-gold">{step.detail}</span>
-                  <Check className="h-3.5 w-3.5 text-gold" />
-                </div>
-              </div>
+            <Reveal key={step.n} delay={idx * 90}>
+              <li className="flex h-full flex-col border-t border-stone-900/80 pt-5 dark:border-stone-300/60">
+                <span className="font-display text-sm italic text-amber-800 dark:text-gold">{step.n}</span>
+                <h3 className="mt-2 font-display text-xl text-stone-950 dark:text-stone-50">{step.title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-stone-600 dark:text-stone-400">{step.desc}</p>
+                <p className="mt-4 text-sm italic text-stone-500">{step.detail}</p>
+              </li>
             </Reveal>
           ))}
-        </div>
+        </ol>
       </section>
 
-      {/* ============================================================ */}
-      {/* 5. MANIFESTE & PAROLE DE LA FONDATRICE                        */}
-      {/* ============================================================ */}
-      <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6 lg:px-8">
-        <Reveal delay={100}>
-          <div className="relative overflow-hidden rounded-3xl border border-gold/35 bg-card/60 backdrop-blur-md p-8 sm:p-12 shadow-xl">
-            <Quote className="h-12 w-12 text-gold/25 absolute -top-2 -left-2" />
-            <div className="relative z-10 text-center max-w-3xl mx-auto space-y-5">
-              <div className="mx-auto h-20 w-20 rounded-full border-2 border-gold/50 p-1 shadow-lg shadow-gold/10">
-                <img
-                  src={founderImage}
-                  alt="DOSSOU Lucette"
-                  className="h-full w-full rounded-full object-cover object-top"
-                />
-              </div>
-              <p
-                style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
-                className="text-base sm:text-lg md:text-[1.18rem] text-foreground/90 font-normal italic leading-relaxed tracking-normal max-w-2xl mx-auto"
-              >
-                {t("about.quoteText", "« Cereals House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »")}
-              </p>
-              <div className="pt-4 border-t border-border/60">
-                <div
-                  style={{ fontFamily: '"Times New Roman", Times, Georgia, serif' }}
-                  className="text-base sm:text-lg font-bold text-gold tracking-wide"
-                >
-                  {t("about.quoteAuthor", "DOSSOU Lucette")}
-                </div>
-                <div className="text-xs text-muted-foreground mt-0.5">{t("about.quoteRole", "Fondatrice & CEO de Cereals House")}</div>
-              </div>
-            </div>
-          </div>
+      {/* 5. Parole de la fondatrice */}
+      <section className="mx-auto max-w-4xl px-4 pb-20 sm:px-6 lg:px-8">
+        <Reveal>
+          <figure className="border-y border-stone-200 py-14 text-center dark:border-stone-800">
+            <blockquote className="mx-auto max-w-3xl font-display text-2xl italic leading-snug text-stone-900 dark:text-stone-100 sm:text-[2rem]">
+              {t(
+                "about.quoteText",
+                "« Cereals House est née d’une recette de ma mère qui m’a aidée à me retrouver. Aujourd’hui, je veux à mon tour la partager avec le monde. »",
+              )}
+            </blockquote>
+            <figcaption className="mt-8 flex items-center justify-center gap-3">
+              <img
+                src={founderImage}
+                alt=""
+                className="h-11 w-11 rounded-full object-cover object-top"
+              />
+              <span className="text-left text-sm">
+                <span className="block text-stone-950 dark:text-stone-50">{t("about.quoteAuthor", "DOSSOU Lucette")}</span>
+                <span className="block italic text-stone-500">
+                  {t("about.quoteRole", "Fondatrice & CEO de Cereals House")}
+                </span>
+              </span>
+            </figcaption>
+          </figure>
         </Reveal>
       </section>
 
-      {/* ============================================================ */}
-      {/* 6. CALL TO ACTION FINAL B2B & BOUTIQUE                       */}
-      {/* ============================================================ */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
+      {/* 6. Appel à l'action */}
+      <section className="mx-auto max-w-7xl px-4 pb-4 sm:px-6 lg:px-8">
         <Reveal>
           <GoldCtaBanner
             variant="discovery"
@@ -445,7 +298,7 @@ export function AboutPage() {
             title={t("about.ctaTitle", "Prêt(e) à redécouvrir le goût authentique du bon grain ?")}
             description={t(
               "about.ctaDesc",
-              "Explorez notre sélection de farines et céréales du terroir et faites-vous livrer chez vous sous 24h à 48h.",
+              "Explorez notre sélection de farines et céréales du terroir et faites-vous livrer chez vous en toute sérénité.",
             )}
             primaryAction={{
               label: t("about.ctaBtn", "Explorer la Boutique"),

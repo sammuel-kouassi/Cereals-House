@@ -141,7 +141,7 @@ export function buildOrderStatusEmail(params: {
     <div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eee;box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
       <div style="background:${BROWN};padding:24px 28px;text-align:center;">
         <span style="color:${GOLD};font-size:14px;letter-spacing:3px;text-transform:uppercase;font-weight:bold;">Cereals House</span>
-        <p style="margin:4px 0 0 0;color:#FFF;font-size:11px;letter-spacing:1px;opacity:0.8;">Meunerie & Terroirs d'Afrique</p>
+        <p style="margin:4px 0 0 0;color:#FFF;font-size:11px;letter-spacing:1px;opacity:0.8;">Terroirs & Céréales d'Afrique</p>
       </div>
       <div style="padding:28px;">
         <h1 style="margin:0 0 8px;color:${BROWN};font-size:22px;">${copy.title}</h1>

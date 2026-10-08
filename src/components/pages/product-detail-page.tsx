@@ -159,15 +159,15 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       <div className="grid gap-12 lg:grid-cols-2 items-start">
         {/* Colonne Galerie & Image avec Architecture Double-Bezel */}
         <div className="space-y-5">
-          <div className="rounded-[2.25rem] p-2 bg-stone-900/[0.03] dark:bg-white/[0.04] ring-1 ring-stone-900/5 dark:ring-white/10 shadow-lg">
-            <div className="relative aspect-square overflow-hidden rounded-[calc(2.25rem-0.5rem)] border border-stone-200/80 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 shadow-inner">
+          <div>
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100 dark:bg-stone-900">
               <img
                 src={product.image_url || imageFor(product.slug)}
                 alt={product.name}
-                className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                className="h-full w-full object-cover"
               />
               {product.is_featured && (
-                <span className="absolute left-4 top-4 rounded-full bg-gradient-to-r from-gold via-amber-400 to-amber-600 px-4 py-1 text-xs font-bold text-stone-950 shadow-md">
+                <span className="absolute left-4 top-4 rounded-full bg-[#fbf8f3] px-3 py-1 text-xs italic text-stone-800">
                   {t("product.featuredBadge", "Coup de Cœur de l'Atelier")}
                 </span>
               )}
@@ -176,20 +176,20 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 
           {/* Garanties visuelles sous l'image en 3 dalles tactiles */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
-              <Leaf className="h-5 w-5 text-amber-800 dark:text-gold" />
-              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.natural", "100% Naturel")}</span>
-              <span className="text-[10px] text-stone-500 font-light">{t("product.naturalSub", "Sans aucun additif")}</span>
+            <div className="flex flex-col items-center gap-1 border-t border-stone-200 pt-4 text-center dark:border-stone-800">
+              <Leaf className="h-5 w-5 text-amber-800 dark:text-gold" strokeWidth={1.5} />
+              <span className="text-sm text-stone-900 dark:text-stone-100">{t("product.natural", "100% Naturel")}</span>
+              <span className="text-xs italic text-stone-500">{t("product.naturalSub", "Sans aucun additif")}</span>
             </div>
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
-              <Truck className="h-5 w-5 text-amber-800 dark:text-gold" />
-              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.fastDelivery", "Livraison Express")}</span>
-              <span className="text-[10px] text-stone-500 font-light">{t("product.fastDeliverySub", "Suivi WhatsApp")}</span>
+            <div className="flex flex-col items-center gap-1 border-t border-stone-200 pt-4 text-center dark:border-stone-800">
+              <Truck className="h-5 w-5 text-amber-800 dark:text-gold" strokeWidth={1.5} />
+              <span className="text-sm text-stone-900 dark:text-stone-100">{t("product.fastDelivery", "Livraison suivie")}</span>
+              <span className="text-xs italic text-stone-500">{t("product.fastDeliverySub", "Suivi WhatsApp")}</span>
             </div>
-            <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-stone-200/80 dark:border-stone-800 bg-card p-4 text-center shadow-xs">
-              <ShieldCheck className="h-5 w-5 text-amber-800 dark:text-gold" />
-              <span className="font-bold text-xs text-stone-900 dark:text-stone-100">{t("product.securePayment", "Règlement Sécurisé")}</span>
-              <span className="text-[10px] text-stone-500 font-light">{t("product.securePaymentSub", "Wave, OM, MoMo, CB")}</span>
+            <div className="flex flex-col items-center gap-1 border-t border-stone-200 pt-4 text-center dark:border-stone-800">
+              <ShieldCheck className="h-5 w-5 text-amber-800 dark:text-gold" strokeWidth={1.5} />
+              <span className="text-sm text-stone-900 dark:text-stone-100">{t("product.securePayment", "Règlement Sécurisé")}</span>
+              <span className="text-xs italic text-stone-500">{t("product.securePaymentSub", "Wave, OM, MoMo, CB")}</span>
             </div>
           </div>
         </div>
@@ -198,53 +198,59 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         <div className="flex flex-col justify-between space-y-6">
           <div>
             {product.category && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-900 dark:text-gold">
-                {product.category}
-              </span>
+              <p className="text-sm italic text-amber-800 dark:text-gold">{product.category}</p>
             )}
-            <h1 className="mt-2.5 font-display text-2xl sm:text-3xl lg:text-[2.2rem] font-bold text-stone-950 dark:text-stone-100 leading-snug">
+            <h1 className="mt-2 font-display text-[2rem] font-normal leading-[1.1] tracking-[-0.015em] text-stone-950 dark:text-stone-50 sm:text-[2.6rem]">
               {product.name}
             </h1>
 
-            {/* Note moyenne */}
-            <div className="mt-2.5 flex items-center gap-2">
-              <div className="flex text-gold">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-gold" />
-                ))}
+            {/* Note moyenne : uniquement à partir des avis réels */}
+            {reviews.length > 0 && (
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex text-gold">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      strokeWidth={0}
+                      className={`h-3.5 w-3.5 ${
+                        i < Math.round(reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) / reviews.length)
+                          ? "fill-current"
+                          : "fill-stone-300 dark:fill-stone-700"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-stone-500">{t("product.reviewsVerified", { count: reviews.length })}</span>
               </div>
-              <span className="text-xs text-stone-500 font-medium">
-                ({reviews.length > 0 ? t("product.reviewsVerified", { count: reviews.length }) : t("product.reviewsExcellent", "4.9 / 5 — Recommandé par nos cuisiniers")})
-              </span>
-            </div>
+            )}
 
             {/* Prix */}
             <div className="mt-4 flex items-baseline gap-2">
-              <span className="font-display text-2xl sm:text-3xl font-bold text-stone-950 dark:text-stone-100">
+              <span className="font-display text-3xl text-stone-950 dark:text-stone-50">
                 {formatPrice(unitPrice, currencySymbol)}
               </span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
+              <span className="text-sm text-stone-500">
                 / {product.unit}
               </span>
             </div>
 
             {product.short_description && (
-              <p className="mt-4 text-xs sm:text-sm text-stone-600 dark:text-stone-400 leading-relaxed font-light">
+              <p className="mt-4 max-w-prose text-[0.95rem] leading-relaxed text-stone-600 dark:text-stone-400">
                 {product.short_description}
               </p>
             )}
 
             {/* État du stock */}
             <div className="mt-6 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+              <span className="text-sm text-stone-700 dark:text-stone-300">
                 {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} sachets) : préparation immédiate` })}
               </span>
             </div>
 
             {/* Sélecteur de Quantité & Bouton d'Achat Tactile */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <div className="flex items-center rounded-full border border-stone-300/80 dark:border-stone-700 bg-card p-1 shadow-xs">
+              <div className="flex items-center rounded-full border border-stone-300 p-1 dark:border-stone-700">
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
@@ -253,7 +259,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="w-12 text-center text-sm font-bold text-stone-950 dark:text-stone-100">{qty}</span>
+                <span className="w-12 text-center text-base tabular-nums text-stone-950 dark:text-stone-100">{qty}</span>
                 <button
                   type="button"
                   onClick={() => setQty((q) => q + 1)}
@@ -267,10 +273,10 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`flex-1 inline-flex items-center justify-between rounded-full pl-6 pr-2 py-2 text-xs sm:text-sm font-bold shadow-xl transition-all duration-300 cursor-pointer ${
+                className={`inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-full px-6 py-3 text-sm transition-colors duration-300 cursor-pointer ${
                   addedAnimation
-                    ? "bg-emerald-600 text-white scale-[1.02]"
-                    : "bg-[#1C140E] text-white hover:bg-gold hover:text-stone-950 hover:scale-[1.01]"
+                    ? "bg-emerald-700 text-white"
+                    : "bg-[#2c1b11] text-stone-50 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
                 }`}
               >
                 <span>
@@ -278,24 +284,22 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                     ? t("product.addedToast", "Ajouté au panier !")
                     : `${t("product.addToCart", "Ajouter au panier")} • ${formatPrice(totalPrice, currencySymbol)}`}
                 </span>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-gold group-hover:bg-stone-950">
-                  {addedAnimation ? <Check className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
-                </span>
+                {addedAnimation ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />}
               </button>
             </div>
 
             {/* Réassurance sous le bouton d'achat */}
-            <div className="mt-8 pt-6 border-t border-border/60 space-y-2.5 text-xs text-muted-foreground">
+            <div className="mt-8 space-y-2.5 border-t border-stone-200 pt-6 text-sm text-stone-600 dark:border-stone-800 dark:text-stone-400">
               <div className="flex items-center gap-2.5">
-                <Check className="h-4 w-4 text-gold shrink-0" />
+                <Check className="h-4 w-4 shrink-0 text-amber-800 dark:text-gold" />
                 <span>{t("product.reassurance1", "Sélection rigoureuse auprès de coopératives et petits producteurs locaux")}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Check className="h-4 w-4 text-gold shrink-0" />
+                <Check className="h-4 w-4 shrink-0 text-amber-800 dark:text-gold" />
                 <span>{t("product.reassurance2", "Emballage hermétique de haute qualité préservant saveur et fraîcheur")}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Check className="h-4 w-4 text-gold shrink-0" />
+                <Check className="h-4 w-4 shrink-0 text-amber-800 dark:text-gold" />
                 <span>{t("product.reassurance3", "Service client et assistance commande joignables 7j/7 sur WhatsApp")}</span>
               </div>
             </div>
@@ -304,19 +308,16 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       </div>
 
       {/* Caractéristiques & Onglets Détaillés - Pleine largeur sous les blocs garanties */}
-      <section className="pt-8 border-t border-border/70">
+      <section className="border-t border-stone-200 pt-10 dark:border-stone-800">
         <div className="mb-6">
-          <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-            {t("product.detailsSectionEyebrow", "Fiche Complète & Savoir-Faire")}
-          </span>
-          <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-primary">
+          <h2 className="font-display text-[1.7rem] font-normal leading-tight text-stone-950 dark:text-stone-50 sm:text-[2.1rem]">
             {t("product.detailsSectionTitle", "Caractéristiques & Conseils d'Utilisation")}
           </h2>
         </div>
 
         {/* Boutons de navigation segmentés style pilule (comme l'image de référence) */}
-        <div className="flex items-center pb-2">
-          <div className="inline-flex flex-wrap items-center p-1.5 rounded-full bg-secondary/50 border border-border/80 gap-1 shadow-inner">
+        <div className="-mx-4 overflow-x-auto px-4 scrollbar-none">
+          <div className="flex min-w-max items-center gap-6 border-b border-stone-200 dark:border-stone-800">
             {[
               { id: "description", label: t("product.detailsTab", "Description & Histoire") },
               { id: "nutrition", label: t("product.nutritionTab", "Composition & Valeurs") },
@@ -330,10 +331,10 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  className={`-mb-px border-b-2 py-3 text-[0.95rem] transition-colors cursor-pointer ${
                     active
-                      ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-card/40"
+                      ? "border-gold text-stone-950 dark:text-stone-50"
+                      : "border-transparent text-stone-500 hover:text-stone-900 dark:hover:text-stone-200"
                   }`}
                 >
                   {tab.label}
@@ -344,18 +345,18 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         </div>
 
         {/* Contenu des onglets ultra-soigné et spacieux */}
-        <div className="mt-6 rounded-3xl border border-border/70 bg-card/40 backdrop-blur-md p-6 sm:p-8 shadow-xs min-h-[160px]">
+        <div className="mt-8 min-h-[160px]">
           {/* TAB 1 : Description & Histoire */}
           {activeTab === "description" && (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+              <div className="rounded-xl border border-stone-200 p-5 sm:p-6 dark:border-stone-800">
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
                   {product.description || product.short_description || t("product.africanTerroirDesc", "Céréale saine récoltée par nos coopératives partenaires, triée sans sable ni cailloux.")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 sm:p-5 flex items-start gap-3.5">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
                     <Leaf className="h-5 w-5" />
                   </div>
@@ -365,7 +366,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 sm:p-5 flex items-start gap-3.5">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
                     <ShieldCheck className="h-5 w-5" />
                   </div>
@@ -375,7 +376,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 sm:p-5 flex items-start gap-3.5">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 sm:p-5 flex items-start gap-3.5">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
                     <Sparkles className="h-5 w-5" />
                   </div>
@@ -391,9 +392,9 @@ export function ProductDetailPage({ slug }: { slug: string }) {
           {/* TAB 2 : Composition & Valeurs */}
           {activeTab === "nutrition" && (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+              <div className="rounded-xl border border-stone-200 p-5 sm:p-6 dark:border-stone-800">
                 <div className="flex items-center gap-2 mb-2.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gold">{t("product.ingredientsFormula", "Ingrédients & Formule")}</span>
+                  <span className="text-sm italic text-amber-800 dark:text-gold">{t("product.ingredientsFormula", "Ingrédients & Formule")}</span>
                 </div>
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
                   {product.composition || t("product.defaultComposition", "100% céréales locales pures sans conservateurs chimiques, riche en fibres solubles, glucides lents et minéraux essentiels.")}
@@ -401,23 +402,23 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               </div>
 
               <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.slowCarbs", "Glucides lents")}</span>
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 text-center">
+                  <span className="text-xs italic text-stone-500 block">{t("product.slowCarbs", "Glucides lents")}</span>
                   <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.diffuseEnergy", "Énergie diffuse")}</span>
                   <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.lastingSatiety", "Satiété durable")}</span>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.plantFibers", "Fibres végétales")}</span>
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 text-center">
+                  <span className="text-xs italic text-stone-500 block">{t("product.plantFibers", "Fibres végétales")}</span>
                   <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.gentleComfort", "Douceur")}</span>
                   <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.peacefulDigestion", "Digestion sereine")}</span>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.micronutrients", "Micronutriments")}</span>
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 text-center">
+                  <span className="text-xs italic text-stone-500 block">{t("product.micronutrients", "Micronutriments")}</span>
                   <span className="text-base sm:text-lg font-bold text-primary mt-1 block">{t("product.ironZinc", "Fer & Zinc")}</span>
                   <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.essentialMinerals", "Minéraux essentiels")}</span>
                 </div>
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 text-center">
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground tracking-wider block">{t("product.qualityLabel", "Qualité")}</span>
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 text-center">
+                  <span className="text-xs italic text-stone-500 block">{t("product.qualityLabel", "Qualité")}</span>
                   <span className="text-base sm:text-lg font-bold text-gold mt-1 block">{t("product.pureNaturalLabel", "100% Naturel")}</span>
                   <span className="text-xs text-muted-foreground mt-0.5 block">{t("product.noPreservatives", "Sans conservateurs")}</span>
                 </div>
@@ -428,14 +429,14 @@ export function ProductDetailPage({ slug }: { slug: string }) {
           {/* TAB 3 : Bienfaits & Santé */}
           {activeTab === "benefits" && (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+              <div className="rounded-xl border border-stone-200 p-5 sm:p-6 dark:border-stone-800">
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed font-medium">
                   {product.benefits || t("product.defaultBenefits", "Idéal pour l'énergie quotidienne, la vitalité du foyer et la digestion douce chez les enfants comme chez les adultes.")}
                 </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 flex items-start gap-3.5">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-5 flex items-start gap-3.5">
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-green-500/15 text-green-700">
                     <Check className="h-4 w-4" />
                   </div>
@@ -445,13 +446,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 flex items-start gap-3.5">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-5 flex items-start gap-3.5">
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-green-500/15 text-green-700">
                     <Check className="h-4 w-4" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-primary">{t("product.gutComfort", "Confort Intestinal & Légèreté")}</h4>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{t("product.gutComfortDesc", "Mouture extra-fine et farines douces convenant aux estomacs sensibles des tout-petits et adultes.")}</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{t("product.gutComfortDesc", "Farines fines et douces, adaptées aux estomacs sensibles.")}</p>
                   </div>
                 </div>
               </div>
@@ -461,10 +462,10 @@ export function ProductDetailPage({ slug }: { slug: string }) {
           {/* TAB 4 : Idées Recettes & Préparation */}
           {activeTab === "recipes" && (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-border/80 bg-card/70 p-5 sm:p-6 shadow-xs">
+              <div className="rounded-xl border border-stone-200 p-5 sm:p-6 dark:border-stone-800">
                 <div className="flex items-center gap-2 mb-2">
                   <ChefHat className="h-4 w-4 text-gold" />
-                  <span className="text-xs font-bold uppercase tracking-wider text-gold">{t("product.prepTip", "Conseil de Préparation")}</span>
+                  <span className="text-sm italic text-amber-800 dark:text-gold">{t("product.prepTip", "Conseil de Préparation")}</span>
                 </div>
                 <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
                   {product.preparation || t("product.defaultPreparation", "Cuisson rapide à la vapeur (5 min) ou en bouillie onctueuse avec un peu de lait frais, une touche de miel et une pincée de muscade.")}
@@ -472,23 +473,23 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">01</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step1Tag", "Étape 1")}</span>
+                  <span className="text-xs italic text-amber-800 dark:text-gold block">{t("product.step1Tag", "Étape 1")}</span>
                   <h4 className="text-sm font-bold text-primary mt-1">{t("product.step1Title", "Délayer à froid")}</h4>
                   <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step1Desc", "Mélanger la dose souhaitée avec un peu d'eau ou de lait tiède jusqu'à consistance lisse.")}</p>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">02</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step2Tag", "Étape 2")}</span>
+                  <span className="text-xs italic text-amber-800 dark:text-gold block">{t("product.step2Tag", "Étape 2")}</span>
                   <h4 className="text-sm font-bold text-primary mt-1">{t("product.step2Title", "Cuisson à feu doux")}</h4>
                   <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step2Desc", "Verser dans de l'eau frémissante et remuer continuellement pendant 5 à 8 minutes.")}</p>
                 </div>
 
-                <div className="rounded-2xl border border-border/60 bg-secondary/30 p-5 relative overflow-hidden">
+                <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-5 relative overflow-hidden">
                   <span className="absolute top-2 right-3 font-display text-3xl font-bold text-border/70 select-none">03</span>
-                  <span className="text-[10px] font-bold uppercase text-gold tracking-wider block">{t("product.step3Tag", "Étape 3")}</span>
+                  <span className="text-xs italic text-amber-800 dark:text-gold block">{t("product.step3Tag", "Étape 3")}</span>
                   <h4 className="text-sm font-bold text-primary mt-1">{t("product.step3Title", "Sublimer & Déguster")}</h4>
                   <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{t("product.step3Desc", "Agrémenter selon vos envies : une cuillère de miel pur, cannelle ou lait végétal frais.")}</p>
                 </div>
@@ -500,13 +501,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
           {activeTab === "reviews" && (
             <div className="space-y-6">
               {reviews.length === 0 ? (
-                <div className="rounded-2xl border border-border/80 bg-card/60 p-8 text-center">
+                <div className="rounded-xl border border-stone-200 dark:border-stone-800 p-8 text-center">
                   <p className="italic text-sm text-muted-foreground/80">{t("product.noReviews", "Soyez le premier client à donner votre avis sur cette céréale.")}</p>
                 </div>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {reviews.map((r, i) => (
-                    <div key={i} className="rounded-2xl border border-border/60 bg-secondary/30 p-4">
+                    <div key={i} className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4">
                       <div className="flex items-center justify-between text-xs mb-1.5">
                         <span className="font-bold text-primary">{r.author_name}</span>
                         <div className="flex text-gold">
@@ -567,8 +568,8 @@ export function ProductDetailPage({ slug }: { slug: string }) {
       {relatedProducts.length > 0 && (
         <section className="pt-12 border-t border-border/80">
           <div className="mb-6">
-            <span className="text-xs font-semibold uppercase tracking-widest text-gold">{t("product.relatedEyebrow", "Dans la même collection")}</span>
-            <h2 className="mt-1 font-display text-2xl font-bold text-primary">{t("product.relatedTitle", "Céréales complémentaires recommandées")}</h2>
+
+            <h2 className="font-display text-[1.7rem] font-normal leading-tight text-stone-950 dark:text-stone-50 sm:text-[2.1rem]">{t("product.relatedTitle", "Céréales complémentaires recommandées")}</h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {relatedProducts.map((p) => (
