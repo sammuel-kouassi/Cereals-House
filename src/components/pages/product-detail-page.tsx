@@ -107,7 +107,14 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   const unitPrice = priceObj?.price ?? basePriceXof;
   const totalPrice = unitPrice * qty;
 
+  // Stock : null = non suivi (pas de limite) ; 0 ou moins = rupture
+  const stock = typeof product.stock === "number" ? product.stock : null;
+  const isOutOfStock = stock !== null && stock <= 0;
+  const isLowStock = stock !== null && stock > 0 && stock <= 15;
+  const maxQty = stock !== null && stock > 0 ? stock : Number.POSITIVE_INFINITY;
+
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     addToCart({
       slug: product.slug,
       name: product.name,
@@ -242,19 +249,32 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 
             {/* État du stock */}
             <div className="mt-6 flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-              <span className="text-sm text-stone-700 dark:text-stone-300">
-                {t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} sachets) : préparation immédiate` })}
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isOutOfStock ? "bg-red-600" : isLowStock ? "bg-amber-600" : "bg-emerald-600"
+                }`}
+              />
+              <span className={`text-sm ${isOutOfStock ? "text-red-700 dark:text-red-400" : "text-stone-700 dark:text-stone-300"}`}>
+                {isOutOfStock
+                  ? t("product.outOfStock", "Rupture temporaire")
+                  : isLowStock
+                    ? t("product.lowStock", { count: stock, defaultValue: `Plus que ${stock} en stock` })
+                    : t("product.inStockShippingToday", { count: product.stock, defaultValue: `En stock (${product.stock} sachets) : préparation immédiate` })}
               </span>
             </div>
 
             {/* Sélecteur de Quantité & Bouton d'Achat Tactile */}
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <div className="flex items-center rounded-full border border-stone-300 p-1 dark:border-stone-700">
+              <div
+                className={`flex items-center rounded-full border border-stone-300 p-1 dark:border-stone-700 ${
+                  isOutOfStock ? "opacity-40" : ""
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
+                  disabled={isOutOfStock || qty <= 1}
+                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer disabled:cursor-not-allowed disabled:hover:bg-transparent"
                   aria-label={t("common.decrease", "Diminuer")}
                 >
                   <Minus className="h-4 w-4" />
@@ -262,8 +282,9 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 <span className="w-12 text-center text-base tabular-nums text-stone-950 dark:text-stone-100">{qty}</span>
                 <button
                   type="button"
-                  onClick={() => setQty((q) => q + 1)}
-                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer"
+                  onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
+                  disabled={isOutOfStock || qty >= maxQty}
+                  className="grid h-10 w-10 place-items-center rounded-full text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
                   aria-label={t("common.increase", "Augmenter")}
                 >
                   <Plus className="h-4 w-4" />
@@ -273,18 +294,24 @@ export function ProductDetailPage({ slug }: { slug: string }) {
               <button
                 type="button"
                 onClick={handleAddToCart}
-                className={`inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-full px-6 py-3 text-sm transition-colors duration-300 cursor-pointer ${
-                  addedAnimation
-                    ? "bg-emerald-700 text-white"
-                    : "bg-[#2c1b11] text-stone-50 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
+                disabled={isOutOfStock}
+                aria-disabled={isOutOfStock}
+                className={`inline-flex min-h-12 flex-1 items-center justify-center gap-3 rounded-full px-6 py-3 text-sm transition-colors duration-300 ${
+                  isOutOfStock
+                    ? "cursor-not-allowed bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-500"
+                    : addedAnimation
+                      ? "cursor-pointer bg-emerald-700 text-white"
+                      : "cursor-pointer bg-[#2c1b11] text-stone-50 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
                 }`}
               >
                 <span>
-                  {addedAnimation
+                  {isOutOfStock
+                    ? t("product.outOfStock", "Rupture temporaire")
+                    : addedAnimation
                     ? t("product.addedToast", "Ajouté au panier !")
                     : `${t("product.addToCart", "Ajouter au panier")} • ${formatPrice(totalPrice, currencySymbol)}`}
                 </span>
-                {addedAnimation ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />}
+                {!isOutOfStock && (addedAnimation ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />)}
               </button>
             </div>
 
