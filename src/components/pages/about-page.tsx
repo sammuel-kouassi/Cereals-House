@@ -68,7 +68,7 @@ export function AboutPage() {
 
   const stats = [
     { value: "100%", label: t("about.stat1Label", "Naturel & Sans Additif"), hint: t("about.stat1Hint", "Zéro produit chimique") },
-    { value: "1 200+", label: t("about.stat2Label", "Familles Nourries"), hint: t("about.stat2Hint", "Chaque semaine") },
+    { value: "1 200+", label: t("about.stat2Label", "Familles nourries"), hint: t("about.stat2Hint", "Depuis l’arrivée de Cereals House") },
     { value: "8", label: t("about.stat3Label", "Pays Desservis"), hint: t("about.stat3Hint", "Afrique & Diaspora") },
     { value: "24-48h", label: t("about.stat4Label", "Délai Moyen de Livraison"), hint: t("about.stat4Hint", "Suivi en direct") },
   ];

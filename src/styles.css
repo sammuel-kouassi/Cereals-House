@@ -177,12 +177,12 @@
     scroll-padding-top: 96px;
     overflow-x: clip;
     max-width: 100%;
-    font-size: 14.5px;
+    font-size: 15.5px;
     -webkit-tap-highlight-color: transparent;
   }
   @media (min-width: 768px) {
     html {
-      font-size: 15px;
+      font-size: 16px;
     }
   }
   body {

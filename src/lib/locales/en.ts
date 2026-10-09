@@ -341,7 +341,7 @@ export const en: Dict = {
     stat1Label: "Natural & Additive-Free",
     stat1Hint: "Zero chemicals",
     stat2Label: "Families Nourished",
-    stat2Hint: "Every single week",
+    stat2Hint: "Since Cereals House began",
     stat3Label: "Countries Served",
     stat3Hint: "Africa & Diaspora",
     stat4Label: "Average Delivery Time",
