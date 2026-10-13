@@ -19,6 +19,26 @@ import { handleGeniusPayWebhook } from "./lib/payments/geniuspay.webhook.server"
 import { handleInvoicePdfDownload } from "./lib/receipt/download-invoice.server";
 import { handleRobotsTxt, handleSitemapXml } from "./lib/seo/sitemap.server";
 
+// Anciennes adresses sans langue (avant l'ajout de /fr et /en)
+const LEGACY_PATH = /^\/(about|contact|cart|checkout|auth|products(\/[^/]+)?|orders(\/[^/]+)?|pay\/[^/]+)$/;
+
+/** Adresse officielle vers laquelle rediriger, ou null si l'adresse est déjà la bonne. */
+function canonicalRedirectPath(pathname: string): string | null {
+  if (pathname === "/") return "/fr";
+  // Barre finale : /fr/ -> /fr, /fr/products/ -> /fr/products
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    const trimmed = pathname.replace(/\/+$/, "") || "/";
+    return canonicalRedirectPath(trimmed) ?? trimmed;
+  }
+  // Langue en majuscules : /FR/... -> /fr/...
+  const langMatch = pathname.match(/^\/(fr|en)(?=\/|$)/i);
+  if (langMatch && langMatch[1] !== langMatch[1].toLowerCase()) {
+    return `/${langMatch[1].toLowerCase()}${pathname.slice(3)}`;
+  }
+  if (LEGACY_PATH.test(pathname)) return `/fr${pathname}`;
+  return null;
+}
+
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
@@ -62,6 +82,16 @@ export default {
       // Référencement : servis avant le routeur (sinon redirigés vers /fr/...)
       if (pathname === "/robots.txt") return handleRobotsTxt();
       if (pathname === "/sitemap.xml") return await handleSitemapXml();
+
+      // Redirections permanentes (301) vers l'adresse officielle de chaque page.
+      // Une redirection temporaire (307) fait garder l'ancienne adresse par Google.
+      if (request.method === "GET" || request.method === "HEAD") {
+        const canonicalPath = canonicalRedirectPath(pathname);
+        if (canonicalPath) {
+          const { origin, search } = new URL(request.url);
+          return Response.redirect(`${origin}${canonicalPath}${search}`, 301);
+        }
+      }
 
       if (pathname === "/api/geniuspay/webhook" || pathname === "/api/webhooks/geniuspay") {
         return await handleGeniusPayWebhook(request);
