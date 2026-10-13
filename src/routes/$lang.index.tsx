@@ -8,7 +8,7 @@ export const Route = createFileRoute("/$lang/")({
       {
         name: "description",
         content:
-          "Cereals House : riz parfumé, mil, fonio, farines infantiles, maïs et plus. Commande en ligne, paiement Mobile Money, livraison rapide.",
+          "Cereals House : céréales et produits d’Afrique de l’Ouest (mil, fonio, sorgho, maïs, farines) soigneusement triés, sans sable ni conservateurs. Commande en ligne, paiement Mobile Money et carte, livraison suivie.",
       },
     ],
   }),

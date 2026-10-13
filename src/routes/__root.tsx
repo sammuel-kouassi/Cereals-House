@@ -25,6 +25,13 @@ import { SiteFooter } from "@/components/site-footer";
 import logo from "@/assets/logo.jpeg";
 
 import { getLocalizedPath } from "@/lib/i18n-routing";
+import {
+  SITE_URL,
+  SITE_NAME,
+  DEFAULT_OG_IMAGE,
+  localizedPath,
+  organizationJsonLd,
+} from "@/lib/seo";
 
 /** Fond partagé des écrans 404/Erreur : grain discret + halo doré, cohérent avec l'identité de la marque. */
 function StatusScreen({ children }: { children: ReactNode }) {
@@ -121,7 +128,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: ({ matches }) => {
+    // Page en cours (dernière route) : sert à l'URL canonique et aux liens FR/EN
+    const pathname = matches[matches.length - 1]?.pathname ?? "/";
+    const isLocalized = /^\/(fr|en)(\/|$)/.test(pathname);
+    const canonical = `${SITE_URL}${pathname === "/" ? "/fr" : pathname.replace(/\/$/, "")}`;
+    const lang = pathname.startsWith("/en") ? "en" : "fr";
+    const alternateLinks = isLocalized
+      ? [
+          { rel: "alternate", hrefLang: "fr", href: `${SITE_URL}${localizedPath(pathname, "fr")}` },
+          { rel: "alternate", hrefLang: "en", href: `${SITE_URL}${localizedPath(pathname, "en")}` },
+          { rel: "alternate", hrefLang: "x-default", href: `${SITE_URL}${localizedPath(pathname, "fr")}` },
+        ]
+      : [];
+
+    return {
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -139,15 +160,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Céréales et produits d'Afrique de l'Ouest soigneusement triés, sans sable ni conservateurs. Livraison suivie en Afrique de l'Ouest et diaspora.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: SITE_NAME },
+      { property: "og:url", content: canonical },
+      { property: "og:image", content: DEFAULT_OG_IMAGE },
+      { property: "og:locale", content: lang === "en" ? "en_US" : "fr_FR" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+      { name: "theme-color", content: "#2c1b11" },
       { name: "twitter:title", content: "Cereals House : Céréales & farines d'Afrique de l'Ouest" },
       {
         name: "twitter:description",
         content:
           "Céréales et produits d'Afrique de l'Ouest soigneusement triés, sans sable ni conservateurs. Livraison suivie en Afrique de l'Ouest et diaspora.",
       },
+      { "script:ld+json": organizationJsonLd() },
     ],
     links: [
+      { rel: "canonical", href: canonical },
+      ...alternateLinks,
+      { rel: "icon", type: "image/jpeg", href: "/logo.jpg" },
+      { rel: "apple-touch-icon", href: "/logo.jpg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -156,7 +188,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "stylesheet", href: appCss },
     ],
-  }),
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

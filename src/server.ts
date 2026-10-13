@@ -17,6 +17,7 @@ import { handleCinetPayNotify, handleCinetPayReturn } from "./lib/payments/cinet
 import { handlePaystackWebhook } from "./lib/payments/paystack.webhook.server";
 import { handleGeniusPayWebhook } from "./lib/payments/geniuspay.webhook.server";
 import { handleInvoicePdfDownload } from "./lib/receipt/download-invoice.server";
+import { handleRobotsTxt, handleSitemapXml } from "./lib/seo/sitemap.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -57,6 +58,11 @@ export default {
     try {
       // Callbacks CinetPay & Paystack, et téléchargement PDF direct
       const { pathname } = new URL(request.url);
+
+      // Référencement : servis avant le routeur (sinon redirigés vers /fr/...)
+      if (pathname === "/robots.txt") return handleRobotsTxt();
+      if (pathname === "/sitemap.xml") return await handleSitemapXml();
+
       if (pathname === "/api/geniuspay/webhook" || pathname === "/api/webhooks/geniuspay") {
         return await handleGeniusPayWebhook(request);
       }
