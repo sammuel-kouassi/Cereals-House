@@ -22,6 +22,8 @@ import { CartProvider } from "@/lib/cart-context";
 import { CountryProvider } from "@/lib/country-context";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { AnnouncementPopup } from "@/components/announcement-popup";
 import logo from "@/assets/logo.jpeg";
 
 import { getLocalizedPath } from "@/lib/i18n-routing";
@@ -38,8 +40,7 @@ function StatusScreen({ children }: { children: ReactNode }) {
   return (
     <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background px-4">
       <div className="bg-grain pointer-events-none absolute inset-0 opacity-60" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/[0.08] blur-3xl" />
-      <div className="relative max-w-md text-center motion-safe:animate-[fade-in_0.6s_ease-out_both]">
+      <div className="relative max-w-md text-center">
         {children}
       </div>
     </div>
@@ -53,30 +54,26 @@ function NotFoundComponent() {
       <img
         src={logo}
         alt="Cereals House"
-        className="mx-auto h-14 w-14 rounded-full object-cover ring-2 ring-gold/40 motion-safe:animate-[fade-in_0.5s_ease-out_both]"
+        className="mx-auto h-14 w-14 rounded-full object-cover ring-1 ring-stone-300 dark:ring-stone-700"
       />
       <h1
-        className="mt-6 font-display text-8xl font-bold text-gradient-gold motion-safe:animate-[fade-in_0.6s_ease-out_both]"
-        style={{ animationDelay: "80ms" }}
+        className="mt-6 font-display text-8xl text-amber-800 dark:text-gold"
       >
         404
       </h1>
       <h2
-        className="mt-4 flex items-center justify-center gap-2 text-xl font-semibold text-foreground motion-safe:animate-[fade-in_0.6s_ease-out_both]"
-        style={{ animationDelay: "140ms" }}
+        className="mt-4 flex items-center justify-center gap-2 text-xl text-foreground"
       >
         <Compass className="h-5 w-5 text-gold" /> {t("errors.notFoundTitle")}
       </h2>
       <p
-        className="mt-2 text-sm text-muted-foreground motion-safe:animate-[fade-in_0.6s_ease-out_both]"
-        style={{ animationDelay: "200ms" }}
+        className="mt-2 text-sm text-muted-foreground"
       >
         {t("errors.notFoundDesc")}
       </p>
       <Link
         to={getLocalizedPath("/")}
-        className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90 hover:shadow-[0_20px_50px_-15px_rgba(212,175,55,0.6)] motion-safe:animate-[fade-in_0.6s_ease-out_both]"
-        style={{ animationDelay: "260ms" }}
+        className="pressable mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] px-6 py-3 text-sm text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
       >
         <HomeIcon className="h-4 w-4" /> {t("errors.backHome")}
       </Link>
@@ -97,7 +94,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-destructive/10 text-destructive">
         <RotateCw className="h-6 w-6" />
       </div>
-      <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight text-foreground">
+      <h1 className="mt-6 font-display text-2xl tracking-tight text-foreground">
         {t("errors.pageTitle")}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("errors.pageDesc")}</p>
@@ -112,13 +109,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             router.invalidate();
             reset();
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-gold transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold/90"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] px-5 py-2.5 text-sm text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
         >
           <RotateCw className="h-4 w-4" /> {t("errors.retry")}
         </button>
         <Link
           to={getLocalizedPath("/")}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-300 hover:border-gold hover:text-gold"
+          className="pressable inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm text-foreground transition-colors duration-200 hover:border-stone-500"
         >
           <HomeIcon className="h-4 w-4" /> {t("errors.home")}
         </Link>
@@ -220,11 +217,17 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  // Pas d'animation au premier chargement (préserve le LCP), seulement lors des navigations
+  const isMobile = useIsMobile();
+  // Fondu d'entrée bref à chaque navigation, sans remonter l'arbre de la page.
+  // Pas d'animation au premier chargement (préserve le LCP).
+  const pageRef = useRef<HTMLDivElement>(null);
   const initialPathname = useRef(pathname);
-  const hasNavigated = useRef(false);
-  if (pathname !== initialPathname.current) hasNavigated.current = true;
-  const animatePage = hasNavigated.current;
+  useEffect(() => {
+    if (pathname === initialPathname.current) return;
+    initialPathname.current = "";
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    pageRef.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 150, easing: "ease-out" });
+  }, [pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -240,14 +243,26 @@ function RootComponent() {
               </a>
               <SiteHeader />
               <main id="main-content" className="flex-1">
-                {/* Clé sur le chemin : fondu d'entrée à chaque changement de page */}
-                <div key={pathname} className={animatePage ? "animate-page-enter" : undefined}>
+                <div ref={pageRef}>
                   <Outlet />
                 </div>
               </main>
               <SiteFooter />
             </div>
-            <Toaster position="top-right" richColors />
+            <AnnouncementPopup />
+            <Toaster
+              position={isMobile ? "bottom-center" : "bottom-right"}
+              offset={isMobile ? 16 : 24}
+              toastOptions={{
+                classNames: {
+                  toast:
+                    "!rounded-2xl !border !border-stone-200 !bg-[#fbf8f3] !text-stone-900 !font-[inherit] !shadow-[0_12px_32px_-12px_rgba(44,27,17,0.3)] dark:!border-stone-800 dark:!bg-[#1c140e] dark:!text-stone-100",
+                  description: "!text-stone-600 dark:!text-stone-400",
+                  actionButton: "!rounded-full !bg-[#2c1b11] !text-stone-50 dark:!bg-gold dark:!text-stone-950",
+                  error: "!border-red-300 dark:!border-red-900",
+                },
+              }}
+            />
           </CartProvider>
         </CountryProvider>
       </AuthProvider>

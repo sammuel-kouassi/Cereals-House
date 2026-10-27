@@ -145,7 +145,7 @@ export function OrderDetailPage({ id }: { id: string }) {
   if (!order) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
-        <h1 className="font-display text-3xl font-bold text-primary">
+        <h1 className="font-display text-3xl text-primary">
           {t("orderDetail.notFound", "Commande introuvable.")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -189,12 +189,12 @@ export function OrderDetailPage({ id }: { id: string }) {
             <span className="font-semibold text-primary">{order.order_number}</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-primary">
+            <h1 className="font-display text-2xl sm:text-3xl text-primary">
               Commande {order.order_number}
             </h1>
             {isCancellationPending && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-bold text-amber-800 dark:text-amber-200">
-                <Clock className="h-3.5 w-3.5 animate-spin" />
+                <Clock className="h-3.5 w-3.5" />
                 Annulation demandée (en attente admin)
               </span>
             )}
@@ -217,7 +217,7 @@ export function OrderDetailPage({ id }: { id: string }) {
         </div>
 
         <div className="text-left sm:text-right">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("orderDetail.total", "Total")}</div>
+          <div className="text-sm italic text-muted-foreground">{t("orderDetail.total", "Total")}</div>
           <div className="font-display text-2xl font-bold text-gold">
             {formatPrice(Number(order.total), order.currency_symbol || order.currency_code)}
           </div>
@@ -237,7 +237,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                   Demande d'annulation en cours d'examen par l'administrateur
                 </div>
-                <h3 className="font-display text-base font-bold text-primary">
+                <h3 className="font-display text-base text-primary">
                   Votre demande a bien été envoyée à notre administration
                 </h3>
                 <p className="text-xs text-foreground/80 leading-relaxed">
@@ -278,7 +278,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-display text-base font-bold text-destructive">
+                <h3 className="font-display text-base text-destructive">
                   Cette commande a été annulée
                 </h3>
                 <p className="text-xs text-foreground/80 leading-relaxed">
@@ -340,7 +340,7 @@ export function OrderDetailPage({ id }: { id: string }) {
       {!isCancelled && !isRefunded && (
         <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
           <div className="flex items-center justify-between gap-4 mb-6">
-            <h2 className="font-display text-lg font-bold text-primary">
+            <h2 className="font-display text-lg text-primary">
               {t("orderDetail.tracking", "Suivi de la livraison")}
             </h2>
             <span className="text-xs font-semibold text-gold bg-gold/10 px-3 py-1 rounded-full border border-gold/20">
@@ -379,7 +379,7 @@ export function OrderDetailPage({ id }: { id: string }) {
         {/* Liste des articles */}
         <div className="lg:col-span-8 space-y-6">
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs">
-            <h3 className="font-display text-base font-bold text-primary mb-4">{t("orderDetail.items", "Articles commandés")}</h3>
+            <h3 className="font-display text-base text-primary mb-4">{t("orderDetail.items", "Articles commandés")}</h3>
             <div className="divide-y divide-border/60">
               {items.map((item: any) => (
                 <div key={item.id} className="py-4 flex items-center justify-between gap-4 text-xs sm:text-sm">
@@ -422,7 +422,7 @@ export function OrderDetailPage({ id }: { id: string }) {
         {/* Détails livraison & paiement & Action d'annulation */}
         <div className="lg:col-span-4 space-y-6">
           <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-4 text-xs">
-            <h3 className="font-display text-base font-bold text-primary border-b border-border/80 pb-3">{t("orderDetail.delivery", "Adresse de livraison")}</h3>
+            <h3 className="font-display text-base text-primary border-b border-border/80 pb-3">{t("orderDetail.delivery", "Adresse de livraison")}</h3>
             <div>
               <span className="font-semibold text-primary block">{order.shipping_full_name}</span>
               <span className="text-muted-foreground block">{order.shipping_address}, {order.shipping_city}</span>
@@ -448,7 +448,7 @@ export function OrderDetailPage({ id }: { id: string }) {
           {isClientCancellable && (
             <div className="rounded-3xl border border-border/80 bg-card p-5 shadow-xs space-y-3">
               <div className="space-y-1">
-                <h4 className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <h4 className="font-display text-sm italic text-muted-foreground">
                   Gestion de votre commande
                 </h4>
                 <p className="text-[11px] text-muted-foreground">
@@ -471,7 +471,7 @@ export function OrderDetailPage({ id }: { id: string }) {
           {isCancellationPending && (
             <div className="rounded-3xl border border-amber-500/30 bg-amber-500/10 p-5 shadow-xs space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-amber-800 dark:text-amber-200">
-                <Clock className="h-4 w-4 shrink-0 text-amber-600 animate-spin" />
+                <Clock className="h-4 w-4 shrink-0 text-amber-600" />
                 <span>Annulation en attente d'approbation</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -514,7 +514,7 @@ export function OrderDetailPage({ id }: { id: string }) {
                   <AlertTriangle className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-display text-lg font-bold text-primary">
+                  <h3 className="font-display text-lg text-primary">
                     Demande d'annulation : {order.order_number}
                   </h3>
                   <p className="text-xs text-muted-foreground">

@@ -9,7 +9,6 @@ import {
   Truck,
   ShieldCheck,
   Users,
-  Sparkles,
   ChefHat,
   Flame,
   Star,
@@ -25,7 +24,7 @@ import { imageFor } from "@/lib/products-meta";
 import { useCountry } from "@/lib/country-context";
 import { useCart } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/format";
-import { Reveal } from "@/components/reveal";
+import { PriceTag, SaleBadge, resolvePrice } from "@/components/price-tag";
 import { PageLoader } from "@/components/page-loader";
 import { useAuth } from "@/lib/auth-context";
 import { ProductCard } from "@/components/product-card";
@@ -35,7 +34,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   const { country } = useCountry();
   const { addToCart } = useCart();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { getLocalizedPath } = useLanguageNavigation();
   const queryClient = useQueryClient();
 
@@ -86,13 +85,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <h1 className="font-display text-3xl font-bold text-primary">
+        <h1 className="font-display text-3xl text-primary">
           {t("product.notFound", "Céréale introuvable")}
         </h1>
         <p className="mt-2 text-muted-foreground">Ce produit n'existe pas ou n'est plus disponible.</p>
         <Link
           to={getLocalizedPath("/products")}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-2.5 text-xs font-semibold text-gold-foreground shadow-gold"
+          className="pressable mt-6 inline-flex items-center gap-2 rounded-full bg-[#2c1b11] px-6 py-3 text-sm text-stone-50 transition-colors hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
         >
           {t("product.backToShop", "Retourner à la boutique")}
         </Link>
@@ -102,9 +101,13 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 
   const currentCountryCode = country?.code ?? "CI";
   const currencySymbol = country?.currency_symbol ?? "FCFA";
-  const priceObj = product.product_prices?.find((p) => p.country_code === currentCountryCode);
-  const basePriceXof = product.product_prices?.find((p) => p.country_code === "CI")?.price ?? product.product_prices?.[0]?.price ?? 0;
-  const unitPrice = priceObj?.price ?? basePriceXof;
+  const { price: unitPrice, compareAt, percentOff } = resolvePrice(product.product_prices, currentCountryCode);
+  const promoEndsAt = product.promotion?.ends_at
+    ? new Date(product.promotion.ends_at).toLocaleDateString(i18n.language === "en" ? "en-GB" : "fr-FR", {
+        day: "numeric",
+        month: "long",
+      })
+    : null;
   const totalPrice = unitPrice * qty;
 
   // Stock : null = non suivi (pas de limite) ; 0 ou moins = rupture
@@ -125,7 +128,6 @@ export function ProductDetailPage({ slug }: { slug: string }) {
     });
 
     setAddedAnimation(true);
-    toast.success(`${qty}x ${product.name} ${t("product.addedToast", "ajouté(s) au panier !")}`);
     setTimeout(() => setAddedAnimation(false), 1500);
   };
 
@@ -168,6 +170,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
         <div className="space-y-5">
           <div>
             <div className="relative aspect-square overflow-hidden rounded-2xl bg-stone-100 dark:bg-stone-900">
+              <SaleBadge percentOff={percentOff} label={product.promotion?.label} />
               <img
                 src={product.image_url || imageFor(product.slug)}
                 alt={product.name}
@@ -232,14 +235,18 @@ export function ProductDetailPage({ slug }: { slug: string }) {
             )}
 
             {/* Prix */}
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="font-display text-3xl text-stone-950 dark:text-stone-50">
-                {formatPrice(unitPrice, currencySymbol)}
-              </span>
-              <span className="text-sm text-stone-500">
-                / {product.unit}
-              </span>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <PriceTag price={unitPrice} compareAt={compareAt} currencySymbol={currencySymbol} size="lg" />
+              <span className="text-sm text-stone-500">/ {product.unit}</span>
             </div>
+            {compareAt != null && (
+              <p className="mt-1.5 text-sm italic text-stone-600 dark:text-stone-400">
+                {product.promotion?.label ? `${product.promotion.label} · ` : ""}
+                {promoEndsAt
+                  ? t("promo.endsOn", "Offre valable jusqu'au {{date}}", { date: promoEndsAt })
+                  : t("promo.limited", "Offre pour une durée limitée")}
+              </p>
+            )}
 
             {product.short_description && (
               <p className="mt-4 max-w-prose text-[0.95rem] leading-relaxed text-stone-600 dark:text-stone-400">
@@ -300,7 +307,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                   isOutOfStock
                     ? "cursor-not-allowed bg-stone-200 text-stone-500 dark:bg-stone-800 dark:text-stone-500"
                     : addedAnimation
-                      ? "cursor-pointer bg-emerald-700 text-white"
+                      ? "cursor-pointer bg-amber-800 text-stone-50 dark:bg-gold dark:text-stone-950"
                       : "cursor-pointer bg-[#2c1b11] text-stone-50 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
                 }`}
               >
@@ -405,7 +412,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
 
                 <div className="rounded-xl bg-[#f6f0e6] dark:bg-stone-900/50 p-4 sm:p-5 flex items-start gap-3.5">
                   <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gold/15 text-gold">
-                    <Sparkles className="h-5 w-5" />
+                    <Leaf className="h-5 w-5" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-primary">{t("product.allPureNatural", "100% Pur & Naturel")}</h4>
@@ -608,6 +615,7 @@ export function ProductDetailPage({ slug }: { slug: string }) {
                 category={p.category}
                 unit={p.unit}
                 prices={p.product_prices}
+                promotionLabel={p.promotion?.label}
                 audiences={p.audiences}
                 imageUrl={p.image_url}
                 stock={p.stock}

@@ -1,16 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@import "@fontsource/plus-jakarta-sans/400.css";
-@import "@fontsource/plus-jakarta-sans/500.css";
-@import "@fontsource/plus-jakarta-sans/600.css";
-@import "@fontsource/plus-jakarta-sans/700.css";
-@import "@fontsource/outfit/500.css";
-@import "@fontsource/outfit/600.css";
-@import "@fontsource/outfit/700.css";
-@import "@fontsource/outfit/800.css";
-@import "@fontsource/playfair-display/600.css";
-@import "@fontsource/playfair-display/700.css";
 @import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -28,9 +18,9 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
 
-  --font-display: "Times New Roman", Times, "Tinos", Georgia, "Playfair Display", serif;
-  --font-sans: "Times New Roman", Times, "Tinos", Georgia, "Plus Jakarta Sans", serif;
-  --font-serif: "Times New Roman", Times, "Tinos", Georgia, "Playfair Display", serif;
+  --font-display: "Times New Roman", Times, "Tinos", Georgia, serif;
+  --font-sans: "Times New Roman", Times, "Tinos", Georgia, serif;
+  --font-serif: "Times New Roman", Times, "Tinos", Georgia, serif;
   --font-times: "Times New Roman", Times, "Tinos", Georgia, serif;
 
   --color-background: var(--background);
@@ -197,18 +187,25 @@
     font-size: 0.95rem; /* calibré pour une lecture claire, prestigieuse et aérée */
     line-height: 1.62;
   }
+  /* Hiérarchie par la taille (graisse 400, cf. DESIGN.md) ; interlettrage et
+     interlignage resserrés à mesure que le corps grossit */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
     text-wrap: balance;
-    font-weight: 700;
+    font-weight: 400;
   }
+  h1 { letter-spacing: -0.02em; line-height: 1.08; }
+  h2 { letter-spacing: -0.015em; line-height: 1.15; }
+  h3 { letter-spacing: -0.01em; line-height: 1.25; }
+  h4, h5, h6 { letter-spacing: 0; line-height: 1.35; }
   p {
     text-wrap: pretty;
   }
-  button:active:not(:disabled) {
-    transform: scale(0.985);
-    transition: transform 0.1s ease-out;
+  /* Retour immédiat à l'appui, y compris sur les liens stylés en bouton (.pressable) */
+  button:active:not(:disabled),
+  .pressable:active {
+    transform: scale(0.97);
+    transition: transform 100ms ease-out;
   }
 }
 
@@ -237,6 +234,11 @@
   .leaflet-flow-path {
     stroke-dasharray: 8 12;
     animation: flowDashMotion 1.4s linear infinite;
+  }
+  /* Carte hors écran : on suspend les boucles décoratives */
+  .map-paused .leaflet-flow-path,
+  .map-paused .animate-radar-ring {
+    animation-play-state: paused;
   }
 
   @keyframes radarPingGlow {
@@ -381,15 +383,13 @@
   @keyframes pageEnter {
     from {
       opacity: 0;
-      transform: translateY(8px);
     }
     to {
       opacity: 1;
-      transform: none;
     }
   }
   .animate-page-enter {
-    animation: pageEnter 500ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    animation: pageEnter 150ms ease-out both;
   }
 }
 
@@ -407,3 +407,25 @@
   }
 }
 
+/* Transparence réduite : les surfaces floutées deviennent pleines */
+@media (prefers-reduced-transparency: reduce) {
+  .island-pill,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  header [class*="bg-[#fbf8f3]"] {
+    background-color: #fbf8f3 !important;
+  }
+  .dark header [class*="bg-[#140F0A]"] {
+    background-color: #140f0a !important;
+  }
+}
+
+/* Contraste renforcé : filets nets et contrastés */
+@media (prefers-contrast: more) {
+  :root {
+    --border: oklch(0.55 0.03 60);
+    --muted-foreground: oklch(0.3 0.035 55);
+  }
+}

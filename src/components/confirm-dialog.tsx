@@ -52,7 +52,7 @@ export function ConfirmDialog({
           <AlertTriangle className="h-6 w-6" />
         </div>
 
-        <h2 className="mt-4 text-center font-display text-lg font-bold text-primary">{title}</h2>
+        <h2 className="mt-4 text-center font-display text-lg text-primary">{title}</h2>
         <p className="mt-2 text-center text-sm leading-relaxed text-muted-foreground">{message}</p>
 
         <div className="mt-6 flex gap-3">
@@ -60,7 +60,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground/80 transition-all duration-300 hover:bg-secondary disabled:opacity-60"
+            className="flex-1 rounded-full border border-border px-4 py-2.5 text-sm font-semibold text-foreground/80 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 hover:bg-secondary disabled:opacity-60"
           >
             {cancelLabel}
           </button>
@@ -68,7 +68,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 rounded-full bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition-all duration-300 hover:brightness-110 disabled:opacity-60"
+            className="flex-1 rounded-full bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 hover:brightness-110 disabled:opacity-60"
           >
             {loading ? "…" : confirmLabel}
           </button>

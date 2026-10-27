@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { syncCartSnapshotFn } from "@/lib/orders/abandoned-cart.functions";
+import { listProductsFn } from "@/lib/products/products.functions";
 
 export type CartItem = {
   productId: string;
@@ -11,7 +12,7 @@ export type CartItem = {
   unitPrice: number;
   quantity: number;
   unit?: string;
-  prices?: { country_code: string; price: number }[];
+  prices?: { country_code: string; price: number; compare_at_price?: number | null }[];
 };
 
 export type AddToCartInput = {
@@ -23,7 +24,7 @@ export type AddToCartInput = {
   unitPrice?: number;
   quantity?: number;
   unit?: string;
-  prices?: { country_code: string; price: number }[];
+  prices?: { country_code: string; price: number; compare_at_price?: number | null }[];
 };
 
 type Ctx = {
@@ -31,11 +32,15 @@ type Ctx = {
   add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
   addToCart: (item: AddToCartInput, qty?: number) => void;
   remove: (productId: string) => void;
+  /** Réinsère une ligne retirée à sa position d'origine (annulation) */
+  restore: (item: CartItem, index: number) => void;
   removeFromCart: (productId: string) => void;
   setQty: (productId: string, qty: number) => void;
   updateQuantity: (productId: string, qty: number) => void;
   clear: () => void;
   clearCart: () => void;
+  /** Recharge les prix du jour (promotions comprises) depuis le serveur */
+  refreshPrices: () => Promise<void>;
   count: number;
   totalItems: number;
   subtotal: number;
@@ -51,13 +56,39 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    let saved: CartItem[] = [];
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setItems(JSON.parse(raw));
+      if (raw) saved = JSON.parse(raw);
+      setItems(saved);
     } catch {
       // Panier localStorage corrompu ou inaccessible : on repart d'un panier vide.
     }
+    // Prix du jour : une promotion terminée (ou nouvelle) se reflète dans le panier
+    if (saved.length > 0) void refreshPrices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function refreshPrices() {
+    try {
+      const products = await listProductsFn();
+      const bySlug = new Map(products.map((p) => [p.slug, p]));
+      setItems((prev) =>
+        prev.map((it) => {
+          const fresh = bySlug.get(it.slug);
+          if (!fresh || fresh.product_prices.length === 0) return it;
+          return {
+            ...it,
+            prices: fresh.product_prices,
+            unitPrice:
+              fresh.product_prices.find((p) => p.country_code === "CI")?.price ?? fresh.product_prices[0].price,
+          };
+        }),
+      );
+    } catch {
+      // Hors ligne : on garde les prix enregistrés, le serveur recalculera à la commande
+    }
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -119,6 +150,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = remove;
 
+  const restore = (item: CartItem, index: number) =>
+    setItems((prev) => {
+      if (prev.some((i) => i.slug === item.slug)) return prev;
+      const next = [...prev];
+      next.splice(Math.min(index, next.length), 0, item);
+      return next;
+    });
+
   const setQty = (productIdOrSlug: string, qty: number) => {
     if (qty <= 0) return remove(productIdOrSlug);
     setItems((prev) =>
@@ -146,11 +185,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         add,
         addToCart,
         remove,
+        restore,
         removeFromCart,
         setQty,
         updateQuantity,
         clear,
         clearCart,
+        refreshPrices,
         count,
         totalItems,
         subtotal,

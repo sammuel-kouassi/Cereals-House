@@ -21,9 +21,6 @@ export function CerealMotifBackground({
       className={`pointer-events-none absolute inset-0 overflow-hidden select-none ${className}`}
       aria-hidden="true"
     >
-      {/* 1. Lueur d'ambiance or chaud / ambré impérial (couleurs du logo) */}
-      <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-br from-[#D4AF37]/25 via-[#C59B27]/15 to-transparent blur-3xl" />
-      <div className="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-gradient-to-tl from-[#E5B842]/20 via-[#B8860B]/15 to-transparent blur-3xl" />
 
       {/* 2. Texture répétée de semis d'épis et de grains de céréales dorés */}
       <svg

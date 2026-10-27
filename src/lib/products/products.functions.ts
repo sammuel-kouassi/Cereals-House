@@ -3,10 +3,14 @@ import { z } from "zod";
 import { query, queryOne } from "@/integrations/neon/db.server";
 import { INITIAL_PRODUCTS, seedDatabaseIfEmpty } from "@/integrations/neon/seed.server";
 import { getCurrentUser } from "@/integrations/neon/auth.server";
+import { applyPromotion, getCountryDecimals, getLivePromotions } from "@/lib/promotions/promotions.server";
+import type { PromotionInfo } from "@/lib/promotions/pricing";
 
 export interface ProductPriceItem {
   country_code: string;
   price: number;
+  /** Prix avant remise (affiché barré) quand une promotion est en cours */
+  compare_at_price?: number | null;
   shipping_fee?: number | null;
 }
 
@@ -29,6 +33,7 @@ export interface ProductItem {
   is_active: boolean;
   is_featured: boolean;
   product_prices: ProductPriceItem[];
+  promotion?: PromotionInfo | null;
 }
 
 export interface CountryItem {
@@ -106,16 +111,23 @@ export const listProductsFn = createServerFn({ method: "GET" }).handler(async ()
     );
 
     if (rawProducts.length > 0) {
-      return rawProducts.map((p) => ({
-        ...p,
-        weight_g: Number(p.weight_g || 0),
-        stock: Number(p.stock || 0),
-        product_prices: (p.product_prices || []).map((pp: any) => ({
-          country_code: pp.country_code,
-          price: Number(pp.price || 0),
-          shipping_fee: Number(pp.shipping_fee || 0),
-        })),
-      })) as ProductItem[];
+      const [promotions, decimals] = await Promise.all([getLivePromotions(), getCountryDecimals()]);
+      return rawProducts.map((p) =>
+        applyPromotion(
+          {
+            ...p,
+            weight_g: Number(p.weight_g || 0),
+            stock: Number(p.stock || 0),
+            product_prices: (p.product_prices || []).map((pp: any) => ({
+              country_code: pp.country_code,
+              price: Number(pp.price || 0),
+              shipping_fee: Number(pp.shipping_fee || 0),
+            })),
+          },
+          promotions.get(p.id),
+          decimals,
+        ),
+      ) as ProductItem[];
     }
 
     // Données de secours locales si Neon non encore connecté
@@ -200,7 +212,20 @@ export const getProductBySlugFn = createServerFn({ method: "POST" })
            ORDER BY created_at DESC`,
           [product.id]
         );
-        return { product: product as ProductItem, reviews };
+        const [promotions, decimals] = await Promise.all([getLivePromotions(), getCountryDecimals()]);
+        const priced = applyPromotion(
+          {
+            ...product,
+            product_prices: (product.product_prices || []).map((pp: any) => ({
+              country_code: pp.country_code,
+              price: Number(pp.price || 0),
+              shipping_fee: pp.shipping_fee == null ? null : Number(pp.shipping_fee),
+            })),
+          },
+          promotions.get(product.id),
+          decimals,
+        );
+        return { product: priced as ProductItem, reviews };
       }
 
       // Fallback local

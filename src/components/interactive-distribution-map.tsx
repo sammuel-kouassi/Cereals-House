@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { toast } from "sonner";
 import {
   MapPin,
   Search,
@@ -72,6 +73,17 @@ export function InteractiveDistributionMap({
 
   const abidjanHQ = OFFICIAL_HUBS[0];
 
+  // Boucles décoratives (flux, radar) suspendues quand la carte est hors écran
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      el.classList.toggle("map-paused", !entry.isIntersecting);
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   // Synchronisation avec les props externes
   useEffect(() => {
     if (currentLocation && currentLocation.name !== selectedLocation.name) {
@@ -139,7 +151,7 @@ export function InteractiveDistributionMap({
   // Géolocalisation via l'API HTML5 Geolocation
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
-      alert("La géolocalisation n'est pas supportée par votre navigateur.");
+      toast.error("La géolocalisation n'est pas supportée par votre navigateur.");
       return;
     }
 
@@ -312,7 +324,7 @@ export function InteractiveDistributionMap({
               isCentral
                 ? "text-amber-900 bg-amber-50 border-amber-300 font-bold"
                 : "text-stone-800 bg-white/95 border-stone-200"
-            } px-2 py-0.5 rounded-md border shadow-xs pointer-events-none transition-all group-hover:shadow-md">
+            } px-2 py-0.5 rounded-md border shadow-xs pointer-events-none transition-[color,background-color,border-color,box-shadow,opacity,transform] group-hover:shadow-md">
               ${hub.name.split(" ")[0]} ${isCentral ? "★ Siège" : ""}
             </span>
           </div>
@@ -457,7 +469,7 @@ export function InteractiveDistributionMap({
       // Popup de destination sobre et précis
       const popupHtml = `
         <div class="p-2 min-w-[170px] text-stone-900 font-sans">
-          <div class="text-[10px] font-semibold text-amber-700 uppercase tracking-wider mb-0.5">Point de livraison</div>
+          <div class="text-xs italic text-amber-800 mb-0.5">Point de livraison</div>
           <div class="font-bold text-sm text-stone-950 leading-snug">${selectedLocation.name}</div>
           <div class="text-[11px] text-stone-600 mt-1 line-clamp-2">${selectedLocation.address}</div>
         </div>

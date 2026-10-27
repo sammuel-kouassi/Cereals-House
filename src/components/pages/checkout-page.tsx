@@ -8,7 +8,6 @@ import {
   Loader2,
   Truck,
   ArrowRight,
-  Sparkles,
   ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -27,8 +26,11 @@ import {
 } from "@/lib/payments/supported-countries";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
+const REQUIRED_FIELDS = ["full_name", "phone", "city", "address"] as const;
+type RequiredField = (typeof REQUIRED_FIELDS)[number];
+
 export function CheckoutPage() {
-  const { items, clearCart } = useCart();
+  const { items, clearCart, refreshPrices } = useCart();
   const { country, countries, setCountryCode } = useCountry();
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -36,6 +38,8 @@ export function CheckoutPage() {
   const { getLocalizedPath } = useLanguageNavigation();
   const [submitting, setSubmitting] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  // Validation au niveau du champ : affichée dès qu'on quitte un champ, puis en direct
+  const [touched, setTouched] = useState<Partial<Record<RequiredField, boolean>>>({});
   const orderPlacedRef = useRef(false);
 
   const [form, setForm] = useState({
@@ -85,6 +89,31 @@ export function CheckoutPage() {
 
   const total = Number(subtotal) + Number(shipping);
 
+  const fieldErrors: Partial<Record<RequiredField, string>> = {};
+  for (const f of REQUIRED_FIELDS) {
+    if (!form[f].trim()) fieldErrors[f] = t("checkout.fieldRequired", "Ce champ est requis");
+  }
+  if (!fieldErrors.phone && form.phone.replace(/\D/g, "").length < 8) {
+    fieldErrors.phone = t("checkout.phoneInvalid", "Numéro incomplet : vérifiez les chiffres saisis");
+  }
+  const errorFor = (f: RequiredField) => (touched[f] ? fieldErrors[f] : undefined);
+  const fieldProps = (f: RequiredField) => ({
+    id: `checkout-${f}`,
+    onBlur: () => setTouched((prev) => ({ ...prev, [f]: true })),
+    "aria-invalid": !!errorFor(f),
+    "aria-describedby": errorFor(f) ? `checkout-${f}-error` : undefined,
+  });
+  const inputClass = (f: RequiredField) =>
+    `w-full rounded-xl border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none transition-colors ${
+      errorFor(f) ? "border-red-600 focus:border-red-600" : "border-border focus:border-gold"
+    }`;
+  const fieldError = (f: RequiredField) =>
+    errorFor(f) ? (
+      <p id={`checkout-${f}-error`} className="mt-1.5 text-xs text-red-700 dark:text-red-400">
+        {errorFor(f)}
+      </p>
+    ) : null;
+
   if (loading) return <PageLoader />;
 
   if (!user) {
@@ -93,7 +122,7 @@ export function CheckoutPage() {
         <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-gold/15 text-gold">
           <Lock className="h-8 w-8" />
         </div>
-        <h1 className="font-display text-3xl font-bold text-primary">
+        <h1 className="font-display text-3xl text-primary">
           {t("checkout.signInTitle", "Finaliser votre commande")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -105,7 +134,7 @@ export function CheckoutPage() {
         <Link
           to={getLocalizedPath("/auth")}
           search={{ redirect: getLocalizedPath("/checkout") }}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-8 py-3.5 text-sm font-semibold text-gold-foreground transition hover:bg-gold/90"
+          className="pressable mt-6 inline-flex items-center gap-2 rounded-full bg-[#2c1b11] px-8 py-3.5 text-sm text-stone-50 transition-colors hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
         >
           {t("checkout.signIn", "Se connecter / S'inscrire")} <ArrowRight className="h-4 w-4" />
         </Link>
@@ -119,8 +148,12 @@ export function CheckoutPage() {
 
   async function handleSubmit(e?: React.FormEvent) {
     if (e) e.preventDefault();
-    if (!form.full_name.trim() || !form.phone.trim() || !form.address.trim() || !form.city.trim()) {
-      toast.error(t("checkout.errorFields", "Veuillez renseigner tous les champs obligatoires (nom, téléphone, adresse, ville)."));
+    const firstInvalid = REQUIRED_FIELDS.find((f) => fieldErrors[f]);
+    if (firstInvalid) {
+      setTouched({ full_name: true, phone: true, city: true, address: true });
+      const el = document.getElementById(`checkout-${firstInvalid}`);
+      el?.focus({ preventScroll: true });
+      el?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
 
@@ -192,6 +225,9 @@ export function CheckoutPage() {
           message = err.message;
         }
       }
+      // Prix modifiés entre-temps (promotion terminée…) : on recharge le panier
+      // pour que le nouveau montant s'affiche avant la nouvelle validation.
+      if (/prix de votre panier/i.test(message)) await refreshPrices();
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -207,10 +243,10 @@ export function CheckoutPage() {
           </div>
         </div>
         <div className="space-y-3 max-w-md">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-gold">
+          <div className="inline-flex items-center gap-2 text-sm italic text-amber-800 dark:text-gold">
             <ShieldCheck className="h-4 w-4" /> {t("checkout.secureHeader", "Passerelle Agréée & Chiffrée")}
           </div>
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-primary">
+          <h2 className="font-display text-2xl sm:text-3xl text-primary">
             {t("checkout.redirectingTitle", "Ouverture de l'espace de paiement…")}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -234,7 +270,7 @@ export function CheckoutPage() {
             <div className="inline-flex items-center gap-2 text-sm italic text-amber-800 dark:text-gold">
               {t("checkout.stepEyebrow", "Étape Finale")}
             </div>
-            <h1 className="mt-1 font-display text-2xl sm:text-4xl font-bold text-primary tracking-tight">
+            <h1 className="mt-1 font-display text-2xl sm:text-4xl text-primary tracking-tight">
               {t("checkout.title", "Finaliser votre commande")}
             </h1>
           </div>
@@ -245,7 +281,7 @@ export function CheckoutPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-12">
+      <form onSubmit={handleSubmit} noValidate className="grid gap-8 lg:grid-cols-12">
         {/* Formulaire Principal (Gauche) */}
         <div className="space-y-8 lg:col-span-7 xl:col-span-8">
           {/* Section 1 : Adresse de livraison */}
@@ -255,7 +291,7 @@ export function CheckoutPage() {
                 <Truck className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="font-display text-lg sm:text-xl font-bold text-primary">
+                <h2 className="font-display text-lg sm:text-xl text-primary">
                   {t("checkout.shippingSection", "Coordonnées de Livraison & Règlement")}
                 </h2>
                 <p className="text-xs text-muted-foreground">{t("checkout.shippingSubtitle", "Renseignez vos informations de livraison et choisissez votre mode de règlement")}</p>
@@ -288,24 +324,31 @@ export function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label htmlFor="checkout-full_name" className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.fullName", "Nom & Prénom du destinataire *")}
                 </label>
                 <input
                   type="text"
                   required
+                  autoComplete="name"
+                  {...fieldProps("full_name")}
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
                   placeholder="ex : Marie Koné"
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                  className={inputClass("full_name")}
                 />
+                {fieldError("full_name")}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label htmlFor="checkout-phone" className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.phone", "Numéro de téléphone / WhatsApp *")}
                 </label>
-                <div className="flex rounded-xl border border-border bg-background focus-within:border-gold overflow-hidden transition-colors">
+                <div
+                  className={`flex rounded-xl border bg-background overflow-hidden transition-colors ${
+                    errorFor("phone") ? "border-red-600" : "border-border focus-within:border-gold"
+                  }`}
+                >
                   <div className="flex items-center gap-1.5 px-3 bg-muted/40 border-r border-border/60 text-xs font-semibold shrink-0 select-none">
                     <span className="text-sm">{currentDialInfo.flag}</span>
                     <span className="text-xs font-bold text-foreground">{currentDialInfo.dialCode}</span>
@@ -313,21 +356,27 @@ export function CheckoutPage() {
                   <input
                     type="tel"
                     required
+                    autoComplete="tel-national"
+                    inputMode="tel"
+                    {...fieldProps("phone")}
                     value={form.phone}
                     onChange={handlePhoneChange}
                     placeholder={currentDialInfo.placeholder}
                     className="w-full bg-transparent px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
                   />
                 </div>
+                {fieldError("phone")}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label htmlFor="checkout-city" className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.cityLabel", "Ville ou Commune de destination *")}
                 </label>
                 <input
                   type="text"
                   required
+                  autoComplete="address-level2"
+                  {...fieldProps("city")}
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
                   placeholder={
@@ -343,22 +392,26 @@ export function CheckoutPage() {
                       ? "ex : Lomé (Tokoin, Bè...), Kara..."
                       : "ex : Abidjan (Cocody, Yopougon...), Bouaké..."
                   }
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                  className={inputClass("city")}
                 />
+                {fieldError("city")}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5">
+                <label htmlFor="checkout-address" className="block text-xs font-semibold text-foreground mb-1.5">
                   {t("checkout.address", "Quartier, rue ou repère précis *")}
                 </label>
                 <input
                   type="text"
                   required
+                  autoComplete="street-address"
+                  {...fieldProps("address")}
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   placeholder="ex : Cocody Angré 8ème Tranche"
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-gold focus:outline-none"
+                  className={inputClass("address")}
                 />
+                {fieldError("address")}
               </div>
 
               <div className="sm:col-span-2">
@@ -424,7 +477,7 @@ export function CheckoutPage() {
         {/* Récapitulatif Commande (Droite) */}
         <aside className="space-y-6 lg:col-span-5 xl:col-span-4">
           <div className="rounded-3xl border border-border bg-card p-6 shadow-md space-y-5 lg:sticky lg:top-24">
-            <h3 className="font-display text-lg font-bold text-primary border-b border-border/80 pb-4">
+            <h3 className="font-display text-lg text-primary border-b border-border/80 pb-4">
               {t("checkout.orderSummarySection", "Récapitulatif de la Commande")}
             </h3>
 
@@ -468,7 +521,7 @@ export function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gold py-4 text-sm font-bold text-gold-foreground transition-all duration-200 hover:bg-gold/90 cursor-pointer disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] py-4 text-sm text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950 cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <>

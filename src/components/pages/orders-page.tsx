@@ -74,7 +74,7 @@ export function OrdersPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center sm:px-6">
-        <h1 className="font-display text-3xl font-bold text-primary">
+        <h1 className="font-display text-3xl text-primary">
           {t("orders.signInTitle", "Suivi de vos commandes")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export function OrdersPage() {
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="border-b border-border pb-6">
         <span className="text-sm italic text-amber-800 dark:text-gold">Espace Client</span>
-        <h1 className="mt-1 font-display text-3xl font-bold text-primary sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl text-primary sm:text-4xl">
           {t("orders.title", "Mes Commandes")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -114,7 +114,7 @@ export function OrdersPage() {
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary text-muted-foreground mb-4">
             <ShoppingBag className="h-8 w-8 text-gold" />
           </div>
-          <h3 className="font-display text-xl font-bold text-primary">
+          <h3 className="font-display text-xl text-primary">
             {t("orders.empty", "Vous n'avez pas encore passé de commande.")}
           </h3>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -150,7 +150,7 @@ export function OrdersPage() {
                     </span>
                     {order.cancellation_requested && order.status !== "cancelled" && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-200">
-                        <Clock className="h-3 w-3 animate-spin" />
+                        <Clock className="h-3 w-3" />
                         Annulation en attente admin
                       </span>
                     )}

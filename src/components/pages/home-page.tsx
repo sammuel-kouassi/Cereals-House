@@ -101,6 +101,7 @@ export function HomePage() {
                   category={p.category}
                   unit={p.unit}
                   prices={p.product_prices}
+                  promotionLabel={p.promotion?.label}
                   audiences={p.audiences}
                   imageUrl={p.image_url}
                   stock={p.stock}

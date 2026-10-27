@@ -9,7 +9,6 @@ import {
   Boxes,
   Send,
   Building2,
-  Sparkles,
   Clock,
   HelpCircle,
   ChevronDown,

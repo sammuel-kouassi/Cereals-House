@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ShoppingBag,
   User,
@@ -11,6 +11,13 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
@@ -30,9 +37,8 @@ export function SiteHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,16 +56,21 @@ export function SiteHeader() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Fermeture du menu utilisateur au clic à l'extérieur
+  // ⌘K / Ctrl+K ouvre la recherche partout ; Échap ferme le menu mobile
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setUserDropdownOpen(false);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchModalOpen((o) => !o);
       }
+      if (e.key === "Escape") setMobileMenuOpen(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Le menu mobile se referme à chaque navigation
+  useEffect(() => setMobileMenuOpen(false), [pathname]);
 
   const getDisplayName = () => {
     return user?.full_name?.trim() || user?.email?.split("@")[0] || "Client";
@@ -84,9 +95,7 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full px-3 sm:px-6 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          scrolled ? "py-1.5 sm:py-2" : "py-2 sm:py-2.5"
-        }`}
+        className="fixed top-0 left-0 right-0 z-50 w-full px-3 py-2 sm:px-6 sm:py-2.5"
       >
         {/* Barre de progression de lecture */}
         <div
@@ -97,10 +106,10 @@ export function SiteHeader() {
         />
         {/* Barre de navigation */}
         <div
-          className={`relative mx-auto flex max-w-7xl items-center justify-between gap-2.5 rounded-full border pl-3.5 pr-3 transition-[height,box-shadow,background-color] duration-300 sm:gap-4 sm:pl-5 sm:pr-4 ${
+          className={`relative mx-auto flex h-14 max-w-7xl items-center justify-between gap-2.5 rounded-full border pl-3.5 pr-3 backdrop-blur-md transition-[box-shadow,background-color,border-color] duration-300 sm:h-[58px] sm:gap-4 sm:pl-5 sm:pr-4 ${
             scrolled
-              ? "h-13 sm:h-14 border-stone-200 bg-[#fbf8f3]/95 shadow-[0_6px_24px_-12px_rgba(44,27,17,0.18)] backdrop-blur-md dark:border-stone-800 dark:bg-[#140F0A]/95"
-              : "h-14 sm:h-[58px] border-stone-200/80 bg-[#fbf8f3]/90 backdrop-blur-md dark:border-stone-800 dark:bg-[#140F0A]/90"
+              ? "border-stone-200 bg-[#fbf8f3]/95 shadow-[0_6px_24px_-12px_rgba(44,27,17,0.18)] dark:border-stone-800 dark:bg-[#140F0A]/95"
+              : "border-stone-200/80 bg-[#fbf8f3]/90 dark:border-stone-800 dark:bg-[#140F0A]/90"
           }`}
         >
           {/* Logo & Identité Prestige */}
@@ -168,81 +177,62 @@ export function SiteHeader() {
               <CountrySelector compact />
             </div>
 
-            {/* Menu Utilisateur Intégré avec Avatar interactif */}
+            {/* Menu Utilisateur : Radix gère clavier, Échap, focus et sortie animée */}
             {user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setUserDropdownOpen((o) => !o)}
-                  className="flex items-center gap-1.5 rounded-full border border-stone-300 p-1 pr-2.5 text-xs text-foreground transition-colors duration-200 hover:border-stone-500 dark:border-stone-700 cursor-pointer"
-                  title="Mon Compte"
-                  aria-expanded={userDropdownOpen}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="group flex h-10 items-center gap-1.5 rounded-full border border-stone-300 p-1 pr-2.5 text-xs text-foreground transition-colors duration-200 hover:border-stone-500 dark:border-stone-700 cursor-pointer sm:h-9"
+                  aria-label={t("nav.account", "Mon compte")}
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-xs text-stone-50 dark:bg-gold dark:text-stone-950">
                     {getInitial()}
                   </span>
-                  <ChevronDown
-                    className={`h-3.5 w-3.5 text-stone-500 transition-transform duration-300 ${
-                      userDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+                  <ChevronDown className="h-3.5 w-3.5 text-stone-500 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </DropdownMenuTrigger>
 
-                {/* Dropdown Menu Utilisateur */}
-                {userDropdownOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-stone-200 bg-background p-2 text-foreground shadow-[0_12px_32px_-12px_rgba(44,27,17,0.25)] dark:border-stone-800 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-150">
-                    <div className="flex items-center gap-3 border-b border-border/60 p-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-sm text-stone-50 dark:bg-gold dark:text-stone-950">
-                        {getInitial()}
-                      </span>
-                      <div className="overflow-hidden">
-                        <div className="truncate text-xs font-bold text-primary">
-                          {getDisplayName()}
-                        </div>
-                        <div className="truncate text-[11px] text-muted-foreground font-light">
-                          {user.email}
-                        </div>
-                      </div>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-64 rounded-xl border-stone-200 bg-background p-2 text-foreground shadow-[0_12px_32px_-12px_rgba(44,27,17,0.25)] duration-150 dark:border-stone-800"
+                >
+                  <div className="flex items-center gap-3 border-b border-border/60 p-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-sm text-stone-50 dark:bg-gold dark:text-stone-950">
+                      {getInitial()}
+                    </span>
+                    <div className="overflow-hidden">
+                      <div className="truncate text-sm text-primary">{getDisplayName()}</div>
+                      <div className="truncate text-xs text-muted-foreground">{user.email}</div>
                     </div>
+                  </div>
 
-                    <div className="py-1.5 space-y-0.5">
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-gold transition-colors hover:bg-gold/10"
-                        >
+                  <div className="space-y-0.5 py-1.5">
+                    {isAdmin && (
+                      <DropdownMenuItem asChild className="cursor-pointer gap-2.5 rounded-lg px-3 py-2.5 text-sm text-amber-800 focus:bg-gold/10 dark:text-gold">
+                        <Link to="/admin">
                           <ShieldCheck className="h-4 w-4" />
                           <span>Espace Administration</span>
                         </Link>
-                      )}
+                      </DropdownMenuItem>
+                    )}
 
-                      <Link
-                        to={getLocalizedPath("/orders")}
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-foreground/90 transition-colors hover:bg-secondary hover:text-gold"
-                      >
-                        <Package className="h-4 w-4 text-gold" />
+                    <DropdownMenuItem asChild className="cursor-pointer gap-2.5 rounded-lg px-3 py-2.5 text-sm focus:bg-secondary">
+                      <Link to={getLocalizedPath("/orders")}>
+                        <Package className="h-4 w-4 text-amber-800 dark:text-gold" />
                         <span>{t("nav.orders", "Mes commandes")}</span>
                       </Link>
-                    </div>
-
-                    <div className="border-t border-border/60 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserDropdownOpen(false);
-                          signOut();
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-red-500 transition-colors hover:bg-red-500/10 cursor-pointer"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span>{t("nav.logout", "Se déconnecter")}</span>
-                      </button>
-                    </div>
+                    </DropdownMenuItem>
                   </div>
-                )}
-              </div>
+
+                  <DropdownMenuSeparator className="bg-border/60" />
+                  <DropdownMenuItem
+                    onSelect={() => signOut()}
+                    className="cursor-pointer gap-2.5 rounded-lg px-3 py-2.5 text-sm text-red-700 focus:bg-red-500/10 focus:text-red-700 dark:text-red-400"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{t("nav.logout", "Se déconnecter")}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link
                 to={getLocalizedPath("/auth")}
@@ -284,15 +274,22 @@ export function SiteHeader() {
               className={`${iconBtn} lg:hidden`}
               aria-label={t("nav.menu", "Menu")}
               aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
-        {/* Menu Navigation Mobile avec fond verre fumé */}
-        {mobileMenuOpen && (
-          <div className="mx-auto mt-2 max-w-lg rounded-2xl border border-stone-200 bg-background p-3 shadow-[0_16px_40px_-16px_rgba(44,27,17,0.3)] dark:border-stone-800 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-200 lg:hidden">
+        {/* Menu Navigation Mobile : entre et sort par le même chemin, depuis le bouton menu */}
+          <div
+            id="mobile-menu"
+            inert={!mobileMenuOpen}
+            aria-hidden={!mobileMenuOpen}
+            className={`absolute inset-x-3 top-full mx-auto max-w-lg origin-top-right rounded-2xl border border-stone-200 bg-background p-3 shadow-[0_16px_40px_-16px_rgba(44,27,17,0.3)] transition-[opacity,transform] duration-200 ease-out dark:border-stone-800 lg:hidden ${
+              mobileMenuOpen ? "opacity-100 scale-100" : "pointer-events-none opacity-0 scale-[0.97] -translate-y-1"
+            }`}
+          >
             <nav className="flex flex-col gap-1">
               {nav.map((n) => (
                 <Link
@@ -316,10 +313,10 @@ export function SiteHeader() {
               {user ? (
                 <div className="mt-3 space-y-1.5 border-t border-border pt-3">
                   <div className="flex items-center gap-2.5 rounded-2xl border border-gold/20 bg-gold/5 px-4 py-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-xs font-bold text-gold">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#2c1b11] text-xs text-stone-50 dark:bg-gold dark:text-stone-950">
                       {getInitial()}
                     </span>
-                    <span className="text-sm font-semibold text-primary">{getDisplayName()}</span>
+                    <span className="text-sm text-primary">{getDisplayName()}</span>
                   </div>
 
                   {isAdmin && (
@@ -356,14 +353,13 @@ export function SiteHeader() {
                   to={getLocalizedPath("/auth")}
                   search={{ redirect: getLocalizedPath("/") }}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] py-3.5 text-sm text-stone-50 dark:bg-gold dark:text-stone-950"
+                  className="pressable mt-3 flex items-center justify-center gap-2 rounded-full bg-[#2c1b11] py-3.5 text-sm text-stone-50 dark:bg-gold dark:text-stone-950"
                 >
                   <User className="h-4 w-4" /> {t("nav.signIn", "Se connecter / S'inscrire")}
                 </Link>
               )}
             </nav>
           </div>
-        )}
       </header>
 
       {/* Spacer pour compenser la hauteur du header fixe et éviter tout chevauchement */}

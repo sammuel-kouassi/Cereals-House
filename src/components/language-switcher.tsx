@@ -10,7 +10,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
       type="button"
       onClick={() => switchLanguage(next)}
       aria-label={next === "en" ? "Switch to English" : "Passer en français"}
-      className={`inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-foreground/80 transition hover:border-gold/50 hover:text-gold cursor-pointer ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs text-foreground/80 transition-colors hover:border-stone-500 hover:text-foreground cursor-pointer ${className}`}
     >
       <Languages className="h-3.5 w-3.5 text-gold" />
       <span className={currentLang === "fr" ? "text-gold font-bold" : ""}>FR</span>

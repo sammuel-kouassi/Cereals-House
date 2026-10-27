@@ -9,7 +9,7 @@ import { useLanguageNavigation } from "@/lib/i18n-routing";
 import { useCountry } from "@/lib/country-context";
 import { listProductsFn } from "@/lib/products/products.functions";
 import { imageFor } from "@/lib/products-meta";
-import { formatPrice } from "@/lib/format";
+import { PriceTag, SaleBadge, resolvePrice } from "@/components/price-tag";
 
 export function DynamicHowItWorks() {
   const { t } = useTranslation();
@@ -85,10 +85,7 @@ export function DynamicHowItWorks() {
             }}
           >
             {marqueeItems.map((p, idx) => {
-              const priceObj = p.product_prices?.find((pr) => pr.country_code === currentCountryCode);
-              const basePrice =
-                p.product_prices?.find((pr) => pr.country_code === "CI")?.price ?? p.product_prices?.[0]?.price ?? 0;
-              const price = priceObj?.price ?? basePrice;
+              const { price, compareAt, percentOff } = resolvePrice(p.product_prices, currentCountryCode);
 
               return (
                 <Link
@@ -96,7 +93,8 @@ export function DynamicHowItWorks() {
                   to={getLocalizedPath(`/products/${p.slug}`)}
                   className="group block w-44 shrink-0 sm:w-52"
                 >
-                  <div className="aspect-square overflow-hidden rounded-lg bg-stone-200 dark:bg-stone-800">
+                  <div className="relative aspect-square overflow-hidden rounded-lg bg-stone-200 dark:bg-stone-800">
+                    <SaleBadge percentOff={percentOff} />
                     <img
                       src={imageFor(p.slug, p.image_url)}
                       alt={p.name}
@@ -108,7 +106,7 @@ export function DynamicHowItWorks() {
                     {p.name}
                   </h3>
                   <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">
-                    {formatPrice(price, currencySymbol)}
+                    <PriceTag price={price} compareAt={compareAt} currencySymbol={currencySymbol} size="sm" showPercent={false} />
                     {p.unit ? <span className="text-stone-500"> / {p.unit}</span> : null}
                   </p>
                 </Link>

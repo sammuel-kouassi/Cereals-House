@@ -3,10 +3,9 @@ import { useTranslation } from "react-i18next";
 import { ShoppingBag, Check } from "lucide-react";
 import { useState } from "react";
 import { imageFor } from "@/lib/products-meta";
-import { formatPrice } from "@/lib/format";
+import { PriceTag, SaleBadge, resolvePrice } from "@/components/price-tag";
 import { useCountry } from "@/lib/country-context";
 import { useCart } from "@/lib/cart-context";
-import { toast } from "sonner";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 const LOW_STOCK_THRESHOLD = 15;
@@ -17,7 +16,9 @@ type Props = {
   shortDescription: string | null;
   category: string | null;
   unit: string;
-  prices: { country_code: string; price: number }[];
+  prices: { country_code: string; price: number; compare_at_price?: number | null }[];
+  /** Libellé de la promotion en cours (ex. « Offre de saison ») */
+  promotionLabel?: string | null;
   audiences?: string[] | null;
   imageUrl?: string | null;
   stock?: number;
@@ -31,6 +32,7 @@ export function ProductCard({
   category,
   unit,
   prices,
+  promotionLabel,
   audiences,
   imageUrl,
   stock,
@@ -44,9 +46,7 @@ export function ProductCard({
 
   const currentCountryCode = country?.code ?? "CI";
   const currencySymbol = country?.currency_symbol ?? "FCFA";
-  const priceObj = prices.find((p) => p.country_code === currentCountryCode);
-  const basePriceXof = prices.find((p) => p.country_code === "CI")?.price ?? prices[0]?.price ?? 0;
-  const price = priceObj?.price ?? basePriceXof;
+  const { price, compareAt, percentOff } = resolvePrice(prices, currentCountryCode);
 
   const isKid = audiences?.includes("enfant");
   const isAdult = audiences?.includes("adulte");
@@ -54,9 +54,7 @@ export function ProductCard({
   const isOutOfStock = typeof stock === "number" && stock <= 0;
 
   const handleQuickAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
     e.stopPropagation();
-
     if (isOutOfStock) return;
 
     addToCart({
@@ -68,7 +66,6 @@ export function ProductCard({
     });
 
     setAdded(true);
-    toast.success(t("product.addedSuccess", "{{name}} ajouté au panier !", { name }));
     setTimeout(() => setAdded(false), 1500);
   };
 
@@ -95,24 +92,26 @@ export function ProductCard({
       disabled={isOutOfStock}
       aria-label={added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}
       title={added ? t("product.addedToast", "Ajouté !") : t("product.addToCart", "Ajouter au panier")}
-      className={`flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
+      className={`relative z-10 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${
         added
-          ? "bg-emerald-700 text-white"
+          ? "bg-amber-800 text-stone-50 dark:bg-gold dark:text-stone-950"
           : "bg-[#2c1b11] text-stone-50 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
       } ${extra}`}
     >
-      {added ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />}
+      {added ? (
+        <Check className="h-4 w-4 motion-safe:animate-in motion-safe:zoom-in-50 motion-safe:duration-200" />
+      ) : (
+        <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
+      )}
     </button>
   );
 
   // Disposition en liste : image à gauche, contenu à droite
   if (layout === "list") {
     return (
-      <Link
-        to={getLocalizedPath(`/products/${slug}`)}
-        className="group flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-card transition-colors duration-300 hover:border-stone-400 dark:border-stone-800 dark:hover:border-stone-600 sm:flex-row"
-      >
+      <div className="group relative flex flex-col overflow-hidden rounded-xl border border-stone-200 bg-card transition-colors duration-300 hover:border-stone-400 dark:border-stone-800 dark:hover:border-stone-600 sm:flex-row">
         <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-stone-100 dark:bg-stone-900 sm:aspect-square sm:w-48 md:w-56">
+          <SaleBadge percentOff={percentOff} label={promotionLabel} />
           <img
             src={imageFor(slug, imageUrl)}
             alt={name}
@@ -124,7 +123,11 @@ export function ProductCard({
         <div className="flex flex-1 flex-col justify-between gap-4 p-5">
           <div>
             {metaLine && <p className="text-xs italic text-stone-500">{metaLine}</p>}
-            <h3 className="mt-1 font-display text-lg text-stone-950 dark:text-stone-50">{name}</h3>
+            <h3 className="mt-1 font-display text-lg text-stone-950 dark:text-stone-50">
+              <Link to={getLocalizedPath(`/products/${slug}`)} className="after:absolute after:inset-0 after:content-['']">
+                {name}
+              </Link>
+            </h3>
             {shortDescription && (
               <p className="mt-1.5 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
                 {shortDescription}
@@ -134,26 +137,22 @@ export function ProductCard({
 
           <div className="flex items-center justify-between gap-3 border-t border-stone-200 pt-4 dark:border-stone-800">
             <div>
-              <span className="font-display text-xl text-stone-950 dark:text-stone-50">
-                {formatPrice(price, currencySymbol)}
-              </span>
+              <PriceTag price={price} compareAt={compareAt} currencySymbol={currencySymbol} showPercent={false} />
               <span className="ml-1.5 text-xs text-stone-500">/ {unit}</span>
               {stockNote && <div>{stockNote}</div>}
             </div>
             {addButton("")}
           </div>
         </div>
-      </Link>
+      </div>
     );
   }
 
   // Disposition en grille (par défaut)
   return (
-    <Link
-      to={getLocalizedPath(`/products/${slug}`)}
-      className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-stone-200 bg-card transition-colors duration-300 hover:border-stone-400 dark:border-stone-800 dark:hover:border-stone-600"
-    >
+    <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-xl border border-stone-200 bg-card transition-colors duration-300 hover:border-stone-400 dark:border-stone-800 dark:hover:border-stone-600">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100 dark:bg-stone-900">
+        <SaleBadge percentOff={percentOff} label={promotionLabel} />
         <img
           src={imageFor(slug, imageUrl)}
           alt={name}
@@ -165,7 +164,11 @@ export function ProductCard({
       <div className="flex flex-1 flex-col justify-between gap-4 p-4 sm:p-5">
         <div>
           {metaLine && <p className="line-clamp-1 text-xs italic text-stone-500">{metaLine}</p>}
-          <h3 className="mt-1 line-clamp-1 font-display text-lg text-stone-950 dark:text-stone-50">{name}</h3>
+          <h3 className="mt-1 line-clamp-1 font-display text-lg text-stone-950 dark:text-stone-50">
+            <Link to={getLocalizedPath(`/products/${slug}`)} className="after:absolute after:inset-0 after:content-['']">
+              {name}
+            </Link>
+          </h3>
           {shortDescription && (
             <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-stone-600 dark:text-stone-400">
               {shortDescription}
@@ -175,16 +178,14 @@ export function ProductCard({
 
         <div className="flex items-end justify-between gap-3 border-t border-stone-200 pt-4 dark:border-stone-800">
           <div className="min-w-0">
-            <span className="font-display text-xl text-stone-950 dark:text-stone-50">
-              {formatPrice(price, currencySymbol)}
-            </span>
-            <span className="ml-1.5 text-xs text-stone-500">/ {unit}</span>
+            <PriceTag price={price} compareAt={compareAt} currencySymbol={currencySymbol} showPercent={false} />
+              <span className="ml-1.5 text-xs text-stone-500">/ {unit}</span>
             {stockNote && <div>{stockNote}</div>}
           </div>
           {addButton("")}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

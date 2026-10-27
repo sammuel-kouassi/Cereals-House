@@ -9,7 +9,6 @@ import {
   Phone,
   Eye,
   EyeOff,
-  Sparkles,
   ShieldCheck,
   Star,
   CheckCircle2,
@@ -251,7 +250,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
             <div className="relative p-1 rounded-2xl bg-stone-100/90 border border-stone-200/80 flex items-center mb-7">
               {/* Fond glissant animé */}
               <div
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-white shadow-sm border border-stone-200/60 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-white shadow-sm border border-stone-200/60 transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
                   mode === "signin" ? "left-1" : "left-[calc(50%+2px)]"
                 }`}
               />
@@ -277,7 +276,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
 
             {/* Titre & Sous-titre */}
             <div className="space-y-1.5 mb-7">
-              <h1 className="font-display text-2xl sm:text-3xl font-bold text-stone-950 tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl text-stone-950 tracking-tight">
                 {mode === "signin"
                   ? t("auth.signInTitle", "Heureux de vous revoir")
                   : t("auth.signUpTitle", "Créer votre compte client")}
@@ -300,7 +299,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200/90 bg-stone-50/50 hover:bg-white py-3 px-4 text-xs sm:text-sm font-semibold text-stone-800 shadow-2xs hover:border-amber-400/80 hover:shadow-xs active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 mb-6"
+              className="w-full flex items-center justify-center gap-3 rounded-xl border border-stone-200/90 bg-stone-50/50 hover:bg-white py-3 px-4 text-xs sm:text-sm font-semibold text-stone-800 shadow-2xs hover:border-amber-400/80 hover:shadow-xs active:scale-[0.99] transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-200 cursor-pointer disabled:opacity-50 mb-6"
             >
               {googleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-amber-600" />
@@ -313,7 +312,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
             {/* Séparateur élégant */}
             <div className="relative flex items-center justify-center mb-6">
               <div className="border-t border-stone-200 w-full" />
-              <span className="bg-white px-3 text-[10px] font-bold uppercase tracking-wider text-stone-400 shrink-0">
+              <span className="bg-white px-3 text-xs italic text-stone-500 shrink-0">
                 {t("auth.or", "OU AVEC VOTRE EMAIL")}
               </span>
               <div className="border-t border-stone-200 w-full" />
@@ -335,7 +334,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="ex : Marie Koné"
-                      className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-all focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
+                      className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
                     />
                   </div>
                 </div>
@@ -354,7 +353,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="votre.email@exemple.com"
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-all focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
+                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
                   />
                 </div>
               </div>
@@ -375,7 +374,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+225 07 00 00 00 00"
-                      className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-all focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
+                      className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
                     />
                   </div>
                 </div>
@@ -413,7 +412,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-all focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
+                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 hover:bg-white pl-10 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm text-stone-900 placeholder:text-stone-400 shadow-2xs transition-[color,background-color,border-color,box-shadow,opacity,transform] focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-3 focus:ring-amber-500/15"
                   />
                   <button
                     type="button"
@@ -432,7 +431,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
                       {[1, 2, 3, 4].map((step) => (
                         <div
                           key={step}
-                          className={`flex-1 rounded-full transition-all duration-300 ${
+                          className={`flex-1 rounded-full transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-300 ${
                             passStrength.score >= step ? passStrength.color : "bg-stone-200"
                           }`}
                         />
@@ -532,7 +531,6 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
           {/* Pastilles en haut */}
           <div className="relative z-10 p-6 xl:p-8 flex items-center justify-between">
             <div className="inline-flex items-center gap-2 text-sm italic text-amber-200">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>{t("auth.panelEyebrow", "Cereals House")}</span>
             </div>
 
@@ -545,7 +543,7 @@ export function AuthPage({ redirectUrl }: { redirectUrl?: string }) {
           {/* Cartouche sobre et moderne au bas */}
           <div className="relative z-10 p-6 xl:p-8">
             <div className="rounded-xl border-t border-white/20 pt-5 text-white space-y-2">
-              <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
+              <h2 className="font-display text-xl sm:text-2xl tracking-tight text-white leading-snug">
                 {t("auth.panelTitlePart1", "L'Excellence des Terroirs")}{" "}
                 <span className="font-editorial text-amber-400 font-normal">
                   {t("auth.panelTitlePart2", "à votre table")}

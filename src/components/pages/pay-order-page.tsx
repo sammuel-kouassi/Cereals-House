@@ -82,7 +82,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
   if (error || !order) {
     return (
       <div className="mx-auto max-w-md px-4 py-24 text-center">
-        <h1 className="font-display text-2xl font-bold text-primary">Lien invalide</h1>
+        <h1 className="font-display text-2xl text-primary">Lien invalide</h1>
         <p className="mt-2 text-muted-foreground">
           Ce lien de paiement est invalide ou a expiré. Contacte-nous pour en obtenir un nouveau.
         </p>
@@ -96,7 +96,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15 text-emerald-600">
           <CheckCircle2 className="h-7 w-7" />
         </div>
-        <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+        <h1 className="mt-4 font-display text-2xl text-primary">
           Commande {order.orderNumber} déjà payée
         </h1>
         <p className="mt-2 text-muted-foreground">Merci pour votre confiance !</p>
@@ -110,12 +110,12 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
         <span className="text-sm italic text-amber-800 dark:text-gold">
           Facture professionnelle
         </span>
-        <h1 className="mt-2 font-display text-3xl font-bold text-primary">{order.orderNumber}</h1>
+        <h1 className="mt-2 font-display text-3xl text-primary">{order.orderNumber}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Pour {order.customerName}</p>
       </div>
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-        <h2 className="font-display text-lg font-bold text-primary">Récapitulatif</h2>
+        <h2 className="font-display text-lg text-primary">Récapitulatif</h2>
         <ul className="mt-4 space-y-2 text-sm">
           {order.items.map((it, idx) => (
             <li key={idx} className="flex justify-between">
@@ -171,7 +171,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5 text-gold" />
-                <h2 className="font-display text-base sm:text-lg font-bold text-primary">Paiement Sécurisé GeniusPay</h2>
+                <h2 className="font-display text-base sm:text-lg text-primary">Paiement Sécurisé GeniusPay</h2>
                 <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                   Agréé
                 </span>
@@ -205,7 +205,7 @@ export function PayOrderPage({ orderId, token }: { orderId: string; token: strin
               type="button"
               onClick={handlePay}
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-lg hover:bg-gold/90 active:scale-[0.99] transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gold py-4 text-sm font-bold text-gold-foreground shadow-lg hover:bg-gold/90 active:scale-[0.99] transition-[color,background-color,border-color,box-shadow,opacity,transform] disabled:opacity-50"
             >
               {submitting ? (
                 <>

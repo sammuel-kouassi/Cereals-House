@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, Clock, Sparkles, Trash2 } from "lucide-react";
+import { Search, X, Clock, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
@@ -110,7 +110,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
     <div ref={wrapRef} className={cn("relative w-full max-w-2xl", className)}>
       <div
         className={cn(
-          "group flex items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-sm transition-all",
+          "group flex items-center gap-2 rounded-full border bg-card px-4 py-2.5 shadow-sm transition-[color,background-color,border-color,box-shadow,opacity,transform]",
           focused
             ? "border-stone-500"
             : "border-border hover:border-gold/40",
@@ -153,7 +153,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
           {filteredSuggestions.length > 0 && (
             <div className="px-2 py-2">
               <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs italic text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-gold" /> {t("products.searchSuggestions")}
+                {t("products.searchSuggestions")}
               </div>
               <ul>
                 {filteredSuggestions.map((s) => (
@@ -165,7 +165,7 @@ export function ProductSearchBar({ value, onChange, suggestions, className }: Pr
                       className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-foreground transition hover:bg-secondary"
                     >
                       <span className="truncate">{s.label}</span>
-                      <span className="ml-3 shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <span className="ml-3 shrink-0 text-xs italic text-muted-foreground">
                         {s.type === "category" ? "•" : ""}
                       </span>
                     </button>

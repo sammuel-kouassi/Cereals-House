@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Bell, LayoutDashboard, Package, ShoppingBag, ShieldAlert, Globe, Truck, FileText } from "lucide-react";
+import { Bell, LayoutDashboard, Package, ShoppingBag, ShieldAlert, Globe, Truck, FileText, Tag } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useIsAdmin } from "@/lib/admin/use-is-admin";
 import { PageLoader } from "@/components/page-loader";
@@ -18,6 +18,7 @@ const TABS = [
   { to: "/admin/orders", label: "Commandes", icon: ShoppingBag, exact: false },
   { to: "/admin/quotes", label: "Devis B2B", icon: FileText, exact: false },
   { to: "/admin/products", label: "Produits", icon: Package, exact: false },
+  { to: "/admin/promotions", label: "Promotions", icon: Tag, exact: false },
   { to: "/admin/countries", label: "Pays", icon: Globe, exact: false },
   { to: "/admin/shipping", label: "Livraison", icon: Truck, exact: false },
 ] as const;

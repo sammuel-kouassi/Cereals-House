@@ -19,7 +19,6 @@ import { ProductCard, ProductCardSkeleton } from "@/components/product-card";
 import { ProductSearchBar } from "@/components/product-search-bar";
 import { useCountry } from "@/lib/country-context";
 import { Flag } from "@/components/flag";
-import { Reveal } from "@/components/reveal";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
 
 type AudienceFilter = "all" | "enfant" | "adulte";
@@ -252,7 +251,7 @@ export function ProductsPage() {
             <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-secondary text-muted-foreground mb-4">
               <Boxes className="h-8 w-8" />
             </div>
-            <h3 className="font-display text-lg font-bold text-primary">
+            <h3 className="font-display text-lg text-primary">
               {t("products.searchNoResults", "Aucun produit ne correspond à votre recherche")}
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -264,47 +263,45 @@ export function ProductsPage() {
                 setAudience("all");
                 setQuery("");
               }}
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2 text-xs font-semibold text-gold-foreground shadow-gold hover:bg-gold/90 transition cursor-pointer"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#2c1b11] px-5 py-2.5 text-sm text-stone-50 transition-colors hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950 cursor-pointer"
             >
               {t("products.showAll", "Afficher toutes les céréales")}
             </button>
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((p, idx) => (
-              <Reveal key={p.id} delay={idx * 40}>
-                <ProductCard
+            {filtered.map((p) => (
+              <ProductCard key={p.id}
                   slug={p.slug}
                   name={p.name}
                   shortDescription={p.short_description}
                   category={p.category}
                   unit={p.unit}
                   prices={p.product_prices}
+                  promotionLabel={p.promotion?.label}
                   audiences={p.audiences}
                   imageUrl={p.image_url}
                   stock={p.stock}
                   layout="grid"
                 />
-              </Reveal>
             ))}
           </div>
         ) : (
           <div className="space-y-4">
-            {filtered.map((p, idx) => (
-              <Reveal key={p.id} delay={idx * 30}>
-                <ProductCard
+            {filtered.map((p) => (
+              <ProductCard key={p.id}
                   slug={p.slug}
                   name={p.name}
                   shortDescription={p.short_description}
                   category={p.category}
                   unit={p.unit}
                   prices={p.product_prices}
+                  promotionLabel={p.promotion?.label}
                   audiences={p.audiences}
                   imageUrl={p.image_url}
                   stock={p.stock}
                   layout="list"
                 />
-              </Reveal>
             ))}
           </div>
         )}

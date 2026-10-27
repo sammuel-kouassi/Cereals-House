@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { query, queryOne } from "@/integrations/neon/db.server";
 import { getCurrentUser } from "@/integrations/neon/auth.server";
+import { getLivePromotions } from "@/lib/promotions/promotions.server";
+import { currencyDecimals, discountedPrice } from "@/lib/promotions/pricing";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const createOrderSchema = z.object({
   countryCode: z.string().length(2),
@@ -32,14 +36,53 @@ export const createOrderFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const user = await getCurrentUser();
 
-    // Recalcul et validation de sécurité du sous-total et du total
+    // Le prix fait foi côté serveur : prix de base du pays (repli CI) moins la
+    // promotion en cours. Un panier resté ouvert après la fin d'une promo ne peut
+    // donc pas être payé à l'ancien prix remisé.
+    const promotions = await getLivePromotions();
+    const resolvedIds = new Map<string, string | null>();
+    for (const item of data.items) {
+      if (!item.productId) continue;
+      let productId: string | null = null;
+      if (UUID_REGEX.test(item.productId)) {
+        productId = item.productId;
+      } else {
+        // Si le productId est un slug (ex: "bouillie-maman-bebe"), on recherche son ID réel
+        const found = await queryOne<{ id: string }>(
+          `SELECT id FROM products WHERE slug = $1 LIMIT 1`,
+          [item.productId]
+        ).catch(() => null);
+        productId = found?.id ?? null;
+      }
+      resolvedIds.set(item.productId, productId);
+      if (!productId) continue;
+
+      const priceRow = await queryOne<{ price: string }>(
+        `SELECT price FROM product_prices
+         WHERE product_id = $1 AND country_code IN ($2, 'CI')
+         ORDER BY (country_code = $2) DESC
+         LIMIT 1`,
+        [productId, data.countryCode]
+      ).catch(() => null);
+      if (!priceRow) continue;
+
+      const promo = promotions.get(productId);
+      const basePrice = Number(priceRow.price);
+      item.unitPrice = promo
+        ? discountedPrice(basePrice, promo.percent_off, currencyDecimals(data.currencyCode))
+        : basePrice;
+      item.lineTotal = item.unitPrice * item.quantity;
+    }
+
     const calculatedSubtotal = data.items.reduce(
       (sum, it) => sum + it.quantity * it.unitPrice,
       0
     );
     const calculatedTotal = calculatedSubtotal + data.shippingFee;
     if (Math.abs(calculatedTotal - data.total) > 2) {
-      throw new Error("Incohérence dans le calcul du montant total.");
+      throw new Error(
+        "Les prix de votre panier ont été mis à jour (promotion terminée ou modifiée). Vérifiez le nouveau montant puis validez à nouveau."
+      );
     }
     const finalSubtotal = calculatedSubtotal;
     const finalTotal = calculatedTotal;
@@ -83,24 +126,8 @@ export const createOrderFn = createServerFn({ method: "POST" })
     }
 
     // 2. Insérer les articles de commande et décrémenter le stock
-    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
     for (const item of data.items) {
-      let resolvedProductId: string | null = null;
-      if (item.productId) {
-        if (UUID_REGEX.test(item.productId)) {
-          resolvedProductId = item.productId;
-        } else {
-          // Si le productId est un slug (ex: "bouillie-maman-bebe"), on recherche son ID réel
-          const found = await queryOne<{ id: string }>(
-            `SELECT id FROM products WHERE slug = $1 LIMIT 1`,
-            [item.productId]
-          ).catch(() => null);
-          if (found?.id) {
-            resolvedProductId = found.id;
-          }
-        }
-      }
+      const resolvedProductId = item.productId ? (resolvedIds.get(item.productId) ?? null) : null;
 
       await query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_image, unit_price, quantity, line_total)

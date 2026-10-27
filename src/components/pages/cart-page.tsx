@@ -4,15 +4,24 @@ import { useTranslation } from "react-i18next";
 import { useCart } from "@/lib/cart-context";
 import { useCountry } from "@/lib/country-context";
 import { formatPrice } from "@/lib/format";
+import { PriceTag, resolvePrice } from "@/components/price-tag";
 import { useLanguageNavigation } from "@/lib/i18n-routing";
+import { useRemoveWithUndo } from "@/lib/use-remove-with-undo";
 
 const WHATSAPP_NUMBER = "2250584637219";
 
 export function CartPage() {
-  const { items, setQty, remove, subtotal } = useCart();
+  const { items, setQty } = useCart();
+  const removeWithUndo = useRemoveWithUndo();
   const { country } = useCountry();
   const { t } = useTranslation();
   const { getLocalizedPath } = useLanguageNavigation();
+  const countryCode = country?.code ?? "CI";
+  const symbol = country?.currency_symbol ?? "FCFA";
+  // Prix du pays sélectionné (remisé si promotion), comme au checkout
+  const cartLines = items.map((it) => ({ it, ...resolvePrice(it.prices, countryCode, it.unitPrice) }));
+  const subtotal = cartLines.reduce((s, l) => s + l.price * l.it.quantity, 0);
+  const savings = cartLines.reduce((s, l) => s + (l.compareAt != null ? (l.compareAt - l.price) * l.it.quantity : 0), 0);
   const shipping = country?.base_shipping_fee ?? 0;
   const total = subtotal + (items.length > 0 ? shipping : 0);
 
@@ -20,12 +29,10 @@ export function CartPage() {
     const lines = [
       t("cart.whatsappIntro", "Bonjour, je souhaite commander :"),
       "",
-      ...items.map(
-        (it) =>
+      ...cartLines.map(
+        ({ it, price }) =>
           `• ${it.name} × ${it.quantity}${
-            country
-              ? ` : ${formatPrice(it.unitPrice * it.quantity, country.currency_code, country.currency_symbol)}`
-              : ""
+            country ? ` : ${formatPrice(price * it.quantity, country.currency_code, country.currency_symbol)}` : ""
           }`,
       ),
       "",
@@ -39,25 +46,22 @@ export function CartPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6 lg:px-8">
-        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gold/15 text-gold motion-safe:animate-[fade-in_0.5s_ease-out_both]">
+        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gold/15 text-gold">
           <ShoppingBag className="h-9 w-9" />
         </div>
         <h1
-          className="mt-6 font-display text-3xl font-bold text-primary motion-safe:animate-[fade-in_0.5s_ease-out_both]"
-          style={{ animationDelay: "80ms" }}
+          className="mt-6 font-display text-3xl text-primary"
         >
           {t("cart.empty", "Votre panier est vide")}
         </h1>
         <p
-          className="mt-2 text-muted-foreground motion-safe:animate-[fade-in_0.5s_ease-out_both]"
-          style={{ animationDelay: "140ms" }}
+          className="mt-2 text-muted-foreground"
         >
           {t("cart.emptyDesc", "Découvrez nos céréales et trouvez votre bonheur.")}
         </p>
         <Link
           to={getLocalizedPath("/products")}
-          className="mt-6 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition-all duration-300 hover:bg-gold/90 motion-safe:animate-[fade-in_0.5s_ease-out_both]"
-          style={{ animationDelay: "200ms" }}
+          className="pressable mt-6 inline-flex items-center gap-2 rounded-full bg-[#2c1b11] px-6 py-3 text-sm text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
         >
           {t("cart.seeShop", "Voir la boutique")} <ArrowRight className="h-4 w-4" />
         </Link>
@@ -67,77 +71,61 @@ export function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="font-display text-4xl font-bold text-primary motion-safe:animate-[fade-in_0.5s_ease-out_both]">
+      <h1 className="font-display text-4xl text-primary">
         {t("cart.title", "Votre panier")}
       </h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-3">
         <ul className="space-y-4 lg:col-span-2">
-          {items.map((it, idx) => (
+          {cartLines.map(({ it, price, compareAt }) => (
             <li
               key={it.productId}
-              style={{ animationDelay: `${idx * 60}ms` }}
-              className="group relative flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all duration-300 hover:border-gold/30 hover:shadow-soft motion-safe:animate-[fade-in_0.5s_ease-out_both]"
+              className="relative flex gap-4 overflow-hidden rounded-2xl border border-border bg-card p-4"
             >
                             <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-secondary">
                 <img
                   src={it.image}
                   alt={it.name}
-                  className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <div className="flex flex-1 flex-col">
                 <Link
                   to={getLocalizedPath(`/products/${it.slug}`)}
-                  className="font-display text-lg font-semibold text-primary transition-colors duration-300 hover:text-gold"
+                  className="font-display text-lg text-primary transition-colors duration-200 hover:text-amber-800 dark:hover:text-gold"
                 >
                   {it.name}
                 </Link>
                 <div className="text-sm text-muted-foreground">
-                  {country
-                    ? formatPrice(it.unitPrice, country.currency_code, country.currency_symbol)
-                    : ""}{" "}
-                  / {it.unit || "kg"}
+                  <PriceTag price={price} compareAt={compareAt} currencySymbol={symbol} size="sm" /> / {it.unit || "kg"}
                 </div>
                 <div className="mt-auto flex items-center justify-between">
-                  <div className="flex items-center rounded-full border border-border transition-colors duration-300 group-hover:border-gold/30">
+                  <div className="flex items-center rounded-full border border-border">
                     <button
                       onClick={() => setQty(it.productId, it.quantity - 1)}
-                      className="grid h-9 w-9 place-items-center rounded-full transition-all duration-200 hover:bg-secondary hover:text-gold active:scale-90"
-                      aria-label="−"
+                      className="grid h-11 w-11 place-items-center rounded-full transition-colors duration-200 hover:bg-secondary"
+                      aria-label={t("cart.decrease", "Diminuer la quantité")}
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span
-                      key={it.quantity}
-                      className="w-8 text-center text-sm font-semibold motion-safe:animate-[fade-in_0.2s_ease-out_both]"
-                    >
+                    <span className="w-8 text-center text-sm tabular-nums" aria-live="polite">
                       {it.quantity}
                     </span>
                     <button
                       onClick={() => setQty(it.productId, it.quantity + 1)}
-                      className="grid h-9 w-9 place-items-center rounded-full transition-all duration-200 hover:bg-secondary hover:text-gold active:scale-90"
-                      aria-label="+"
+                      className="grid h-11 w-11 place-items-center rounded-full transition-colors duration-200 hover:bg-secondary"
+                      aria-label={t("cart.increase", "Augmenter la quantité")}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span
-                      key={it.quantity + it.unitPrice}
-                      className="font-semibold text-primary motion-safe:animate-[fade-in_0.2s_ease-out_both]"
-                    >
-                      {country
-                        ? formatPrice(
-                            it.unitPrice * it.quantity,
-                            country.currency_code,
-                            country.currency_symbol,
-                          )
-                        : ""}
+                    <span className="tabular-nums text-primary">
+                      {formatPrice(price * it.quantity, symbol)}
                     </span>
                     <button
-                      onClick={() => remove(it.productId)}
-                      className="rounded-full p-1.5 text-muted-foreground transition-all duration-200 hover:scale-110 hover:bg-destructive/10 hover:text-destructive active:scale-90"
-                      aria-label={t("cart.remove", "Retirer")}
+                      onClick={() => removeWithUndo(it.slug)}
+                      className="grid h-11 w-11 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`${t("cart.remove", "Retirer")} ${it.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -149,10 +137,9 @@ export function CartPage() {
         </ul>
 
         <aside
-          className="h-fit rounded-2xl border border-border bg-card p-6 motion-safe:animate-[fade-in_0.5s_ease-out_both] lg:sticky lg:top-24"
-          style={{ animationDelay: "120ms" }}
+          className="h-fit rounded-2xl border border-border bg-card p-6 lg:sticky lg:top-24"
         >
-          <h2 className="font-display text-xl font-bold text-primary">{t("cart.summary", "Récapitulatif")}</h2>
+          <h2 className="font-display text-xl text-primary">{t("cart.summary", "Récapitulatif")}</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">{t("cart.subtotal", "Sous-total")}</dt>
@@ -162,6 +149,12 @@ export function CartPage() {
                   : ""}
               </dd>
             </div>
+            {savings > 0 && (
+              <div className="flex justify-between text-xs italic text-amber-800 dark:text-gold">
+                <dt>{t("promo.savingsIncluded", "dont remise promotion")}</dt>
+                <dd className="tabular-nums">−{formatPrice(savings, symbol)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt className="text-muted-foreground">
                 {t("cart.shipping", "Livraison")} ({country?.name})
@@ -172,7 +165,7 @@ export function CartPage() {
                   : ""}
               </dd>
             </div>
-            <div className="flex justify-between border-t border-border pt-3 text-base font-bold">
+            <div className="flex justify-between border-t border-border pt-3 text-base">
               <dt>{t("cart.total", "Total")}</dt>
               <dd className="text-gold">
                 {country ? formatPrice(total, country.currency_code, country.currency_symbol) : ""}
@@ -181,17 +174,17 @@ export function CartPage() {
           </dl>
           <Link
             to={getLocalizedPath("/checkout")}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-gold px-6 py-3.5 text-sm font-semibold text-gold-foreground transition-all duration-300 hover:bg-gold/90"
+            className="pressable group mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#2c1b11] px-6 py-3.5 text-sm text-stone-50 transition-colors duration-200 hover:bg-[#442a1d] dark:bg-gold dark:text-stone-950"
           >
             {t("cart.checkout", "Passer la commande")}{" "}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </Link>
           
           <a
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-6 py-3 text-sm font-semibold text-[#128C4A] transition-all duration-300 hover:bg-[#25D366]/20 dark:text-[#25D366]"
+            className="pressable mt-3 flex w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 px-6 py-3 text-sm text-[#128C4A] transition-colors duration-200 hover:bg-[#25D366]/20 dark:text-[#25D366]"
           >
             <MessageCircle className="h-4 w-4" /> {t("cart.orderViaWhatsapp", "Commander via WhatsApp")}
           </a>

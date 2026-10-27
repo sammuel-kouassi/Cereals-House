@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   PackageCheck,
   Truck,
-  Sparkles,
   Wheat,
   CheckCircle2,
   Quote,
